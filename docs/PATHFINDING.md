@@ -211,22 +211,37 @@ Leaving the world also ends the walk and clears the controls.
 
 Pressing forward moves the player along wherever the camera happens to be
 pointing, which is not where the route goes. HELM makes the player walk the
-route's direction instead, without moving the camera.
+route's direction instead.
 
-The game builds its movement direction from the player's own facing angle, not
-from the keys alone, so HELM puts the facing angle it wants in place for exactly
-as long as the movement is being calculated, then puts the camera's angle back.
-The player walks the correct way, and free look is untouched.
+There are two separate things to fix, and both are needed.
 
-The same is done for jumping, because a jump's horizontal push is also taken
-from the facing angle. Without this, a route that turns would have the player
-jump off in the wrong direction and, more importantly, would walk off in the
-wrong direction on every step that was not a straight continuation of the
-camera.
+**The body has to face the route.** The game takes the direction of travel from
+the player's own facing angle rather than from the keys alone, so HELM turns the
+player to the route's direction for the part of the tick where the game reads
+that angle, then turns them back. With `look.freeLook` on, which is the default,
+the turn is sent to the server but not to the camera: the player's body faces the
+route and the camera stays where you left it. With `look.freeLook` off the camera
+follows the route as well.
 
-The angle that gets sent to the server is the aim angle, so a chest the player is
-walking up to is opened from the right side, and the body faces the route rather
-than wherever the camera is left pointing.
+**The move itself has to be worked out the right way.** That calculation happens
+inside the entity update, which runs before the point above. So for the whole of
+that calculation HELM puts the route's angle in place, and puts the camera's
+angle back immediately after. Without this, the player walks wherever the camera
+points even though the body is turned correctly.
+
+The angle that goes to the server is measured from the rotation the server
+already knows about, not from the camera. That matters precisely because the
+camera and the body are deliberately pointing in different directions: measuring
+from the camera would produce a wildly wrong turn.
+
+Jumping is handled the same way, because a jump's horizontal push is also taken
+from the facing angle.
+
+The order of these steps within a tick matters and is easy to get wrong. The aim
+is worked out at the end of a tick, and the rotation is only cleared at the start
+of the next one, once the movement has already used it. Clearing it at the end of
+the same tick instead leaves the game with no aim to move by, and the player walks
+wherever the camera points.
 
 ## How a route is chosen
 

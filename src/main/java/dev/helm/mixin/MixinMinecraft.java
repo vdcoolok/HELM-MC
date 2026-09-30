@@ -13,6 +13,18 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(Minecraft.class)
 public abstract class MixinMinecraft {
 
+    @Inject(method = "tick", at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/multiplayer/ClientLevel;tickEntities()V",
+            shift = At.Shift.AFTER))
+    private void helmAfterEntities(CallbackInfo callback) {
+        Minecraft client = (Minecraft) (Object) this;
+        if (client.player == null || client.level == null) {
+            return;
+        }
+        LookController.instance().afterPlayerUpdate();
+    }
+
     @Inject(method = "tick", at = @At("TAIL"))
     private void helmTick(CallbackInfo callback) {
         TraceClock.advance();
@@ -21,7 +33,7 @@ public abstract class MixinMinecraft {
             return;
         }
         WorldReport.awaitPlayer();
+        LookController.instance().tick();
         NavigatorAgent.instance().onTick();
-        LookController.instance().afterPlayerUpdate();
     }
 }

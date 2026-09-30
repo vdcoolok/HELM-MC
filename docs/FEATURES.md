@@ -15,7 +15,7 @@
 - Free look, so aiming does not turn the camera
 - Direction control driving forward, back, strafe, jump, sneak and sprint
 - Path line drawn on the world, plus outlines of blocks to break and place
-- Walking follows the route's direction without turning the camera
+- Walking follows the route's direction, with the body turning and the camera left alone
 - Settings stored as text in `.minecraft/HELM/settings.conf`
 - Session log at `.minecraft/HELM/debuglogs.log` recording what HELM did and why
 - Chunk cache at `.minecraft/HELM/cache/` so routes can cross terrain that is no longer loaded

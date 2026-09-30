@@ -57,14 +57,7 @@ public final class LookController {
         sentToServer = new Aim(yaw, pitch);
     }
 
-    public void onWorldChange() {
-        sentToServer = null;
-        target = null;
-    }
 
-    public Aim serverRotation() {
-        return sentToServer;
-    }
 
     public void tick() {
         if (processor != null) {
@@ -80,8 +73,19 @@ public final class LookController {
         if (player == null) {
             return null;
         }
-        previous = new Aim(player.getYRot(), player.getXRot());
-        return processor.from(previous, target);
+        previous = playerRotation(player);
+        Aim actual = processor.from(previous, target);
+        player.setYRot((float) actual.yaw());
+        player.setXRot((float) actual.pitch());
+        return actual;
+    }
+
+    private Aim playerRotation(LocalPlayer player) {
+        boolean freeLook = dev.helm.setting.Settings.holder().look().freeLook();
+        if (freeLook && sentToServer != null) {
+            return sentToServer;
+        }
+        return new Aim(player.getYRot(), player.getXRot());
     }
 
     public void afterPlayerUpdate() {
@@ -115,15 +119,10 @@ public final class LookController {
         if (processor == null) {
             updateSettings(defaultScale(), dev.helm.setting.Settings.holder().look());
         }
-        return processor.from(BlockReach.current(viewer), desired);
-    }
-
-    public Aim forMovementPacket() {
-        if (target == null || processor == null) {
-            return null;
-        }
-        LocalPlayer player = Minecraft.getInstance().player;
-        return player == null ? null : processor.from(BlockReach.current(player), target);
+        Aim from = dev.helm.setting.Settings.holder().look().freeLook() && sentToServer != null
+                ? sentToServer
+                : new Aim(viewer.getYRot(), viewer.getXRot());
+        return processor.from(from, desired);
     }
 
     public boolean hasMovementAim() {
@@ -135,7 +134,7 @@ public final class LookController {
             return null;
         }
         LocalPlayer player = Minecraft.getInstance().player;
-        return player == null ? null : processor.from(BlockReach.current(player), target);
+        return player == null ? null : processor.from(playerRotation(player), target);
     }
 
     public void beginJump() {
@@ -148,7 +147,7 @@ public final class LookController {
             jumping = null;
             return;
         }
-        jumping = processor.from(BlockReach.current(player), target);
+        jumping = processor.from(playerRotation(player), target);
     }
 
     public Float jumpYaw() {
@@ -159,16 +158,6 @@ public final class LookController {
         jumping = null;
     }
 
-    public void keepCameraYaw() {
-        if (target == null || processor == null) {
-            return;
-        }
-        LocalPlayer player = Minecraft.getInstance().player;
-        if (player == null) {
-            return;
-        }
-        player.setYRot((float) processor.from(BlockReach.current(player), target).yaw());
-    }
 
     private void remember(double value, int window) {
         yawTrail.addLast(value);

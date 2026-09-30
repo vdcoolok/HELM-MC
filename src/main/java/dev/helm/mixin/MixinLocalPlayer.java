@@ -1,5 +1,6 @@
 package dev.helm.mixin;
 
+import dev.helm.aim.LookController;
 import dev.helm.control.SteeringInput;
 import dev.helm.navigate.NavigatorAgent;
 import net.minecraft.client.player.ClientInput;
@@ -16,6 +17,14 @@ public abstract class MixinLocalPlayer {
 
     @Shadow
     public ClientInput input;
+
+    @Inject(method = "tick", at = @At(
+            value = "INVOKE",
+            target = "Lnet/minecraft/client/player/AbstractClientPlayer;tick()V",
+            shift = At.Shift.AFTER))
+    private void helmAimBeforeMovement(CallbackInfo callback) {
+        LookController.instance().beforePlayerUpdate();
+    }
 
     @Inject(method = "tick", at = @At("TAIL"))
     private void helmApplySteering(CallbackInfo callback) {

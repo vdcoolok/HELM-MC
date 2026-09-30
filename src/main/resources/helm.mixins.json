@@ -9,7 +9,6 @@
     "MixinChatScreen",
     "MixinMinecraft",
     "MixinLocalPlayer",
-    "MixinLocalPlayerRotation",
     "MixinRotationCapture",
     "MixinLevelRenderer",
     "MixinEntityMovementRotation",
