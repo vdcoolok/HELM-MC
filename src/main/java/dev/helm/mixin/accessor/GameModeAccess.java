@@ -2,49 +2,48 @@ package dev.helm.mixin.accessor;
 
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.gen.Accessor;
-import org.spongepowered.asm.mixin.gen.Invoker;
 
-@Mixin(MultiPlayerGameMode.class)
 public interface GameModeAccess {
 
-    @Accessor("isDestroying")
-    boolean helmIsHitting(MultiPlayerGameMode mode);
+    boolean helmIsHitting();
 
-    @Accessor("isDestroying")
-    void helmSetHitting(MultiPlayerGameMode mode, boolean value);
+    void helmSetHitting(boolean value);
 
-    @Accessor("destroyBlockPos")
-    BlockPos helmCurrentTarget(MultiPlayerGameMode mode);
+    BlockPos helmCurrentTarget();
 
-    @Accessor("destroyDelay")
-    void helmSetDestroyDelay(MultiPlayerGameMode mode, int value);
+    void helmSetDestroyDelay(int value);
 
-    @Invoker("ensureHasSentCarriedItem")
-    void helmSyncCarriedItem(MultiPlayerGameMode mode);
+    void helmSyncCarriedItem();
 
-    static void hitting(MultiPlayerGameMode mode, boolean value) {
-        ((GameModeAccess) mode).helmSetHitting(mode, value);
+    static GameModeAccess of(MultiPlayerGameMode mode) {
+        return (GameModeAccess) mode;
     }
 
     static boolean hitting(MultiPlayerGameMode mode) {
-        return ((GameModeAccess) mode).helmIsHitting(mode);
+        return of(mode).helmIsHitting();
+    }
+
+    static void hitting(MultiPlayerGameMode mode, boolean value) {
+        of(mode).helmSetHitting(value);
+    }
+
+    static BlockPos currentTarget(MultiPlayerGameMode mode) {
+        return of(mode).helmCurrentTarget();
+    }
+
+    static void destroyDelay(MultiPlayerGameMode mode, int value) {
+        of(mode).helmSetDestroyDelay(value);
+    }
+
+    static void syncCarriedItem(MultiPlayerGameMode mode) {
+        of(mode).helmSyncCarriedItem();
     }
 
     static void resetDestroying(MultiPlayerGameMode mode) {
         mode.stopDestroyBlock();
     }
 
-    static void destroyDelay(MultiPlayerGameMode mode, int value) {
-        ((GameModeAccess) mode).helmSetDestroyDelay(mode, value);
-    }
-
-    static void syncCarriedItem(MultiPlayerGameMode mode) {
-        ((GameModeAccess) mode).helmSyncCarriedItem(mode);
-    }
-
     static boolean brokenBlock(MultiPlayerGameMode mode) {
-        return !((GameModeAccess) mode).helmIsHitting(mode);
+        return !of(mode).helmIsHitting();
     }
 }

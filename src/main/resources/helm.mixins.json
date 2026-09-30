@@ -12,7 +12,7 @@
     "MixinLocalPlayerRotation",
     "MixinRotationCapture",
     "MixinLevelRenderer",
-    "accessor.GameModeAccess",
+    "accessor.GameModeAccessMixin",
     "accessor.RenderPipelineAccess",
     "accessor.RenderTypeAccess"
   ],
