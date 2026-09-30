@@ -18,6 +18,11 @@ public final class RegionCodec {
     private RegionCodec() {
     }
 
+    @SuppressWarnings("unchecked")
+    private static Map<String, List<int[]>>[][] newTrackedGrid() {
+        return new Map[GRID][GRID];
+    }
+
     public static void write(CachedRegion region, DataOutputStream out) throws IOException {
         PackedChunk[][] chunks = region.grid();
         int bitmapBytes = ChunkBitmap.byteSize(region.height());
@@ -146,7 +151,7 @@ public final class RegionCodec {
     private static Map<String, List<int[]>>[][] readTracked(int floor, ChunkBitmap[][] bitmaps,
                                                             DataInputStream in)
             throws IOException {
-        Map<String, List<int[]>>[][] tracked = new Map[GRID][GRID];
+        Map<String, List<int[]>>[][] tracked = newTrackedGrid();
         for (int x = 0; x < GRID; x++) {
             for (int z = 0; z < GRID; z++) {
                 if (bitmaps[x][z] == null) {

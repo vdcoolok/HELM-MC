@@ -208,9 +208,21 @@ it if the server enforces a shorter reach than the client thinks it has.
 | `path.cutoffAtLoadBoundary` | `false` | Drop the tail of a route that runs into unloaded chunks |
 | `path.cutoffMinimumLength` | `30` | Routes shorter than this are never shortened |
 | `path.cutoffFactor` | `0.9` | How much of a long unfinished route is kept |
+| `path.ignoreDepth` | `true` | Draw the route even where terrain is in the way |
+| `path.blocksIgnoreDepth` | `true` | Draw the blocks to break and place through terrain |
 
 Turning `path.renderPath` off leaves walking working with nothing drawn, which is
 useful when another mod is already drawing something.
+
+The route is drawn as a translucent line, at 40% opacity, with a flat top edge so
+it reads as a narrow ribbon rather than a bare wire. A run of steps in the same
+direction is drawn as one straight line rather than as a separate segment per
+step, so a long straight walk looks straight. With `path.renderPathAsLine` on,
+the top edge is dropped and only the centre line is drawn.
+
+Both the route and the block outlines are drawn through terrain by default, so you
+can see where you are going while standing somewhere else. Turn
+`path.ignoreDepth` off to have the world hide them.
 
 ## cache
 

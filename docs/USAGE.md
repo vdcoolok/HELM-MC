@@ -104,6 +104,8 @@ The names are listed by `$settings list`. The ones you are most likely to want:
 | `path.renderBlocksToBreak` | `true` | Outline blocks to mine |
 | `path.renderBlocksToPlace` | `true` | Outline blocks to place |
 | `path.lineWidth` | `5.0` | Thickness of the path line |
+| `path.renderPathAsLine` | `false` | Draw a bare centre line instead of a ribbon |
+| `path.ignoreDepth` | `true` | Draw the path through terrain |
 | `path.primaryTimeoutMillis` | `500` | Search time allowed before moving off the start |
 | `path.failureTimeoutMillis` | `2000` | Total search time before giving up |
 | `path.maxChunkBorderFetch` | `50` | Moves into unloaded chunks the search may consider |

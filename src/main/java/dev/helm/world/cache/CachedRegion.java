@@ -62,7 +62,7 @@ public final class CachedRegion {
 
     public void put(int chunkX, int chunkZ, PackedChunk chunk) {
         synchronized (this) {
-            chunks[chunkX - regionX * GRID][chunkZ - regionZ * GRID] = chunk;
+            chunks[chunkX][chunkZ] = chunk;
             unsaved = true;
         }
     }

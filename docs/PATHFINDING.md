@@ -207,6 +207,27 @@ retry.
 
 Leaving the world also ends the walk and clears the controls.
 
+## Walking in the right direction
+
+Pressing forward moves the player along wherever the camera happens to be
+pointing, which is not where the route goes. HELM makes the player walk the
+route's direction instead, without moving the camera.
+
+The game builds its movement direction from the player's own facing angle, not
+from the keys alone, so HELM puts the facing angle it wants in place for exactly
+as long as the movement is being calculated, then puts the camera's angle back.
+The player walks the correct way, and free look is untouched.
+
+The same is done for jumping, because a jump's horizontal push is also taken
+from the facing angle. Without this, a route that turns would have the player
+jump off in the wrong direction and, more importantly, would walk off in the
+wrong direction on every step that was not a straight continuation of the
+camera.
+
+The angle that gets sent to the server is the aim angle, so a chest the player is
+walking up to is opened from the right side, and the body faces the route rather
+than wherever the camera is left pointing.
+
 ## How a route is chosen
 
 ### Cost

@@ -17,6 +17,7 @@ public final class LookController {
     private LookMode mode = LookMode.NONE;
     private Aim sentToServer;
     private Aim previous;
+    private Aim jumping;
     private AimProcessor processor;
     private final Deque<Double> yawTrail = new ArrayDeque<>();
     private final Deque<Double> pitchTrail = new ArrayDeque<>();
@@ -48,6 +49,7 @@ public final class LookController {
 
     public void clear() {
         target = null;
+        jumping = null;
         mode = LookMode.NONE;
     }
 
@@ -122,6 +124,39 @@ public final class LookController {
         }
         LocalPlayer player = Minecraft.getInstance().player;
         return player == null ? null : processor.from(BlockReach.current(player), target);
+    }
+
+    public boolean hasMovementAim() {
+        return target != null && processor != null;
+    }
+
+    public Aim movementAim() {
+        if (target == null || processor == null) {
+            return null;
+        }
+        LocalPlayer player = Minecraft.getInstance().player;
+        return player == null ? null : processor.from(BlockReach.current(player), target);
+    }
+
+    public void beginJump() {
+        if (target == null || processor == null) {
+            jumping = null;
+            return;
+        }
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            jumping = null;
+            return;
+        }
+        jumping = processor.from(BlockReach.current(player), target);
+    }
+
+    public Float jumpYaw() {
+        return jumping == null ? null : (float) jumping.yaw();
+    }
+
+    public void endJump() {
+        jumping = null;
     }
 
     public void keepCameraYaw() {

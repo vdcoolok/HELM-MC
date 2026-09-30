@@ -6,6 +6,8 @@ public final class PathSettings extends SettingSection {
     public static final String RENDER_AS_LINE = "path.renderPathAsLine";
     public static final String RENDER_GOAL = "path.renderGoal";
     public static final String FADE_PATH = "path.fadePath";
+    public static final String PATH_IGNORE_DEPTH = "path.ignoreDepth";
+    public static final String BLOCKS_IGNORE_DEPTH = "path.blocksIgnoreDepth";
     public static final String RENDER_BREAKS = "path.renderBlocksToBreak";
     public static final String RENDER_PLACES = "path.renderBlocksToPlace";
     public static final String LINE_WIDTH = "path.lineWidth";
@@ -25,6 +27,10 @@ public final class PathSettings extends SettingSection {
                 "Draw a straight line through the path instead of boxes.", false);
         flag(RENDER_GOAL, "Render goal", "Draw the goal.", true);
         flag(FADE_PATH, "Fade path", "Path fades out with distance.", false);
+        flag(PATH_IGNORE_DEPTH, "Draw path through walls",
+                "Show the path even where terrain is in the way.", true);
+        flag(BLOCKS_IGNORE_DEPTH, "Draw blocks through walls",
+                "Show the blocks to break and place even where terrain is in the way.", true);
         flag(RENDER_BREAKS, "Render blocks to break",
                 "Outline blocks that will be mined.", true);
         flag(RENDER_PLACES, "Render blocks to place",
@@ -66,6 +72,14 @@ public final class PathSettings extends SettingSection {
 
     public boolean fadePath() {
         return on(FADE_PATH);
+    }
+
+    public boolean pathIgnoreDepth() {
+        return on(PATH_IGNORE_DEPTH);
+    }
+
+    public boolean blocksIgnoreDepth() {
+        return on(BLOCKS_IGNORE_DEPTH);
     }
 
     public boolean renderBlocksToBreak() {

@@ -30,6 +30,6 @@ public abstract class MixinLevelRenderer {
                                CallbackInfo callback) {
         PoseStack pose = new PoseStack();
         pose.mulPose(modelView);
-        RouteOverlay.draw(pose);
+        RouteOverlay.draw(pose, camera);
     }
 }
