@@ -403,18 +403,65 @@ HELM stores user data inside the Minecraft game directory in a top level `HELM`
 folder, on both Windows and Linux. The location is resolved through the game at
 runtime rather than hardcoded. The folder and its `macros` subfolder are created
 the first time a world is joined, with no command needed. Macros live in the
-`macros` folder, and settings live in `settings.conf` next to it.
+`macros` folder, settings live in `settings.conf` next to it, and the session log
+is written to `debuglogs.log`.
 
 | Path | What it holds |
 | --- | --- |
 | `HELM/macros/` | Macro files. You can add your own |
 | `HELM/settings.conf` | Every setting, one per line, as `name = value` |
+| `HELM/debuglogs.log` | What HELM did this session, one line per event |
 
-Both are plain UTF-8 text and safe to edit or back up by hand. No previous
-storage location is read or migrated from; HELM has only ever used this folder.
+All three are plain UTF-8 text. No previous storage location is read or migrated
+from; HELM has only ever used this folder.
+
+### The session log
+
+`debuglogs.log` is written from the moment the game starts, without any command
+or setting to turn on, and is deleted and recreated on the next start. Each line
+carries a wall clock time, the game tick it happened on, and the area it came
+from, so a sequence of events can be read back in order.
+
+It records:
+
+- startup, including the settings that were loaded and the world that was joined
+- every `$goto`: the requested position, the player's position and rotation, the
+  relevant movement settings, how long the search took, how many nodes it looked
+  at, and why it stopped
+- the shape of the resulting route, its first steps and its last steps
+- each step of a walk as it is attempted, with the step kind, the cost the step
+  was planned at and the cost it actually costs now
+- why a walk was abandoned, in words: a step that stopped being possible, a cost
+  that rose too far, too long on one step, or straying from the route
+- a halt, skip or rewind when the player's actual position no longer matches the
+  step the walk expects
+
+### How it is kept small
+
+The log is written so a whole session stays readable rather than becoming
+megabytes. Three kinds of entry are used. Events happen once and are always
+written. Repeats are only written when the value they describe actually changes,
+and when it has not, a note saying how many times in a row it has been
+unchanged. Pulses are written at most once every two seconds per key. A summary
+line is written after 25, 100 and 1000 identical repeats so nothing goes
+unreported entirely.
+
+If the file reaches half a megabyte, the oldest four thousand lines are dropped.
+
+### Failure
+
+Nothing in the logging can take the game down. Every write is guarded, and the
+first failure switches logging off for the session and leaves everything else
+running. If the game directory is not writable, the file simply is not created
+and HELM reports it once rather than every time a world is joined.
+
+The log contains no other mod's output and no account or server details beyond
+the dimension you are in. It is not sent anywhere; it is only useful if you
+choose to attach it.
 
 If the directory cannot be created, for example because the game directory is
 read only, HELM reports it once in chat rather than every time a world is
 joined, and the features that need it remain unavailable. If only the settings
 file cannot be written, HELM says so once and the change still applies for that
-session.
+session. If only the log cannot be written, HELM stays silent and everything else
+works.

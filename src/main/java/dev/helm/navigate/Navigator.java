@@ -13,6 +13,7 @@ import dev.helm.pathfinding.world.BlockView;
 import dev.helm.pathfinding.world.block.WalkRules;
 import dev.helm.pathfinding.world.block.WorkCosts;
 import dev.helm.setting.MovementSettings;
+import dev.helm.setting.PathSettings;
 import dev.helm.setting.Settings;
 import dev.helm.tools.BlockAvoidList;
 import dev.helm.tools.BreakStrength;
@@ -26,10 +27,6 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class Navigator implements MoveEnvironment {
-
-    private static final long PRIMARY_MILLIS = 400L;
-    private static final long FAILURE_MILLIS = 2000L;
-    private static final int MAX_UNLOADED_CROSSINGS = 4;
 
     private final MoveExpander[] expanders = new MoveExpander[MoveKind.values().length];
 
@@ -102,6 +99,11 @@ public final class Navigator implements MoveEnvironment {
     }
 
     @Override
+    public boolean residentChunk(int x, int z) {
+        return view.residentChunk(x, z);
+    }
+
+    @Override
     public int lowestLevel() {
         return view.lowestLevel();
     }
@@ -112,13 +114,22 @@ public final class Navigator implements MoveEnvironment {
     }
 
     @Override
-    public boolean insideBorder(int x, int y, int z) {
-        return view.insideBorder(x, y, z);
+    public boolean entirelyInsideBorder(int x, int z) {
+        return view.entirelyInsideBorder(x, z);
+    }
+
+    @Override
+    public boolean canPlaceAt(int x, int z) {
+        return view.canPlaceAt(x, z);
     }
 
     public Search searchTo(Goal goal, int fromX, int fromY, int fromZ) {
+        PathSettings path = Settings.holder().path();
+        double improvement = path.repropagateImprovement()
+                ? SearchBudget.MIN_IMPROVEMENT
+                : 0;
         return new Search(fromX, fromY, fromZ, goal, view, expanders,
-                new SearchBudget(PRIMARY_MILLIS, FAILURE_MILLIS, MAX_UNLOADED_CROSSINGS,
-                        SearchBudget.MIN_IMPROVEMENT));
+                new SearchBudget(path.primaryTimeoutMillis(), path.failureTimeoutMillis(),
+                        path.maxChunkBorderFetch(), improvement));
     }
 }

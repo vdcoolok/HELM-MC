@@ -106,7 +106,8 @@ public final class StepUpExpander implements MoveExpander {
             if (againstX == x && againstZ == z) {
                 continue;
             }
-            if (!env.insideBorder(againstX, againstY, againstZ)) {
+            if (!env.insideBuildHeight(againstY)
+                    || !env.entirelyInsideBorder(againstX, againstZ)) {
                 continue;
             }
             if (Passability.placeableAgainst(env.stateAt(againstX, againstY, againstZ))) {

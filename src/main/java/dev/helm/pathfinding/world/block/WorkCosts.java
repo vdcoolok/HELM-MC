@@ -53,7 +53,7 @@ public final class WorkCosts {
     }
 
     public boolean avoidBreaking(int x, int y, int z, BlockState state) {
-        if (!world.insideBorder(x, y, z)) {
+        if (!world.insideBuildHeight(y) || !world.entirelyInsideBorder(x, z)) {
             return true;
         }
         Block block = state.getBlock();
@@ -88,6 +88,9 @@ public final class WorkCosts {
 
     public double placeAt(int x, int y, int z, BlockState state) {
         if (!tuning.placeAllowed() || !Passability.replaceableNow(state)) {
+            return MoveCosts.IMPOSSIBLE;
+        }
+        if (!world.insideBuildHeight(y) || !world.canPlaceAt(x, z)) {
             return MoveCosts.IMPOSSIBLE;
         }
         return tuning.placementCost();

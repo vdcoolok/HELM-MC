@@ -39,6 +39,16 @@ public final class NodePath {
         return legs;
     }
 
+    public NodePath truncatedTo(int movements) {
+        if (movements <= 0) {
+            return new NodePath(List.of());
+        }
+        if (movements >= legs.size()) {
+            return this;
+        }
+        return new NodePath(legs.subList(0, movements));
+    }
+
     public int length() {
         return legs.size();
     }

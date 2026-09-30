@@ -104,6 +104,16 @@ The names are listed by `$settings list`. The ones you are most likely to want:
 | `path.renderBlocksToBreak` | `true` | Outline blocks to mine |
 | `path.renderBlocksToPlace` | `true` | Outline blocks to place |
 | `path.lineWidth` | `5.0` | Thickness of the path line |
+| `path.primaryTimeoutMillis` | `500` | Search time allowed before moving off the start |
+| `path.failureTimeoutMillis` | `2000` | Total search time before giving up |
+| `path.maxChunkBorderFetch` | `50` | Moves into unloaded chunks the search may consider |
+
+Searching further or giving up sooner:
+
+```
+$settings set path.failureTimeoutMillis 5000
+$settings set path.maxChunkBorderFetch 200
+```
 
 ## Make a macro
 
@@ -167,9 +177,21 @@ you join a world.
 | --- | --- |
 | `HELM/macros/` | Your macro files. You can add your own |
 | `HELM/settings.conf` | Every setting, one per line, as `name = value` |
+| `HELM/debuglogs.log` | A record of what HELM did this session |
 
 `settings.conf` is plain text. You can read it, edit it by hand, and back it up.
 If it is missing or unreadable, HELM starts from the defaults.
+
+`debuglogs.log` is plain text, one line per event, rewritten from scratch every
+time the game starts. It records the goal you asked for, where the player was,
+what the search decided and why it stopped, and what happened to each step of the
+walk. It stays under half a megabyte by dropping the oldest lines. It is there so
+that a problem can be described accurately rather than guessed at, so attaching
+it to a bug report is welcome. Nothing is written to it except HELM's own
+events, and it is never sent anywhere.
+
+If the file is missing after a session, the game directory was not writable; the
+rest of HELM carries on regardless.
 
 ## If something goes wrong
 

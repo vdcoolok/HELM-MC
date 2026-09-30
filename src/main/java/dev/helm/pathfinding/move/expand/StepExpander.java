@@ -132,7 +132,7 @@ public final class StepExpander implements MoveExpander {
     }
 
     private boolean placeableAt(int x, int y, int z) {
-        if (!env.insideBorder(x, y, z)) {
+        if (!env.insideBuildHeight(y) || !env.entirelyInsideBorder(x, z)) {
             return false;
         }
         return dev.helm.pathfinding.world.block.Passability

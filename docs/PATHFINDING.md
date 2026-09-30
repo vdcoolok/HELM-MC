@@ -26,11 +26,59 @@ The whole route is worked out before the first step. The reply is one of:
 
 The search is timed. It gives up if it runs past its budget without making
 progress, so a goal across an ocean fails in a reasonable time instead of
-freezing the game.
+freezing the game. The clock is read once every 64 nodes, not on every node, so
+timing costs almost nothing.
+
+Three budgets apply, all adjustable under `path`:
+
+- `path.primaryTimeoutMillis` applies until the search has actually moved more
+  than five blocks from where it started. A search wedged in a hole gets the
+  short budget.
+- `path.failureTimeoutMillis` is the hard ceiling and applies the whole time.
+- `path.maxChunkBorderFetch` caps how many moves may land in a chunk the client
+  has not loaded. Reaching the cap ends the search, which is what stops a goal
+  in unloaded terrain from wandering off after data that is not there.
 
 Every step is checked against the real world as it is produced, and a route only
 keeps a node when it is meaningfully closer than the best already known. That is
-what keeps a search across a large area from exploring everything.
+what keeps a search across a large area from exploring everything. That
+threshold is the `0.01` constant behind `path.repropagateImprovement`, which can
+be turned off to let the search revisit nodes freely at the cost of a slower
+search.
+
+### Reading the world
+
+The search does not ask the level for a block state and wait for an answer. It
+holds on to the one chunk it is currently working in, and reads blocks straight
+out of that chunk's section array. This matters because a single node costs tens
+of block reads across a handful of chunks, and a route of a few thousand nodes
+turns into hundreds of thousands of reads.
+
+Two behaviours come out of this that are worth knowing:
+
+- A read outside the world's vertical range, or in a chunk the client has not
+  loaded, returns air rather than failing. The search simply sees open space.
+- A chunk section that holds nothing but air short circuits without any lookup
+  at all, which is most sections in a cave or in open air.
+
+Moves that would cross into an unloaded chunk are rejected outright, and each
+rejection counts towards `path.maxChunkBorderFetch`.
+
+### Shortening a partial route
+
+When the goal is not reachable, the route is deliberately trimmed before it is
+walked, so HELM does not commit the player to a long walk that is known to end
+nowhere.
+
+- `path.cutoffAtLoadBoundary` drops everything from the first position whose
+  chunk the game has not loaded. It is off by default, because the search
+  normally refuses to cross unloaded chunks in the first place.
+- `path.cutoffFactor` and `path.cutoffMinimumLength` shorten a long unfinished
+  route by a fraction. The default keeps 90% of a route once it is at least 30
+  movements long, so a 1000 step route is walked for 902 steps. Routes below
+  `path.cutoffMinimumLength` are never shortened.
+
+A route that reached the goal is never shortened this way.
 
 ### Failure
 

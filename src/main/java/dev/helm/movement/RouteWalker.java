@@ -1,6 +1,7 @@
 package dev.helm.movement;
 
 import dev.helm.control.Control;
+import dev.helm.diag.WalkTrace;
 import dev.helm.movement.step.PlanStep;
 import dev.helm.movement.step.StepContext;
 import dev.helm.movement.step.StepKind;
@@ -76,6 +77,7 @@ public final class RouteWalker {
     public WalkOutcome tick(Route route, MoveTick state, StepContext stepContext) {
         context = stepContext;
         if (index >= route.length()) {
+            WalkTrace.finished(route, index);
             return WalkOutcome.DONE;
         }
         PlanStep step = route.at(index);
@@ -84,22 +86,25 @@ public final class RouteWalker {
 
         int rewound = rewindTo(route, feet);
         if (rewound >= 0) {
+            WalkTrace.rewind(route, index, rewound, feet);
             index = rewound;
             restart();
             return WalkOutcome.CONTINUE;
         }
         int skipped = skipTo(route, feet);
         if (skipped >= 0) {
+            WalkTrace.skip(route, index, skipped, feet);
             index = skipped - 1;
             restart();
             return WalkOutcome.CONTINUE;
         }
-        if (leftBehind(route, stepContext)) {
+        if (leftBehind(route, stepContext, feet)) {
             return WalkOutcome.ABANDONED;
         }
         if (index < route.length() - 1) {
             PlanStep next = route.at(index + 1);
             if (!stepContext.world().loaded(next.toX(), next.toZ())) {
+                WalkTrace.paused(route, index, new int[]{next.toX(), next.toY(), next.toZ()});
                 state.inputs().clear();
                 return WalkOutcome.PAUSED;
             }
@@ -109,23 +114,24 @@ public final class RouteWalker {
             originalCost = pricer.reprice(step);
             costRecorded = true;
             if (impossibleAhead(route)) {
-                abandon();
+                abandon(route, feet, "a following step is no longer possible");
                 return WalkOutcome.ABANDONED;
             }
         }
         double current = pricer.reprice(step);
+        WalkTrace.step(route, index, ticksOnStep, originalCost, current);
         if (current >= dev.helm.pathfinding.cost.MoveCosts.IMPOSSIBLE) {
-            abandon();
+            abandon(route, feet, "this step is no longer possible");
             return WalkOutcome.ABANDONED;
         }
         if (current - originalCost > settings.maxCostIncrease()) {
-            abandon();
+            abandon(route, feet, "cost rose past the allowed increase");
             return WalkOutcome.ABANDONED;
         }
 
         MoveState outcome = runners.advance(stepContext, state, step);
         if (outcome == MoveState.UNREACHABLE || outcome == MoveState.FAILED) {
-            abandon();
+            abandon(route, feet, "step executor returned " + outcome);
             return WalkOutcome.ABANDONED;
         }
         if (outcome == MoveState.SUCCESS) {
@@ -137,12 +143,13 @@ public final class RouteWalker {
         overrideAbilities(stepContext, state);
 
         sprinting = sprintNextTick(route, state);
+        WalkTrace.sprinting(sprinting);
         if (!sprinting && stepContext.player() != null) {
             stepContext.player().setSprinting(false);
         }
         ticksOnStep++;
         if (ticksOnStep > originalCost + settings.movementTimeoutTicks()) {
-            abandon();
+            abandon(route, feet, "ran out of ticks on this step");
             return WalkOutcome.ABANDONED;
         }
         return WalkOutcome.CONTINUE;
@@ -168,19 +175,20 @@ public final class RouteWalker {
         return -1;
     }
 
-    private boolean leftBehind(Route route, StepContext stepContext) {
+    private boolean leftBehind(Route route, StepContext stepContext, int[] feet) {
         double nearest = nearestOnRoute(route, stepContext);
         if (nearest > OFF_PATH_DISTANCE) {
             ticksAway++;
             if (ticksAway > MAX_TICKS_OFF_PATH) {
-                abandon();
+                abandon(route, feet, "strayed from the route for " + ticksAway + " ticks");
                 return true;
             }
         } else {
             ticksAway = 0;
         }
         if (nearest > WAY_OFF_DISTANCE) {
-            abandon();
+            abandon(route, feet, "strayed " + Math.round(nearest * 100.0D) / 100.0D
+                    + " blocks from the route");
             return true;
         }
         return false;
@@ -215,7 +223,10 @@ public final class RouteWalker {
         return false;
     }
 
-    private void abandon() {
+    private void abandon(Route route, int[] feet, String reason) {
+        if (!failed) {
+            WalkTrace.abandon(route, index, reason, feet);
+        }
         failed = true;
         index = Integer.MAX_VALUE;
         releasedControls = true;
@@ -258,7 +269,9 @@ public final class RouteWalker {
     }
 
     public void abort() {
-        abandon();
+        failed = true;
+        index = Integer.MAX_VALUE;
+        releasedControls = true;
     }
 
     private boolean sprintNextTick(Route route, MoveTick state) {

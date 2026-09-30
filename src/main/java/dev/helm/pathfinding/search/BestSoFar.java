@@ -18,14 +18,17 @@ public final class BestSoFar {
         }
     }
 
-    public void offer(Node node, double minImprovement) {
+    public boolean offer(Node node, double minImprovement) {
+        boolean improved = false;
         for (int index = 0; index < best.length; index++) {
             double score = node.estimate + node.cost / SearchBudget.COEFFICIENTS[index];
             if (bestEstimate[index] - score > minImprovement) {
                 bestEstimate[index] = score;
                 best[index] = node;
+                improved = true;
             }
         }
+        return improved;
     }
 
     public Node best(int startX, int startY, int startZ) {

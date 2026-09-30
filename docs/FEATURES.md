@@ -16,6 +16,7 @@
 - Direction control driving forward, back, strafe, jump, sneak and sprint
 - Path line drawn on the world, plus outlines of blocks to break and place
 - Settings stored as text in `.minecraft/HELM/settings.conf`
+- Session log at `.minecraft/HELM/debuglogs.log` recording what HELM did and why
 - Macro system with a readable script syntax
 - `macro` command to create, edit, load, stop and list macros
 - In-chat macro editing with line add, remove, list and move

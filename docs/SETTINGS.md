@@ -201,6 +201,13 @@ it if the server enforces a shorter reach than the client thinks it has.
 | `path.fadePath` | `false` | Fade the route out with distance |
 | `path.lineWidth` | `5.0` | Thickness of the route line, in pixels |
 | `path.goalLineWidth` | `3.0` | Thickness of the goal line, in pixels |
+| `path.primaryTimeoutMillis` | `500` | Milliseconds the search may run before it has moved away from the start |
+| `path.failureTimeoutMillis` | `2000` | Milliseconds the search may run in total before it gives up |
+| `path.maxChunkBorderFetch` | `50` | How many moves into unloaded chunks the search may consider |
+| `path.repropagateImprovement` | `true` | Require a minimum cost improvement before a node is revisited |
+| `path.cutoffAtLoadBoundary` | `false` | Drop the tail of a route that runs into unloaded chunks |
+| `path.cutoffMinimumLength` | `30` | Routes shorter than this are never shortened |
+| `path.cutoffFactor` | `0.9` | How much of a long unfinished route is kept |
 
 Turning `path.renderPath` off leaves walking working with nothing drawn, which is
 useful when another mod is already drawing something.
