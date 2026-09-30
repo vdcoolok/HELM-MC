@@ -8,6 +8,7 @@ public final class Settings {
     private final MiningSettings mining = new MiningSettings();
     private final LookSettings look = new LookSettings();
     private final PathSettings path = new PathSettings();
+    private final CacheSettings cache = new CacheSettings();
 
     public static Settings holder() {
         return CURRENT;
@@ -29,8 +30,12 @@ public final class Settings {
         return path;
     }
 
+    public CacheSettings cache() {
+        return cache;
+    }
+
     public SettingSection[] sections() {
-        return new SettingSection[] {movement, mining, look, path};
+        return new SettingSection[] {movement, mining, look, path, cache};
     }
 
     public void restoreDefaults() {

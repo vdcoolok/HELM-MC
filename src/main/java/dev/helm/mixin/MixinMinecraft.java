@@ -2,6 +2,7 @@ package dev.helm.mixin;
 
 import dev.helm.aim.LookController;
 import dev.helm.diag.TraceClock;
+import dev.helm.diag.WorldReport;
 import dev.helm.navigate.NavigatorAgent;
 import net.minecraft.client.Minecraft;
 import org.spongepowered.asm.mixin.Mixin;
@@ -19,6 +20,7 @@ public abstract class MixinMinecraft {
         if (client.player == null || client.level == null) {
             return;
         }
+        WorldReport.awaitPlayer();
         NavigatorAgent.instance().onTick();
         LookController.instance().afterPlayerUpdate();
     }

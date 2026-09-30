@@ -64,6 +64,90 @@ Two behaviours come out of this that are worth knowing:
 Moves that would cross into an unloaded chunk are rejected outright, and each
 rejection counts towards `path.maxChunkBorderFetch`.
 
+## The chunk cache
+
+A route that needs terrain the game is not holding has nothing to read. HELM
+therefore keeps its own record of chunks it has seen, so a route can cross ground
+the player has already walked past or is too far away to still be loaded.
+
+### What is remembered
+
+Every chunk the client loads is recorded in the background, and so is every
+chunk just before the game unloads it. What is stored is not the whole world. A
+route only needs to know whether a block is open, is water, is something to stay
+out of, or is solid, so each block is stored as two bits saying which of those
+four it is.
+
+On top of that, two exact details are kept, because losing them would change
+where the player can go:
+
+- the topmost non-air block of each of the 256 columns, stored exactly, so that
+  standing on a slab looks like a slab
+- the position of every block HELM tracks exactly, which is containers, shulker
+  boxes, beds, ladders, vines, spawners, anvils, jukeboxes, cobwebs, beacons and
+  similar. Ladders and vines matter most, because a ladder cached as plain
+  stone is a wall the route will refuse to climb.
+
+Everything else is answered by category. Solid becomes the dimension's ordinary
+stone, open becomes air, water becomes water, and something to avoid becomes
+lava, which is the most expensive thing to walk into. This is deliberate: the
+route's decisions are about cost and passability, and those are exactly what the
+two bits record.
+
+### When it is read
+
+A block is read from the live world when the client has that chunk loaded, and
+from the cache only when it does not. That is the default and it is what
+`cache.preferLoadedChunks` controls; turning it off makes the search use the
+cache alone, which is rarely what you want but is useful when you want a route
+computed purely from what HELM remembers.
+
+A chunk counts as loaded for the purposes of the search budget if it is in the
+cache as well, so a route can continue past the edge of the client's view
+instead of stopping dead at it.
+
+### What is not remembered
+
+- A read of a block that is neither in the live world nor in the cache is air.
+  The route sees open space rather than an error.
+- If a cached chunk cannot be read back from disk, that chunk is ignored and the
+  rest of the region is kept. A corrupt file costs you one region, not the cache.
+- The cache is a record of what the world looked like, not a record of where
+  things are. It is not used for placing blocks or for interacting.
+
+### Settings
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `cache.enabled` | `true` | Remember chunks to disk at all |
+| `cache.preferLoadedChunks` | `true` | Read the live world first and fall back to the cache |
+| `cache.pruneFromMemory` | `true` | Release regions more than 1024 blocks away |
+| `cache.queueLimit` | `2000` | Chunks that may wait to be recorded at once |
+| `cache.expirySeconds` | `-1` | Forget chunks older than this; below zero never expires |
+| `cache.repackOnBlockChange` | `true` | Re-read a chunk when a tracked block in it changes |
+
+`cache.enabled` and `cache.preferLoadedChunks` are read when the world loads, so
+changing either of them takes effect the next time you join a world. The rest
+take effect immediately.
+
+### Storage
+
+```
+<game directory>/HELM/cache/<namespace>/<dimension>_<height>/
+```
+
+One folder per dimension per world height, and inside it one file per region, a
+region being 512 by 512 blocks. Files are named `r.<x>.<z>.rcache` and are
+compressed. They are written on a background thread, roughly every ten minutes,
+and when you leave the world.
+
+Changing `cache.expirySeconds` to a positive value is the way to stop the cache
+growing without bound. At the default of `-1` nothing expires, and the cache
+keeps every chunk it has ever seen.
+
+Nothing here is read from a previous storage location, and no folder outside the
+game directory is ever touched.
+
 ### Shortening a partial route
 
 When the goal is not reachable, the route is deliberately trimmed before it is

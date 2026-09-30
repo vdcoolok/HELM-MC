@@ -411,10 +411,29 @@ is written to `debuglogs.log`.
 | `HELM/macros/` | Macro files. You can add your own |
 | `HELM/settings.conf` | Every setting, one per line, as `name = value` |
 | `HELM/debuglogs.log` | What HELM did this session, one line per event |
+| `HELM/cache/` | Remembered chunks, one folder per dimension |
 
 All three are plain UTF-8 text. No previous storage location is read or migrated
 from; HELM has only ever used this folder.
 
+### The chunk cache
+
+`cache/` is the only folder here that is not text. It holds a compressed record
+of the chunks HELM has seen, so that path finding can work out a route across
+terrain the game is not currently holding. It is written on a background thread
+and is never needed for correctness, only for reach.
+
+| Path | What it holds |
+| --- | --- |
+| `HELM/cache/<namespace>/<dimension>_<height>/` | One folder per dimension per world height |
+| `.../r.<x>.<z>.rcache` | One compressed file per 512 by 512 block region |
+
+It is safe to delete while the game is closed; you lose remembered terrain and
+nothing else. `cache.expirySeconds` set to a positive value is the way to have it
+shrink on its own.
+
+See [PATHFINDING.md](PATHFINDING.md) for what is remembered, when it is read, and
+every setting that affects it.
 ### The session log
 
 `debuglogs.log` is written from the moment the game starts, without any command

@@ -107,6 +107,8 @@ The names are listed by `$settings list`. The ones you are most likely to want:
 | `path.primaryTimeoutMillis` | `500` | Search time allowed before moving off the start |
 | `path.failureTimeoutMillis` | `2000` | Total search time before giving up |
 | `path.maxChunkBorderFetch` | `50` | Moves into unloaded chunks the search may consider |
+| `cache.enabled` | `true` | Remember chunks so routes can cross terrain that is no longer loaded |
+| `cache.expirySeconds` | `-1` | Forget cached chunks older than this |
 
 Searching further or giving up sooner:
 
@@ -114,6 +116,17 @@ Searching further or giving up sooner:
 $settings set path.failureTimeoutMillis 5000
 $settings set path.maxChunkBorderFetch 200
 ```
+
+Caching a lot of terrain, or letting it go:
+
+```
+$settings set cache.expirySeconds 604800
+$settings set cache.enabled false
+```
+
+`cache.enabled` and `cache.preferLoadedChunks` apply the next time you join a
+world. The rest apply straight away. See
+[PATHFINDING.md](PATHFINDING.md) for what the cache holds.
 
 ## Make a macro
 
@@ -178,6 +191,7 @@ you join a world.
 | `HELM/macros/` | Your macro files. You can add your own |
 | `HELM/settings.conf` | Every setting, one per line, as `name = value` |
 | `HELM/debuglogs.log` | A record of what HELM did this session |
+| `HELM/cache/` | Remembered chunks, one folder per dimension |
 
 `settings.conf` is plain text. You can read it, edit it by hand, and back it up.
 If it is missing or unreadable, HELM starts from the defaults.
@@ -192,6 +206,11 @@ events, and it is never sent anywhere.
 
 If the file is missing after a session, the game directory was not writable; the
 rest of HELM carries on regardless.
+
+`cache/` is written on a background thread and is safe to delete while the game
+is closed. Deleting it costs you remembered terrain, nothing else. Set
+`cache.expirySeconds` to a positive number if you would rather it shrank on its
+own.
 
 ## If something goes wrong
 

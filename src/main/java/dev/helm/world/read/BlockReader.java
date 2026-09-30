@@ -5,6 +5,9 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.LevelChunkSection;
+import dev.helm.world.cache.CachedRegion;
+import dev.helm.world.cache.RegionStore;
+import dev.helm.world.cache.WorldCache;
 
 public final class BlockReader {
 
@@ -12,14 +15,22 @@ public final class BlockReader {
 
     private final BuildRange range;
     private final ChunkLookup chunks;
+    private final boolean preferLoaded;
+    private final boolean cachingOn;
+    private CachedRegion region;
+    private int regionX;
+    private int regionZ;
 
-    public BlockReader(ClientLevel level) {
-        this(BuildRange.of(level), new ChunkLookup(level));
+    public BlockReader(ClientLevel level, boolean preferLoaded, boolean cachingOn) {
+        this(BuildRange.of(level), new ChunkLookup(level), preferLoaded, cachingOn);
     }
 
-    public BlockReader(BuildRange range, ChunkLookup chunks) {
+    public BlockReader(BuildRange range, ChunkLookup chunks, boolean preferLoaded,
+                       boolean cachingOn) {
         this.range = range;
         this.chunks = chunks;
+        this.preferLoaded = preferLoaded;
+        this.cachingOn = cachingOn;
     }
 
     public BuildRange range() {
@@ -31,10 +42,63 @@ public final class BlockReader {
         if (section < 0 || section >= range.levelCount()) {
             return AIR;
         }
-        LevelChunk chunk = chunks.loaded(x >> 4, z >> 4);
-        if (chunk == null) {
+        if (preferLoaded) {
+            LevelChunk chunk = chunks.loaded(x >> 4, z >> 4);
+            if (chunk != null) {
+                return fromChunk(chunk, x, section, z);
+            }
+        }
+        return cached(x, y, z);
+    }
+
+    public boolean loaded(int x, int z) {
+        if (chunks.loaded(x >> 4, z >> 4) != null) {
+            return true;
+        }
+        return regionAt(x, z) != null;
+    }
+
+    public boolean residentChunk(int x, int z) {
+        return chunks.resident(x >> 4, z >> 4);
+    }
+
+    private BlockState cached(int x, int y, int z) {
+        if (!cachingOn) {
             return AIR;
         }
+        CachedRegion found = regionAt(x, z);
+        if (found == null) {
+            return AIR;
+        }
+        BlockState state = found.stateAt(x, y, z);
+        return state == null ? AIR : state;
+    }
+
+    private CachedRegion regionAt(int x, int z) {
+        if (!cachingOn) {
+            return null;
+        }
+        int wantX = x >> 9;
+        int wantZ = z >> 9;
+        if (region != null && regionX == wantX && regionZ == wantZ) {
+            return region;
+        }
+        RegionStore store = store();
+        if (store == null) {
+            return null;
+        }
+        region = store.region(wantX, wantZ);
+        regionX = wantX;
+        regionZ = wantZ;
+        return region;
+    }
+
+    private RegionStore store() {
+        WorldCache cache = WorldCache.get();
+        return cache == null ? null : cache.store();
+    }
+
+    private BlockState fromChunk(LevelChunk chunk, int x, int section, int z) {
         LevelChunkSection[] sections = chunk.getSections();
         int index = section >> 4;
         if (index < 0 || index >= sections.length) {
@@ -45,13 +109,5 @@ public final class BlockReader {
             return AIR;
         }
         return at.getBlockState(x & 15, section & 15, z & 15);
-    }
-
-    public boolean loaded(int x, int z) {
-        return chunks.loaded(x >> 4, z >> 4) != null;
-    }
-
-    public boolean residentChunk(int x, int z) {
-        return chunks.resident(x >> 4, z >> 4);
     }
 }

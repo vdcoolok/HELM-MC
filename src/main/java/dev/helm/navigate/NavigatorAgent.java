@@ -6,6 +6,8 @@ import dev.helm.movement.step.StepContext;
 import dev.helm.setting.LookSettings;
 import dev.helm.setting.MovementSettings;
 import dev.helm.setting.Settings;
+import dev.helm.world.cache.WorldCache;
+import net.minecraft.client.Minecraft;
 
 public final class NavigatorAgent {
 
@@ -38,6 +40,13 @@ public final class NavigatorAgent {
     }
 
     public void onTick() {
+        WorldCache cache = WorldCache.get();
+        if (cache != null) {
+            var client = Minecraft.getInstance();
+            if (client.player != null) {
+                cache.tick(client.player.getBlockX(), client.player.getBlockZ());
+            }
+        }
         pilot.tick();
     }
 

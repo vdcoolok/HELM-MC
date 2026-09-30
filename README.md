@@ -71,8 +71,10 @@ The game directory is `.minecraft` on Linux and macOS and `%APPDATA%\.minecraft`
 on Windows. HELM resolves this location through the game at runtime and never
 hardcodes it, so the folder is named the same on both platforms. Macros are
 stored in the `macros` folder inside it, settings in `settings.conf` beside it,
-and a plain text record of what HELM did this session in `debuglogs.log`. All
-three are plain text and safe to edit by hand.
+and a plain text record of what HELM did this session in `debuglogs.log`. A
+compressed record of chunks HELM has seen lives in `cache` so routes can cross
+terrain the game no longer holds. The three text files are safe to edit by hand;
+`cache` is safe to delete when the game is closed.
 
 The folder and its `macros` subfolder are created automatically the first time
 you join a world. If they cannot be created, HELM reports it once in chat and

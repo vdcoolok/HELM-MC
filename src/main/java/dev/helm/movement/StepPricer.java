@@ -15,7 +15,7 @@ public final class StepPricer {
     }
 
     public double reprice(PlanStep step) {
-        scratch.clear();
+        scratch.reset(step.fromX(), step.fromY(), step.fromZ(), step.move());
         expanders[step.move().ordinal()].expand(step.fromX(), step.fromY(), step.fromZ(), scratch);
         return scratch.cost;
     }

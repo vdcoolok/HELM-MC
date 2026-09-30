@@ -4,11 +4,13 @@ import dev.helm.aim.LookController;
 import dev.helm.aim.MouseScale;
 import dev.helm.command.CommandSystem;
 import dev.helm.diag.Trace;
+import dev.helm.diag.WorldReport;
 import dev.helm.macro.runtime.MacroController;
 import dev.helm.navigate.NavigatorAgent;
 import dev.helm.setting.Settings;
 import dev.helm.setting.SettingsFile;
 import dev.helm.storage.HelmStorage;
+import dev.helm.world.cache.WorldCache;
 import dev.helm.tools.BlockAvoidList;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -49,12 +51,15 @@ public final class Helm implements ClientModInitializer {
         ClientPlayConnectionEvents.JOIN.register((handler, sender, game) -> {
             Trace.instance().barrier("join");
             Trace.instance().event("join", "world joined: " + game.level.dimension().identifier());
+            WorldReport.restart();
             HelmStorage.prepare();
+            WorldCache.open(game.level);
             NavigatorAgent.instance().onJoin();
-            reportWorld("post-join");
+            reportWorld("join");
         });
         ClientPlayConnectionEvents.DISCONNECT.register((handler, game) -> {
             Trace.instance().event("join", "world left");
+            WorldCache.close();
             NavigatorAgent.instance().onDisconnect();
         });
     }
@@ -66,24 +71,9 @@ public final class Helm implements ClientModInitializer {
             return;
         }
         var agent = NavigatorAgent.instance();
+        int lowest = client.level.getMinY();
         Trace.instance().event(area, "navigator ready=" + agent.navigator().ready()
-                + " y " + client.level.getMinY() + ".." + client.level.getMinY()
-                + client.level.getHeight());
-        Trace.instance().event(area, "player at " + describe(client.player.blockPosition())
-                + " yaw " + round(client.player.getYRot())
-                + " pitch " + round(client.player.getXRot())
-                + " onGround " + client.player.onGround()
+                + " build height " + lowest + " to " + (lowest + client.level.getHeight())
                 + " mode " + client.gameMode.getPlayerMode());
-        Trace.instance().event(area, "looking at "
-                + (client.hitResult == null ? "nothing"
-                        : String.valueOf(client.hitResult.getType())));
-    }
-
-    private static String describe(net.minecraft.core.BlockPos pos) {
-        return pos.getX() + " " + pos.getY() + " " + pos.getZ();
-    }
-
-    private static String round(double value) {
-        return String.format("%.2f", value);
     }
 }

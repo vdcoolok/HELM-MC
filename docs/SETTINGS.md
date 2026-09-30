@@ -211,3 +211,24 @@ it if the server enforces a shorter reach than the client thinks it has.
 
 Turning `path.renderPath` off leaves walking working with nothing drawn, which is
 useful when another mod is already drawing something.
+
+## cache
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `cache.enabled` | `true` | Remember chunks to disk at all |
+| `cache.preferLoadedChunks` | `true` | Read the live world first and fall back to the cache |
+| `cache.pruneFromMemory` | `true` | Release cached regions more than 1024 blocks away |
+| `cache.queueLimit` | `2000` | Chunks that may wait to be recorded at once |
+| `cache.expirySeconds` | `-1` | Forget chunks older than this; below zero never expires |
+| `cache.repackOnBlockChange` | `true` | Re-read a chunk when a tracked block in it changes |
+
+`cache.enabled` and `cache.preferLoadedChunks` are read when a world loads, so
+changing them takes effect the next time you join a world. The other four apply
+immediately.
+
+`cache.expirySeconds` is the setting to reach for if the cache is growing without
+bound. Setting it to something like `604800`, one week, keeps recent terrain and
+drops the rest.
+
+See [PATHFINDING.md](PATHFINDING.md) for what is remembered and how it is read.

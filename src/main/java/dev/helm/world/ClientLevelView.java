@@ -6,6 +6,8 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import dev.helm.pathfinding.world.BlockView;
+import dev.helm.setting.CacheSettings;
+import dev.helm.setting.Settings;
 import dev.helm.world.read.BlockReader;
 import dev.helm.world.read.WorldBounds;
 
@@ -21,8 +23,12 @@ public final class ClientLevelView implements BlockView {
     }
 
     public ClientLevelView(ClientLevel level, Set<Block> doNotBreak) {
+        this(level, doNotBreak, Settings.holder().cache());
+    }
+
+    public ClientLevelView(ClientLevel level, Set<Block> doNotBreak, CacheSettings cache) {
         this.level = level;
-        this.reader = new BlockReader(level);
+        this.reader = new BlockReader(level, cache.preferLoaded(), cache.enabled());
         this.bounds = new WorldBounds(level.getWorldBorder());
         this.doNotBreak = doNotBreak;
     }

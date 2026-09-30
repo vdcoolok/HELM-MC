@@ -173,7 +173,7 @@ public final class Search {
     }
 
     private double expand(Node current, MoveKind move) {
-        scratch.clear();
+        scratch.reset(current.x, current.y, current.z, move);
         expanders[move.ordinal()].expand(current.x, current.y, current.z, scratch);
         return scratch.cost;
     }
