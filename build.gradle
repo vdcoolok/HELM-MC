@@ -54,7 +54,7 @@ processResources {
             java_version     : project.java_version
     ]
     inputs.properties expansions
-    filesMatching('fabric.mod.json') {
+    filesMatching(['fabric.mod.json', 'helm.mixins.json']) {
         expand expansions
     }
 }

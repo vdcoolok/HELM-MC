@@ -1,3 +1,5 @@
+HELM*.jar
+
 .gradle/
 build/
 out/
@@ -6,4 +8,6 @@ logs/
 .idea/
 *.iml
 reference/
-.gradle-user-home/
+.vscode/
+.DS_Store
+Thumbs.db

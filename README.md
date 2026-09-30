@@ -1,42 +1,47 @@
 # HELM
 
-Minecraft client automation mod for Fabric. Navigation, movement, world interaction, combat, inventory handling and schematic construction.
+Minecraft client automation mod for Fabric. Navigation, movement, world
+interaction, combat, inventory handling and schematic construction.
 
-## Requirements
+- Minecraft: 26.2
+- Fabric Loader: 0.19.3 or newer
+- Fabric API: 0.161.0+26.2
+- Java: 25
 
-- Minecraft 26.2
-- Fabric Loader 0.19.3 or newer
-- Fabric API for 26.2
-- JDK 25
+## Documentation
+
+| Document | Contents |
+| --- | --- |
+| [docs/FEATURES.md](docs/FEATURES.md) | Short index of every feature |
+| [docs/USAGE.md](docs/USAGE.md) | How to use every command |
+| [docs/FULLYEXPLAINEDFEATURES.md](docs/FULLYEXPLAINEDFEATURES.md) | Detailed behaviour of every feature |
 
 ## Building
 
-The build produces `build/libs/HELM<version>-<minecraft version>.jar`.
+The build produces `HELM<version>-<minecraft version>.jar`, for example
+`HELM0.0.1-26.2.jar`, and copies it to the repository root.
 
-On Linux and macOS:
-
-```
-./gradlew build
-```
-
-On Windows:
+Linux and macOS:
 
 ```
-gradlew.bat build
+./build.sh
 ```
 
-Both wrappers are committed, so no separate Gradle installation is needed. The
-Gradle wrapper selects the required Gradle and JDK versions automatically.
+Windows:
 
-To clear regenerable build output and then produce the jar:
+```
+build.bat
+```
+
+To build without the convenience scripts:
 
 | Platform | Command |
 | --- | --- |
-| Linux, macOS | `./build.sh` |
-| Windows | `build.bat` |
+| Linux, macOS | `./gradlew build` |
+| Windows | `gradlew.bat build` |
 
-Both scripts delegate to the `helmBuild` Gradle task, so the underlying work is
-identical on every platform.
+Both Gradle wrappers are committed, so no separate Gradle installation is
+needed. The wrapper selects the required Gradle and Java versions.
 
 ## Running the development client
 
@@ -45,48 +50,60 @@ identical on every platform.
 | Linux, macOS | `./gradlew runClient` |
 | Windows | `gradlew.bat runClient` |
 
-## Gradle tasks
+## Installing
 
-| Task | Purpose |
-| --- | --- |
-| `build` | Compile, process resources and assemble the jar. |
-| `helmBuild` | Remove regenerable build output, then run `build`. |
-| `cleanCaches` | Remove build output, the run directory and stale toolchain locks. |
-| `purgeLoomCache` | Remove the project toolchain cache. Run on its own. |
-| `runClient` | Launch the development client. |
+Copy the built jar into the `mods` folder of the Minecraft instance you want to
+use it with, and make sure Fabric API is installed alongside it.
 
-`cleanCaches` deliberately keeps the shared dependency and Minecraft caches,
-because removing them only makes builds slower. `purgeLoomCache` is a separate
-task because the project toolchain cache is populated during configuration and
-cannot be removed while a build is in progress.
+## Where user data is stored
+
+HELM stores its user data inside the Minecraft game directory, in a top level
+`HELM` folder:
+
+```
+<game directory>/HELM/
+```
+
+The game directory is `.minecraft` on Linux and macOS and `%APPDATA%\.minecraft`
+on Windows. HELM resolves this location through the game at runtime and never
+hardcodes it, so the folder is named the same on both platforms.
 
 ## Project layout
 
-Source lives under `src/main/java/dev/helm`.
+Source lives under `src/main/java/dev/helm`. Folders are created as the
+features they serve are added, so every folder in the tree contains code that
+does something.
 
 | Package | Responsibility |
 | --- | --- |
-| `client` | Client lifecycle and access to client state. |
-| `command` | Command registration and dispatch. |
-| `config` | User configuration. |
-| `combat` | Targeting and combat behaviour. |
-| `entity` | Entity queries and tracking. |
-| `interaction` | Block and item interaction. |
-| `inventory` | Inventory and item handling. |
-| `movement` | Movement control. |
-| `navigation` | Navigation goals and request handling. |
-| `pathfinding` | Path search and path representation. |
-| `rotation` | Player rotation control. |
-| `schematic` | Schematic loading and placement. |
-| `task` | Task execution. |
-| `util` | Shared helpers. |
-| `world` | World, block and collision queries. |
+| `command` | Command declaration, parsing, execution and dispatch |
+| `mixin` | Mixins declared by `helm.mixins.json` |
 
-Minecraft-specific hooks are kept in `client` and in the mixin package declared
-by `helm.mixins.json`.
+Minecraft and Fabric specific hooks live in `mixin`, while command behaviour is
+expressed in terms of small, focused components under `command`.
+
+## Contributing
+
+1. Fork the repository and create a branch.
+2. Make your change, including the documentation updates it requires.
+3. Build on the platform you have available:
+
+   | Platform | Command |
+   | --- | --- |
+   | Linux, macOS | `./build.sh` |
+   | Windows | `build.bat` |
+
+4. Commit with a short message that describes the change.
+5. Open a pull request.
+
+No platform specific tooling is required. Building on either platform needs
+only its own Gradle wrapper, which is committed.
+
+Windows and Linux are both supported. Changes that would only work on one
+platform are not acceptable.
 
 ## License
 
 HELM is licensed under the GNU Lesser General Public License v3.0. See
 [LICENSE](LICENSE) for the LGPL terms and [COPYING](COPYING) for the GNU General
-Public License v3.0 that they incorporate.
+Public License v3.0 that it incorporates.
