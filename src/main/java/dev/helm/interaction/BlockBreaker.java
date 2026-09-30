@@ -7,7 +7,7 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.HitResult;
 
-import dev.helm.mixin.accessor.GameModeAccess;
+import dev.helm.access.GameModeControl;
 import dev.helm.setting.Settings;
 
 public final class BlockBreaker {
@@ -20,8 +20,8 @@ public final class BlockBreaker {
     public void stop() {
         Minecraft client = Minecraft.getInstance();
         if (client.player != null && wasHitting) {
-            GameModeAccess.hitting(client.gameMode, false);
-            GameModeAccess.resetDestroying(client.gameMode);
+            GameModeControl.setHitting(client.gameMode, false);
+            GameModeControl.resetDestroying(client.gameMode);
             wasHitting = false;
         }
     }
@@ -44,22 +44,22 @@ public final class BlockBreaker {
         BlockPos pos = ((net.minecraft.world.phys.BlockHitResult) trace).getBlockPos();
         Direction face = ((net.minecraft.world.phys.BlockHitResult) trace).getDirection();
 
-        GameModeAccess.hitting(mode, wasHitting);
-        if (GameModeAccess.brokenBlock(mode)) {
-            GameModeAccess.syncCarriedItem(mode);
+        GameModeControl.setHitting(mode, wasHitting);
+        if (GameModeControl.brokenBlock(mode)) {
+            GameModeControl.syncCarriedItem(mode);
             mode.startDestroyBlock(pos, face);
             player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
         } else {
             if (mode.continueDestroyBlock(pos, face)) {
                 player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
             }
-            if (GameModeAccess.brokenBlock(mode)) {
+            if (GameModeControl.brokenBlock(mode)) {
                 delay = Settings.holder().movement().blockBreakSpeed() - BASE_DELAY;
-                GameModeAccess.destroyDelay(mode, 0);
+                GameModeControl.setDestroyDelay(mode, 0);
             }
         }
-        wasHitting = !GameModeAccess.brokenBlock(mode);
-        GameModeAccess.hitting(mode, false);
+        wasHitting = !GameModeControl.brokenBlock(mode);
+        GameModeControl.setHitting(mode, false);
     }
 
     public boolean isBreaking() {

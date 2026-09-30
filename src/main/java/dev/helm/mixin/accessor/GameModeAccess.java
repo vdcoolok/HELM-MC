@@ -1,49 +1,32 @@
 package dev.helm.mixin.accessor;
 
+import dev.helm.access.GameModeControl;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
+import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.gen.Accessor;
+import org.spongepowered.asm.mixin.gen.Invoker;
 
-public interface GameModeAccess {
+@Mixin(MultiPlayerGameMode.class)
+public abstract class GameModeAccess implements GameModeControl {
 
-    boolean helmIsHitting();
+    @Accessor("isDestroying")
+    @Override
+    public abstract boolean hitting();
 
-    void helmSetHitting(boolean value);
+    @Accessor("isDestroying")
+    @Override
+    public abstract void setHitting(boolean value);
 
-    BlockPos helmCurrentTarget();
+    @Accessor("destroyBlockPos")
+    @Override
+    public abstract BlockPos currentTarget();
 
-    void helmSetDestroyDelay(int value);
+    @Accessor("destroyDelay")
+    @Override
+    public abstract void setDestroyDelay(int value);
 
-    void helmSyncCarriedItem();
-
-    static GameModeAccess of(MultiPlayerGameMode mode) {
-        return (GameModeAccess) mode;
-    }
-
-    static boolean hitting(MultiPlayerGameMode mode) {
-        return of(mode).helmIsHitting();
-    }
-
-    static void hitting(MultiPlayerGameMode mode, boolean value) {
-        of(mode).helmSetHitting(value);
-    }
-
-    static BlockPos currentTarget(MultiPlayerGameMode mode) {
-        return of(mode).helmCurrentTarget();
-    }
-
-    static void destroyDelay(MultiPlayerGameMode mode, int value) {
-        of(mode).helmSetDestroyDelay(value);
-    }
-
-    static void syncCarriedItem(MultiPlayerGameMode mode) {
-        of(mode).helmSyncCarriedItem();
-    }
-
-    static void resetDestroying(MultiPlayerGameMode mode) {
-        mode.stopDestroyBlock();
-    }
-
-    static boolean brokenBlock(MultiPlayerGameMode mode) {
-        return !of(mode).helmIsHitting();
-    }
+    @Invoker("ensureHasSentCarriedItem")
+    @Override
+    public abstract void syncCarriedItem();
 }

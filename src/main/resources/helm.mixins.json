@@ -12,7 +12,7 @@
     "MixinLocalPlayerRotation",
     "MixinRotationCapture",
     "MixinLevelRenderer",
-    "accessor.GameModeAccessMixin"
+    "accessor.GameModeAccess"
   ],
   "injectors": {
     "defaultRequire": 1
