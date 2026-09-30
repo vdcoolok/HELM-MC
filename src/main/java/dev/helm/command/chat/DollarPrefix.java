@@ -3,6 +3,7 @@ package dev.helm.command.chat;
 public final class DollarPrefix {
 
     public static final char PREFIX = '$';
+    public static final int PREFIX_LENGTH = 1;
 
     private DollarPrefix() {
     }

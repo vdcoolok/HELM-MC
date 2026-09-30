@@ -1,11 +1,8 @@
 package dev.helm.command.builtin;
 
-import java.util.List;
-
-import dev.helm.command.CommandDefinition;
-import dev.helm.command.CommandRegistry;
+import dev.helm.command.Command;
 import dev.helm.command.CommandResult;
-import net.fabricmc.loader.api.FabricLoader;
+import dev.helm.command.CommandFeedback;
 
 public final class VersionCommand {
 
@@ -14,19 +11,15 @@ public final class VersionCommand {
     private VersionCommand() {
     }
 
-    public static void register(CommandRegistry registry) {
-        registry.register(new CommandDefinition("version", List.of("ver"),
-                "Shows the loaded HELM version.",
-                List.of(),
-                call -> {
-                    call.output().feedback(dev.helm.command.CommandFeedback
-                            .success("version " + resolveVersion()));
-                    return CommandResult.SUCCESS;
-                }));
+    public static Command build() {
+        return Command.leaf("version", call -> {
+            call.output().feedback(CommandFeedback.success("version " + resolveVersion()));
+            return CommandResult.SUCCESS;
+        }).also("ver").describedAs("Shows the loaded HELM version.");
     }
 
     public static String resolveVersion() {
-        return FabricLoader.getInstance()
+        return net.fabricmc.loader.api.FabricLoader.getInstance()
                 .getModContainer(MOD_ID)
                 .map(container -> container.getMetadata().getVersion().getFriendlyString())
                 .orElse("unknown");

@@ -1,28 +1,31 @@
 package dev.helm.command;
 
+import dev.helm.command.builtin.ExitEditModeCommand;
 import dev.helm.command.builtin.HelpCommand;
+import dev.helm.command.builtin.MacroCommand;
 import dev.helm.command.builtin.VersionCommand;
-import dev.helm.command.brigadier.ClientCommandRegistrar;
-import dev.helm.command.chat.DollarCommandHandler;
 import dev.helm.command.chat.DollarPrefix;
 import dev.helm.command.chat.SystemMessageOutput;
+import dev.helm.macro.runtime.MacroController;
+import dev.helm.storage.HelmStorage;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.chat.Component;
 
 public final class CommandSystem {
-
-    private static final CommandRegistry REGISTRY = new CommandRegistry();
 
     private CommandSystem() {
     }
 
     public static void start() {
-        HelpCommand.register(REGISTRY);
-        VersionCommand.register(REGISTRY);
-        ClientCommandRegistrar.register(CommandRoot.NAME, REGISTRY);
-    }
-
-    public static CommandRegistry registry() {
-        return REGISTRY;
+        CommandTree.instance().install(
+                HelpCommand.build(),
+                MacroCommand.build(),
+                VersionCommand.build(),
+                ExitEditModeCommand.build());
+        MacroController.instance().install();
+        ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HelmStorage.prepare()
+                .ifPresent(problem -> new SystemMessageOutput(client).error(Component.literal(problem))));
     }
 
     public static boolean isCommandLine(String message) {
@@ -30,7 +33,6 @@ public final class CommandSystem {
     }
 
     public static CommandResult dispatch(Minecraft client, String message) {
-        CommandOutput output = new SystemMessageOutput(client);
-        return new DollarCommandHandler(REGISTRY, output).handle(DollarPrefix.body(message));
+        return CommandTree.instance().dispatch(DollarPrefix.body(message), new SystemMessageOutput(client));
     }
 }

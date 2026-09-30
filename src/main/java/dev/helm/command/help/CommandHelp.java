@@ -4,10 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import dev.helm.command.ArgumentDefinition;
-import dev.helm.command.CommandDefinition;
+import dev.helm.command.Command;
+import dev.helm.command.CommandFeedback;
 import dev.helm.command.CommandOutput;
-import dev.helm.command.CommandRegistry;
 import dev.helm.command.CommandTheme;
+import dev.helm.command.CommandTree;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
@@ -19,43 +20,53 @@ public final class CommandHelp {
     private CommandHelp() {
     }
 
-    public static void send(CommandRegistry registry, String root, CommandOutput output) {
-        output.feedback(header(root));
-        for (MutableComponent entry : entries(registry)) {
-            output.feedback(entry);
+    public static void send(CommandTree tree, CommandOutput output) {
+        output.feedback(CommandTheme.brand().append(
+                Component.literal("Commands").withStyle(ChatFormatting.WHITE)));
+        for (Command command : tree.roots()) {
+            if (command.isVisible()) {
+                output.feedback(entry(command, "$" + command.name()));
+            }
         }
     }
 
-    public static Component header(String root) {
-        MutableComponent header = CommandTheme.brand();
-        header.append(Component.literal("Commands").withStyle(ChatFormatting.WHITE));
-        return header.append(Component.literal("  $name or /" + root + " name").withStyle(ChatFormatting.DARK_GRAY));
-    }
-
-    public static List<MutableComponent> entries(CommandRegistry registry) {
-        List<MutableComponent> entries = new ArrayList<>();
-        for (CommandDefinition definition : registry.all()) {
-            entries.add(entry(definition));
+    public static void sendGroup(Command group, CommandOutput output) {
+        output.feedback(CommandTheme.brand().append(
+                Component.literal(group.path()).withStyle(ChatFormatting.WHITE)));
+        for (Command child : group.children()) {
+            if (child.isVisible()) {
+                output.feedback(entry(child, "$" + child.path()));
+            }
         }
-        return entries;
     }
 
-    private static MutableComponent entry(CommandDefinition definition) {
+    private static MutableComponent entry(Command command, String fill) {
         MutableComponent line = Component.literal("  ");
-        line.append(Component.literal(definition.name()).withStyle(ChatFormatting.WHITE));
-        line.append(Component.literal(" - " + definition.description()).withStyle(ChatFormatting.GRAY));
+        line.append(Component.literal(command.name()).withStyle(ChatFormatting.WHITE));
+        if (!command.description().isEmpty()) {
+            line.append(Component.literal(" - " + command.description()).withStyle(ChatFormatting.GRAY));
+        }
         return line.setStyle(line.getStyle()
-                .withHoverEvent(new HoverEvent.ShowText(details(definition)))
-                .withClickEvent(new ClickEvent.SuggestCommand("$" + definition.name())));
+                .withHoverEvent(new HoverEvent.ShowText(details(command)))
+                .withClickEvent(new ClickEvent.SuggestCommand(fill)));
     }
 
-    private static Component details(CommandDefinition definition) {
-        MutableComponent detail = Component.literal(definition.usage()).withStyle(ChatFormatting.WHITE);
-        if (!definition.aliases().isEmpty()) {
-            detail.append(Component.literal("  " + String.join(", ", definition.aliases()))
-                    .withStyle(ChatFormatting.DARK_GRAY));
+    private static Component details(Command command) {
+        MutableComponent detail = Component.literal(command.usage()).withStyle(ChatFormatting.WHITE);
+        if (command.children().isEmpty()) {
+            List<String> labels = command.labels();
+            if (labels.size() > 1) {
+                detail.append(Component.literal("  " + String.join(", ", labels.subList(1, labels.size())))
+                        .withStyle(ChatFormatting.DARK_GRAY));
+            }
+        } else {
+            for (Command child : command.children()) {
+                if (child.isVisible()) {
+                    detail.append(Component.literal("\n" + child.path()).withStyle(ChatFormatting.GRAY));
+                }
+            }
         }
-        for (ArgumentDefinition argument : definition.arguments()) {
+        for (ArgumentDefinition argument : command.arguments()) {
             detail.append(Component.literal("\n" + argument.describe()).withStyle(ChatFormatting.GRAY));
         }
         detail.append(Component.literal("\nClick to fill the command").withStyle(ChatFormatting.DARK_GRAY));

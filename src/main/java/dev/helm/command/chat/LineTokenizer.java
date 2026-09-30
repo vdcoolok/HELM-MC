@@ -12,38 +12,35 @@ public final class LineTokenizer {
         List<String> tokens = new ArrayList<>();
         StringBuilder current = new StringBuilder();
         boolean inQuotes = false;
-        boolean tokenStarted = false;
+        boolean started = false;
 
         for (int index = 0; index < line.length(); index++) {
             char character = line.charAt(index);
 
             if (character == '\\' && index + 1 < line.length()) {
                 current.append(line.charAt(index + 1));
-                tokenStarted = true;
+                started = true;
                 index++;
                 continue;
             }
-
             if (character == '"') {
                 inQuotes = !inQuotes;
-                tokenStarted = true;
+                started = true;
                 continue;
             }
-
             if (Character.isWhitespace(character) && !inQuotes) {
-                if (tokenStarted) {
+                if (started) {
                     tokens.add(current.toString());
                     current.setLength(0);
-                    tokenStarted = false;
+                    started = false;
                 }
                 continue;
             }
-
             current.append(character);
-            tokenStarted = true;
+            started = true;
         }
 
-        if (tokenStarted) {
+        if (started) {
             tokens.add(current.toString());
         }
         return tokens;

@@ -1,8 +1,8 @@
 package dev.helm.command;
 
-public record CommandCall(CommandDefinition definition,
-                           CommandRegistry registry,
-                           String label,
-                           ArgumentAccess arguments,
-                           CommandOutput output) {
+public record CommandCall(Command command, ArgumentAccess arguments, CommandOutput output) {
+
+    public String label() {
+        return command.path();
+    }
 }
