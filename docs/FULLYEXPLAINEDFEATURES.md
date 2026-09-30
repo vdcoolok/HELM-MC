@@ -32,8 +32,8 @@ Both entry points dispatch to the same implementation. For any given command:
 - the same aliases work
 - the same help text is shown
 
-The command list and help output are generated from the same declaration, so the
-two entry points cannot drift apart.
+The command list, help output and command suggestions are all generated from the
+same declaration, so the two entry points cannot drift apart.
 
 A message that does not begin with `$` is treated as ordinary chat and is sent
 normally.
@@ -71,6 +71,31 @@ $ver
 /helm ver
 ```
 
+### Command suggestions
+
+Typing `$` in the chat box opens the command suggestion list, the same way
+typing `/` opens the client command list. The list is produced from the same
+declarations as the commands themselves, so it cannot list a command that does
+not exist or omit one that does.
+
+The list narrows as you type. Arrow keys move through it, and tab or enter fills
+in the highlighted command. Suggestions stop at a completed command name, so a
+command with no arguments does not offer anything after its name.
+
+### The command list
+
+The command list shows one line per command:
+
+```
+[HELM] Commands  $name or /helm name
+  help - Lists every available command.
+  version - Shows the loaded HELM version.
+```
+
+Lines are kept short so they do not wrap. Full syntax, aliases and argument
+details appear when a line is hovered. Clicking a line fills that command into
+the chat box without sending anything to the server.
+
 ### Adding a command
 
 A command is declared in one place. Registering it makes it available through
@@ -96,8 +121,6 @@ finishes.
 ### Limitations
 
 - The `$` prefix is not configurable.
-- Tab completion is available through the standard form. The short form does
-  not yet offer completion inside the chat box.
 - The `$` prefix is a client side feature. Other players and the server do not
   see command lines.
 

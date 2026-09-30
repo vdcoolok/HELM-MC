@@ -26,7 +26,7 @@ public final class DollarCommandHandler {
     public CommandResult handle(String body) {
         String trimmed = body.trim();
         if (trimmed.isEmpty()) {
-            output.feedback(CommandHelp.render(registry, CommandRoot.NAME));
+            CommandHelp.send(registry, CommandRoot.NAME, output);
             return CommandResult.SUCCESS;
         }
 

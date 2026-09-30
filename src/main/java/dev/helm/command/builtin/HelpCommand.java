@@ -18,7 +18,7 @@ public final class HelpCommand {
                 "Lists every available command.",
                 List.of(),
                 call -> {
-                    call.output().feedback(CommandHelp.render(call.registry(), CommandRoot.NAME));
+                    CommandHelp.send(call.registry(), CommandRoot.NAME, call.output());
                     return CommandResult.SUCCESS;
                 }));
     }

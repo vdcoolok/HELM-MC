@@ -21,6 +21,10 @@ public final class CommandSystem {
         ClientCommandRegistrar.register(CommandRoot.NAME, REGISTRY);
     }
 
+    public static CommandRegistry registry() {
+        return REGISTRY;
+    }
+
     public static boolean isCommandLine(String message) {
         return DollarPrefix.isCommand(message);
     }

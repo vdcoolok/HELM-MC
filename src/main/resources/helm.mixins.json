@@ -4,7 +4,8 @@
   "package": "dev.helm.mixin",
   "compatibilityLevel": "JAVA_${java_version}",
   "client": [
-    "MixinClientPacketListener"
+    "MixinClientPacketListener",
+    "MixinCommandSuggestions"
   ],
   "injectors": {
     "defaultRequire": 1

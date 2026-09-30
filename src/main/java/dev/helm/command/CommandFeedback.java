@@ -12,15 +12,15 @@ public final class CommandFeedback {
     }
 
     public static MutableComponent error(String message) {
-        return prefixed(message, ChatFormatting.RED);
+        return line(message, ChatFormatting.RED);
     }
 
     public static MutableComponent success(String message) {
-        return prefixed(message, ChatFormatting.GREEN);
+        return line(message, ChatFormatting.GREEN);
     }
 
     public static MutableComponent info(String message) {
-        return prefixed(message, ChatFormatting.GRAY);
+        return line(message, ChatFormatting.GRAY);
     }
 
     public static MutableComponent unknownCommand(String label) {
@@ -35,9 +35,8 @@ public final class CommandFeedback {
         return error("Invalid value for " + name + ": " + token);
     }
 
-    private static MutableComponent prefixed(String message, ChatFormatting colour) {
-        MutableComponent line = Component.literal(PREFIX);
-        line.withStyle(ChatFormatting.DARK_AQUA);
-        return line.append(Component.literal(message).withStyle(colour));
+    private static MutableComponent line(String message, ChatFormatting colour) {
+        MutableComponent output = CommandTheme.brand();
+        return output.append(Component.literal(message).withStyle(colour));
     }
 }

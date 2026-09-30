@@ -90,7 +90,7 @@ public final class HelmCommandTree {
     }
 
     private static int help(CommandContext<FabricClientCommandSource> context, CommandRegistry registry) {
-        new SourceOutput(context.getSource()).feedback(CommandHelp.render(registry, CommandRoot.NAME));
+        CommandHelp.send(registry, CommandRoot.NAME, new SourceOutput(context.getSource()));
         return CommandResult.SUCCESS.status();
     }
 
