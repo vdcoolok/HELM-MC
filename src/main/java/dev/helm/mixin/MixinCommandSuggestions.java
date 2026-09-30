@@ -5,6 +5,7 @@ import java.util.concurrent.CompletableFuture;
 import com.mojang.brigadier.suggestion.Suggestions;
 import dev.helm.command.CommandTree;
 import dev.helm.command.chat.DollarPrefix;
+import dev.helm.command.popup.PopupGate;
 import net.minecraft.client.gui.components.CommandSuggestions;
 import net.minecraft.client.gui.components.EditBox;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,6 +30,16 @@ public abstract class MixinCommandSuggestions {
             return;
         }
 
+        CommandSuggestions self = (CommandSuggestions) (Object) this;
+
+        if (PopupGate.owns(value)) {
+            input.setSuggestion(PopupGate.hint(value, input.getCursorPosition()));
+            pendingSuggestions = null;
+            self.hide();
+            callback.cancel();
+            return;
+        }
+
         String body = DollarPrefix.body(value);
         int cursor = Math.max(0, input.getCursorPosition() - 1);
         CommandTree tree = CommandTree.instance();
@@ -36,7 +47,6 @@ public abstract class MixinCommandSuggestions {
         input.setSuggestion(tree.placeholder(body, cursor));
 
         Suggestions suggestions = tree.complete(body, cursor);
-        CommandSuggestions self = (CommandSuggestions) (Object) this;
 
         if (suggestions.isEmpty()) {
             pendingSuggestions = null;
