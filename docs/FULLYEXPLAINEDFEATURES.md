@@ -128,6 +128,53 @@ as `$help`, with the aliases `h` and `?`. A bare `$` also shows this list.
 
 Reports the loaded HELM version. Available as `$version`, with the alias `ver`.
 
+## goto
+
+Walks to a block position. Available as `$goto <x> <y> <z>`, with the aliases
+`g`, `go` and `to`.
+
+The reply is one of `Path found: N steps.`, `Partial path: N steps so far.` or
+`No path to x y z.` The first means the goal was reached, the second means the
+walk will go as far as it can and then stop, and the third is a failure where
+nothing is drawn.
+
+Arguments are whole numbers. A non number is an error and nothing is calculated.
+
+This only works in a world. Outside one it reports that and does nothing.
+
+[PATHFINDING.md](PATHFINDING.md) covers how a route is chosen, how it is walked,
+and what happens when it fails.
+
+## stop
+
+Ends a walk at once and releases every held key. Available as `$stop`, with the
+aliases `cancel`, `abort` and `halt`. It reports `Nothing to stop.` when there
+was no walk in progress.
+
+## settings
+
+Reads and changes settings. Available as `$settings`, with the aliases `setting`
+and `option`, and four subcommands:
+
+| Subcommand | What it does |
+| --- | --- |
+| `$settings list` | Every setting, its value and a description |
+| `$settings get <name>` | One setting |
+| `$settings set <name> <value>` | Change one setting |
+| `$settings reset` | Restore every setting to its default |
+
+`$settings reset` is also `$settings defaults`.
+
+A value outside a setting's allowed range is clamped rather than rejected. A
+value of the wrong kind is an error and nothing changes. Changing a setting takes
+effect immediately, and re-prices a walk that is already in progress.
+
+Settings are stored in `settings.conf` inside the game directory, as plain text,
+written as UTF-8 and replaced atomically. A missing or unreadable file falls back
+to the defaults without losing anything.
+
+[SETTINGS.md](SETTINGS.md) lists every setting with its default and what it does.
+
 ## exitEditMode
 
 ### What it is
@@ -356,8 +403,18 @@ HELM stores user data inside the Minecraft game directory in a top level `HELM`
 folder, on both Windows and Linux. The location is resolved through the game at
 runtime rather than hardcoded. The folder and its `macros` subfolder are created
 the first time a world is joined, with no command needed. Macros live in the
-`macros` folder.
+`macros` folder, and settings live in `settings.conf` next to it.
+
+| Path | What it holds |
+| --- | --- |
+| `HELM/macros/` | Macro files. You can add your own |
+| `HELM/settings.conf` | Every setting, one per line, as `name = value` |
+
+Both are plain UTF-8 text and safe to edit or back up by hand. No previous
+storage location is read or migrated from; HELM has only ever used this folder.
 
 If the directory cannot be created, for example because the game directory is
 read only, HELM reports it once in chat rather than every time a world is
-joined, and the features that need it remain unavailable.
+joined, and the features that need it remain unavailable. If only the settings
+file cannot be written, HELM says so once and the change still applies for that
+session.

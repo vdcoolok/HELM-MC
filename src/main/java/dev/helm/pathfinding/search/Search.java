@@ -11,6 +11,8 @@ import dev.helm.pathfinding.world.WorldView;
 
 public final class Search {
 
+    private static final int CLOCK_MASK = (1 << 6) - 1;
+
     private final int startX;
     private final int startY;
     private final int startZ;
@@ -26,6 +28,7 @@ public final class Search {
     private Node startNode;
     private Node furthestConsidered;
     private int visited;
+    private SearchOutcome outcome = SearchOutcome.NO_PATH;
 
     public Search(int startX, int startY, int startZ, Goal goal, WorldView world,
                   MoveExpander[] expanders, SearchBudget budget) {
@@ -36,6 +39,14 @@ public final class Search {
         this.world = world;
         this.expanders = expanders;
         this.budget = budget;
+    }
+
+    public WorldView world() {
+        return world;
+    }
+
+    public MoveExpander[] expanders() {
+        return expanders;
     }
 
     public int visited() {
@@ -50,6 +61,10 @@ public final class Search {
         return furthestConsidered;
     }
 
+    public SearchOutcome outcome() {
+        return outcome;
+    }
+
     public NodePath partial() {
         Node end = best.best(startX, startY, startZ);
         return end == null ? null : NodePath.of(startNode, end);
@@ -58,6 +73,11 @@ public final class Search {
     public SearchOutcome run(long now, java.util.function.LongSupplier clock) {
         budget.begin(now);
         visited = 0;
+        store.clear();
+        frontier.clear();
+        best.reset();
+        startNode = null;
+        furthestConsidered = null;
 
         startNode = store.at(startX, startY, startZ, goal);
         startNode.cost = 0;
@@ -70,7 +90,7 @@ public final class Search {
         double minImprovement = budget.improvement();
 
         while (!frontier.isEmpty() && !budget.cancelled()) {
-            if (budget.spent(visited, clock.getAsLong())) {
+            if ((visited & CLOCK_MASK) == 0 && budget.spent(visited, clock.getAsLong())) {
                 break;
             }
 
@@ -79,30 +99,15 @@ public final class Search {
             visited++;
 
             if (goal.reached(current.x, current.y, current.z)) {
-                return SearchOutcome.REACHED_GOAL;
+                outcome = SearchOutcome.REACHED_GOAL;
+                return outcome;
             }
 
             for (MoveKind move : MoveKind.order()) {
-                int nextX = current.x + move.offsetX;
-                int nextZ = current.z + move.offsetZ;
-
-                if (crossesChunk(current.x, current.z, nextX, nextZ) && !world.loaded(nextX, nextZ)) {
-                    if (!move.offsetFollowsBlock) {
-                        budget.countUnloadedCrossing();
-                    }
+                if (!viable(current, move, lowest, ceiling)) {
                     continue;
                 }
-                if (!move.offsetFollowsBlock && !world.insideBorder(nextX, nextZ)) {
-                    continue;
-                }
-                int nextY = current.y + move.offsetY;
-                if (nextY > ceiling || nextY < lowest) {
-                    continue;
-                }
-
-                scratch.clear();
-                expanders[move.ordinal()].expand(current.x, current.y, current.z, scratch);
-                double stepCost = scratch.cost;
+                double stepCost = expand(current, move);
                 if (stepCost >= dev.helm.pathfinding.cost.MoveCosts.IMPOSSIBLE) {
                     continue;
                 }
@@ -110,22 +115,15 @@ public final class Search {
                     throw new IllegalStateException(move + " produced cost " + stepCost
                             + " from " + current.x + " " + current.y + " " + current.z);
                 }
-                if (move.offsetFollowsBlock && !world.insideBorder(scratch.x, scratch.z)) {
+                if (!landedAsDeclared(current, move)) {
                     continue;
-                }
-                if (!move.offsetFollowsBlock
-                        && (scratch.x != nextX || scratch.z != nextZ)) {
-                    throw new IllegalStateException(move + " left the expected column");
-                }
-                if (!move.levelFollowsBlock && scratch.y != nextY) {
-                    throw new IllegalStateException(move + " left the expected level");
                 }
 
                 Node neighbour = store.at(scratch.x, scratch.y, scratch.z, goal);
                 if (neighbour.cost - (current.cost + stepCost) <= minImprovement) {
                     continue;
                 }
-                neighbour.adopt(current, stepCost);
+                neighbour.adopt(current, stepCost, move);
                 if (neighbour.queued()) {
                     frontier.refresh(neighbour);
                 } else {
@@ -137,11 +135,48 @@ public final class Search {
         }
 
         if (budget.cancelled()) {
-            return SearchOutcome.CANCELLED;
+            outcome = SearchOutcome.CANCELLED;
+        } else {
+            outcome = best.best(startX, startY, startZ) == null
+                    ? SearchOutcome.NO_PATH
+                    : SearchOutcome.PARTIAL_PATH;
         }
-        return best.best(startX, startY, startZ) == null
-                ? SearchOutcome.NO_PATH
-                : SearchOutcome.PARTIAL_PATH;
+        return outcome;
+    }
+
+    private boolean viable(Node current, MoveKind move, int lowest, int ceiling) {
+        int nextX = current.x + move.offsetX;
+        int nextZ = current.z + move.offsetZ;
+        if (crossesChunk(current.x, current.z, nextX, nextZ) && !world.loaded(nextX, nextZ)) {
+            if (!move.offsetFollowsBlock) {
+                budget.countUnloadedCrossing();
+            }
+            return false;
+        }
+        int nextY = current.y + move.offsetY;
+        if (nextY > ceiling || nextY < lowest) {
+            return false;
+        }
+        return move.offsetFollowsBlock || world.insideBorder(nextX, nextY, nextZ);
+    }
+
+    private double expand(Node current, MoveKind move) {
+        scratch.clear();
+        expanders[move.ordinal()].expand(current.x, current.y, current.z, scratch);
+        return scratch.cost;
+    }
+
+    private boolean landedAsDeclared(Node current, MoveKind move) {
+        if (move.offsetFollowsBlock) {
+            return world.insideBorder(scratch.x, scratch.y, scratch.z);
+        }
+        if (scratch.x != current.x + move.offsetX || scratch.z != current.z + move.offsetZ) {
+            throw new IllegalStateException(move + " left the expected column");
+        }
+        if (!move.levelFollowsBlock && scratch.y != current.y + move.offsetY) {
+            throw new IllegalStateException(move + " left the expected level");
+        }
+        return true;
     }
 
     private boolean crossesChunk(int fromX, int fromZ, int toX, int toZ) {

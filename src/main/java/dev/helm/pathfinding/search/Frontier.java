@@ -11,6 +11,11 @@ public final class Frontier {
         return count == 0;
     }
 
+    public void clear() {
+        java.util.Arrays.fill(heap, null);
+        count = 0;
+    }
+
     public int size() {
         return count;
     }

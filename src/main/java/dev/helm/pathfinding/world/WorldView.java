@@ -8,5 +8,5 @@ public interface WorldView {
 
     int levelCount();
 
-    boolean insideBorder(int x, int z);
+    boolean insideBorder(int x, int y, int z);
 }

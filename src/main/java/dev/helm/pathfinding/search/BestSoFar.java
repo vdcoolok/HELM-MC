@@ -7,6 +7,10 @@ public final class BestSoFar {
     private final double[] bestEstimate = new double[SearchBudget.COEFFICIENTS.length];
     private final Node[] best = new Node[SearchBudget.COEFFICIENTS.length];
 
+    public void reset() {
+        java.util.Arrays.fill(best, null);
+    }
+
     public void seed(Node start) {
         for (int index = 0; index < best.length; index++) {
             bestEstimate[index] = start.estimate;

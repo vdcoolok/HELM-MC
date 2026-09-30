@@ -31,6 +31,11 @@ public final class NodeStore {
         return size;
     }
 
+    public void clear() {
+        java.util.Arrays.fill(slots, null);
+        size = 0;
+    }
+
     private void grow() {
         Node[] oldSlots = slots;
         long[] oldKeys = keys;

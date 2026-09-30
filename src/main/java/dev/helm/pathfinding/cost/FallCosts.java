@@ -35,7 +35,7 @@ public final class FallCosts {
         if (distance <= 0) {
             return 0;
         }
-        if (distance < TABLE_LIMIT) {
+        if (distance == Math.floor(distance) && distance < TABLE_LIMIT) {
             return BY_DISTANCE[(int) distance];
         }
         return ticksToFall(distance);

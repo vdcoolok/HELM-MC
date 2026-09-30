@@ -6,7 +6,15 @@
   "client": [
     "MixinClientPacketListener",
     "MixinCommandSuggestions",
-    "MixinChatScreen"
+    "MixinChatScreen",
+    "MixinMinecraft",
+    "MixinLocalPlayer",
+    "MixinLocalPlayerRotation",
+    "MixinRotationCapture",
+    "MixinLevelRenderer",
+    "accessor.GameModeAccess",
+    "accessor.RenderPipelineAccess",
+    "accessor.RenderTypeAccess"
   ],
   "injectors": {
     "defaultRequire": 1

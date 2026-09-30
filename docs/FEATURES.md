@@ -4,6 +4,18 @@
 - Command suggestions when typing `$` in chat
 - `help` command listing every available command
 - `version` command reporting the loaded HELM version
+- `settings` command to read, change and reset every setting
+- `goto` command walking to a block position
+- `stop` command cancelling a walk and releasing all controls
+- Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps
+- Automatic tool switching for every block mined
+- Breaking blocks that stand in the way
+- Placing blocks to bridge gaps, step up and pillar
+- Aiming at blocks before mining or placing them
+- Free look, so aiming does not turn the camera
+- Direction control driving forward, back, strafe, jump, sneak and sprint
+- Path line drawn on the world, plus outlines of blocks to break and place
+- Settings stored as text in `.minecraft/HELM/settings.conf`
 - Macro system with a readable script syntax
 - `macro` command to create, edit, load, stop and list macros
 - In-chat macro editing with line add, remove, list and move

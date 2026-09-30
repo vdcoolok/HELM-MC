@@ -9,6 +9,12 @@ by HELM. Anything else is normal chat.
 | --- | --- |
 | `$help` | List every command |
 | `$version` | Show the HELM version |
+| `$goto <x> <y> <z>` | Walk to a block position |
+| `$stop` | Stop walking |
+| `$settings list` | List every setting and its value |
+| `$settings get <name>` | Show one setting |
+| `$settings set <name> <value>` | Change one setting |
+| `$settings reset` | Restore every setting to its default |
 | `$macro create <name>` | Make a new empty macro |
 | `$macro edit <name>` | Open a macro for editing |
 | `$macro edit` | Close the open macro |
@@ -21,9 +27,84 @@ by HELM. Anything else is normal chat.
 | `$macro stop` | Stop the running macro |
 | `$macro list` | List your macros |
 
-Short forms: `macro` is also `macros`, `action` is also `a`, `remove` is also
-`rm` or `delete`, and `exitEditMode` is also `exit`, `stopEdit` or `exitEdit`.
-Every form of `exitEditMode` works with or without `macro` in front.
+Short forms: `goto` is also `g`, `go` or `to`. `stop` is also `cancel`, `abort`
+or `halt`. `settings` is also `setting` or `option`. `macro` is also `macros`,
+`action` is also `a`, `remove` is also `rm` or `delete`, and `exitEditMode` is
+also `exit`, `stopEdit` or `exitEdit`.
+
+## Walk somewhere
+
+```
+$goto 120 64 -35
+```
+
+You get a line back saying either `Path found: N steps.` or
+`Partial path: N steps so far.` The second one means the goal was not reachable,
+so it will walk as far as it can and then stop.
+
+The path is drawn in the world as you go. Blocks it will mine are outlined in
+red, and blocks it will place are outlined in blue.
+
+To stop at any time:
+
+```
+$stop
+```
+
+`$stop` says `Nothing to stop.` if you were not walking.
+
+## Where walking happens
+
+The whole walk is calculated before the first step. That means a path that goes
+around a wall, over a step, down a drop, across a gap or diagonally is decided up
+front, and then followed exactly.
+
+While walking, HELM will:
+
+- mine any block in the way, and pick the best tool for it first
+- place a block to bridge a gap, or to step up, when that is cheaper than mining
+- pillar up by placing a block under itself and jumping
+- turn toward a block before mining or placing it
+- jump, sneak and sprint at the right moments
+
+If the world changes and a step becomes impossible, the walk is abandoned rather
+than walking into a wall.
+
+## Settings
+
+```
+$settings list
+$settings get movement.allowBreak
+$settings set movement.allowBreak false
+$settings reset
+```
+
+`$settings get` shows the value and a one line description. `$settings set`
+takes the value as one word: `true` or `false`, a whole number, a decimal, or
+free text for block lists. Changes are saved straight away.
+
+The names are listed by `$settings list`. The ones you are most likely to want:
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `movement.allowBreak` | `true` | Mine blocks in the way |
+| `movement.allowPlace` | `true` | Place blocks to bridge or step up |
+| `movement.allowParkour` | `true` | Jump across gaps |
+| `movement.allowSprint` | `true` | Sprint while walking |
+| `movement.assumeStep` | `false` | Never jump while stepping up |
+| `movement.movementTimeoutTicks` | `100` | Ticks one step may take before giving up |
+| `mining.autoTool` | `true` | Switch to the best tool for each block |
+| `mining.preferSilkTouch` | `false` | Prefer a silk touch tool when no slower |
+| `mining.itemSaver` | `false` | Stop using a tool that is nearly broken |
+| `mining.avoidBreaking` | *(empty)* | Block names treated as air, comma separated |
+| `look.freeLook` | `true` | Send aiming to the server, not the camera |
+| `look.randomLooking` | `0.01` | Degrees of random aim added each tick |
+| `path.renderPath` | `true` | Draw the path |
+| `path.renderPathAsLine` | `false` | Draw a plain line instead of a ribbon |
+| `path.renderBlocksToBreak` | `true` | Outline blocks to mine |
+| `path.renderBlocksToPlace` | `true` | Outline blocks to place |
+| `path.renderIgnoreDepth` | `false` | Draw the path through walls |
+| `path.lineWidth` | `5.0` | Thickness of the path line |
 
 ## Make a macro
 
@@ -39,105 +120,9 @@ $macro edit farm
 
 ## Add lines
 
-While a macro is open, type its syntax straight into chat and press enter:
-
-```
-$wait 1s
-$loop
-$endloop
-```
-
-Or name each line:
-
-```
-$macro action add wait 1s
-```
-
-## Check what is in it
-
-```
-$macro action list
-```
-
-```
-[HELM] 3 line(s)
-[HELM]   1  wait 1s
-[HELM]   2  loop
-[HELM]   3  endloop
-```
-
-## Change a line
-
-```
-$macro action move 3 1
-$macro action remove 2
-```
-
-While a macro is open you can type the short form of any of these and press
-enter, which does the same thing:
-
-```
-$move 3 1
-$remove 2
-$list
-$exit
-```
-
-`$list` here shows the open macro's lines. To list your macros instead, use
-`$macro list`. The short `$list` only works while a macro is open.
-
-## Close it
-
-```
-$exitEditMode
-```
-
-## Run it
-
-```
-$macro load farm
-```
-
-## Stop it
-
-```
-$macro stop
-```
-
-## See what you have
-
-```
-$macro list
-```
-
-## In the editing popup
-
-While a macro is open, typing in chat opens a popup of everything you can type
-there: macro syntax on the left, macro tools on the right.
-
-| Key | Does |
-| --- | --- |
-| Type | Narrows the list |
-| Space | Closes the popup and shows what goes after it |
-| Mouse wheel | Scrolls a long list |
-| Up / Down | Move within a column |
-| Left / Right | Move between columns |
-| Tab | Fill in the selected row |
-| Click | Fill in that row |
-| Enter | Ignore the popup and send what you typed |
-| Escape | Close the chat box, as usual |
-
-Once you type a space the popup closes and the chat bar shows what that command
-wants next, in grey:
-
-```
-$move      ->  popup, pick move
-$move      ->  <from> <to>          once you add the space
-$wait      ->  <duration>
-$goto      ->  <x> <y> <z>
-$lookat    ->  <pitch> / <yaw>
-$loop      ->  [count]
-```
+While a macro is open, any `$` line that is not a real command is added to it as
+a macro line. You also get a popup listing the syntaxes you can add, on the left,
+and the editing tools on the right.
 
 The grey hint goes away as soon as you start typing the argument yourself.
 
@@ -169,21 +154,32 @@ The syntax and what each tool inserts are listed in
 
 Type `$` on its own, or `$help`.
 
-## Where your macros live
+## Where your data lives
 
 ```
-<game directory>/HELM/macros/
+<game directory>/HELM/
 ```
 
-That is `.minecraft/HELM/macros` on Linux and macOS, and
-`%APPDATA%\.minecraft\HELM\macros` on Windows. The folder is made for you the
-first time you join a world. You can put macro files in it yourself.
+That is `.minecraft/HELM` on Linux and macOS, and
+`%APPDATA%\.minecraft\HELM` on Windows. The folder is made for you the first time
+you join a world.
+
+| Path | What it holds |
+| --- | --- |
+| `HELM/macros/` | Your macro files. You can add your own |
+| `HELM/settings.conf` | Every setting, one per line, as `name = value` |
+
+`settings.conf` is plain text. You can read it, edit it by hand, and back it up.
+If it is missing or unreadable, HELM starts from the defaults.
 
 ## If something goes wrong
 
 | Message | What to do |
 | --- | --- |
 | `Unknown command: fly` | That command does not exist, or a macro is open and it was read as syntax |
+| `No path to 10 64 10` | Nothing walkable connects you to that block |
+| `Nothing to stop.` | You were not walking |
+| `Unknown setting: movement.fast` | Check `$settings list` for the exact name |
 | `No macro named farm` | Check `$macro list` for the exact name |
 | `A macro named farm already exists` | Pick another name, or open the existing one |
 | `There is no line 9 (the macro has 5)` | The macro has fewer lines than that |
@@ -193,6 +189,7 @@ first time you join a world. You can put macro files in it yourself.
 
 ## What runs today
 
+Walking, mining, placing, aiming and rendering all run. On the macro side,
 `wait` and `loop` work. The rest are accepted and checked when a macro loads,
 but report that they are not available yet if a macro reaches them.
 

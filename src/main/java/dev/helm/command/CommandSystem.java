@@ -5,8 +5,10 @@ import dev.helm.command.builtin.HelpCommand;
 import dev.helm.command.builtin.MacroCommand;
 import dev.helm.command.builtin.VersionCommand;
 import dev.helm.command.chat.DollarPrefix;
+import dev.helm.navigate.GoToCommand;
+import dev.helm.navigate.StopCommand;
+import dev.helm.setting.SettingsCommand;
 import dev.helm.command.chat.SystemMessageOutput;
-import dev.helm.macro.runtime.MacroController;
 import dev.helm.storage.HelmStorage;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
@@ -22,8 +24,10 @@ public final class CommandSystem {
                 HelpCommand.build(),
                 MacroCommand.build(),
                 VersionCommand.build(),
-                ExitEditModeCommand.build());
-        MacroController.instance().install();
+                ExitEditModeCommand.build(),
+                GoToCommand.build(),
+                StopCommand.build(),
+                SettingsCommand.build());
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HelmStorage.prepare()
                 .ifPresent(problem -> new SystemMessageOutput(client).error(Component.literal(problem))));
     }

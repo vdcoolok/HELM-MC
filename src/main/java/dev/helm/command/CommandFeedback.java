@@ -35,6 +35,10 @@ public final class CommandFeedback {
         return error("Invalid value for " + name + ": " + token);
     }
 
+    public static MutableComponent unknownSetting(String name) {
+        return error("Unknown setting: " + name);
+    }
+
     private static MutableComponent line(String message, ChatFormatting colour) {
         MutableComponent output = CommandTheme.brand();
         return output.append(Component.literal(message).withStyle(colour));

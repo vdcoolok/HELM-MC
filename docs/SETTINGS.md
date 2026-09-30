@@ -1,0 +1,207 @@
+# Settings
+
+Every part of HELM that can be changed is a setting. Settings are grouped into
+four sections, and the name of a setting is its section, a dot, and the name
+inside it.
+
+| Section | Covers |
+| --- | --- |
+| `movement` | Walking, mining, placing, pathing, tools, timing |
+| `mining` | Tool choice and what to avoid breaking |
+| `look` | Aiming, free look, smoothing, reach |
+| `path` | Drawing the route |
+
+## Reading and changing
+
+```
+$settings list
+$settings get movement.allowBreak
+$settings set movement.allowBreak false
+$settings reset
+```
+
+`$settings list` prints every setting, its current value, and a one line
+explanation. `$settings get` prints one. `$settings set` takes the value as one
+word: `true` or `false`, a whole number, a decimal, or free text.
+
+`$settings` is also `setting` or `option`. `$settings reset` is also
+`$settings defaults`.
+
+Values are clamped to the range a setting allows, so a value outside the range
+is corrected rather than rejected. A value that is not a number where a number
+is expected is an error and nothing is changed.
+
+Changing a setting takes effect immediately. Changing a tool or pathing setting
+re-prices the walk that is in progress, so a change can affect a route that is
+already being walked.
+
+## Where they are stored
+
+```
+<game directory>/HELM/settings.conf
+```
+
+One `name = value` per line, written as UTF-8, written by atomically replacing
+the file so a crash mid write cannot leave a half written file behind. The file
+is plain text and safe to edit by hand.
+
+If the file is missing, every setting starts at its default. If a line cannot be
+parsed, that one setting keeps its default and the rest still load. If the file
+cannot be written, HELM says so once in chat and the change still applies for
+that session.
+
+## movement
+
+### What may be done
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `movement.allowBreak` | `true` | Mine blocks that are in the way |
+| `movement.allowPlace` | `true` | Place blocks to bridge or step up |
+| `movement.allowParkour` | `true` | Jump across gaps |
+| `movement.allowParkourPlace` | `true` | Place a block at the end of a failed parkour jump |
+| `movement.allowParkourAscend` | `true` | Sprint up one block while parkouring |
+| `movement.allowDownward` | `true` | Allow digging straight down to travel |
+| `movement.allowDiagonalAscend` | `true` | Step up while moving diagonally |
+| `movement.allowDiagonalDescend` | `true` | Step down while moving diagonally |
+| `movement.allowJumpAtBuildLimit` | `false` | Allow parkour jumps at the very top of the world |
+| `movement.walkWhileBreaking` | `true` | Keep walking forward while mining ahead |
+| `movement.pauseMiningForFallingBlocks` | `true` | Wait for sand and gravel to settle before continuing |
+| `movement.splicePath` | `true` | Join a newly found route onto the one being walked |
+| `movement.overshootTraverse` | `true` | Accept ending one or two blocks past a flat step |
+| `movement.sprintAscends` | `true` | Sprint into a step up where possible |
+| `movement.sprintInWater` | `true` | Sprint while in water |
+| `movement.allowOvershootDiagonalDescend` | `true` | Sprint diagonally off a descending step |
+| `movement.assumeStep` | `false` | Never jump while stepping up, assuming the game steps you |
+| `movement.assumeSafeWalk` | `false` | Sneak while back placing, assuming the game handles edge safety |
+
+### What may be walked on
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `movement.allowWalkOnMagmaBlocks` | `false` | Treat magma as walkable, at a slow sneak pace |
+| `movement.allowVines` | `false` | Treat vines as a walkable surface |
+| `movement.allowWalkOnBottomSlab` | `true` | Allow standing on bottom slabs |
+| `movement.assumeWalkOnWater` | `false` | Treat water surfaces as solid ground |
+| `movement.allowWaterBucketFall` | `false` | Treat a fall into water as survivable at any height |
+| `movement.maxFallHeightNoWater` | `3` | Longest fall still considered, in blocks |
+| `movement.maxFallHeightBucket` | `60` | Longest survivable fall with a water bucket |
+
+Turning `movement.allowWalkOnBottomSlab` off makes paths more reliable at the
+cost of refusing to use bottom slabs. Turning `movement.assumeStep` on makes
+step ups smoother on servers that step you automatically, and wrong on servers
+that do not.
+
+### Costs
+
+These change which route is chosen, not just how fast it is walked.
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `movement.blockPlacementPenalty` | `20.0` | Cost of placing one block |
+| `movement.blockBreakAdditionalPenalty` | `2.0` | Added to every block mined |
+| `movement.jumpPenalty` | `2.0` | Added to every jump, because jumping costs hunger |
+| `movement.walkOnWaterOnePenalty` | `3.0` | Added to stepping onto a water surface |
+| `movement.avoidBreakingMultiplierEnabled` | `false` | Treat the avoid list as air |
+| `movement.avoidBreakingMultiplier` | `0.1` | How cheap breaking an avoided block is |
+
+Raising the placement penalty makes HELM prefer mining over placing. Raising the
+break penalty makes it break as few blocks as possible.
+
+### Timing and giving up
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `movement.movementTimeoutTicks` | `100` | Ticks one step may take before the walk is abandoned |
+| `movement.maxCostIncrease` | `10.0` | How much dearer a step may get before the walk is abandoned |
+| `movement.costVerificationLookahead` | `5` | How many steps ahead are checked for having become impossible |
+| `movement.maxPathHistoryLength` | `300` | Moves walked before the earliest ones are discarded |
+| `movement.pathHistoryCutoffAmount` | `50` | Moves discarded when the history is trimmed |
+| `movement.blockBreakSpeed` | `6` | Ticks between mining attempts |
+| `movement.rightClickSpeed` | `4` | Ticks between placing attempts |
+| `movement.ticksBetweenInventoryMoves` | `1` | Ticks between inventory moves |
+| `movement.allowInventory` | `false` | Allow rearranging the inventory while walking |
+| `movement.inventoryMoveOnlyIfStationary` | `false` | Stop moving before rearranging the inventory |
+
+Lowering `movement.movementTimeoutTicks` makes HELM give up sooner on a step
+that is stuck, which is useful on a laggy server. Raising
+`movement.maxCostIncrease` makes it more tolerant of the world changing under
+it.
+
+### Tools
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `movement.considerPotionEffects` | `true` | Account for haste and mining fatigue when pricing breaks |
+| `movement.assumeExternalAutoTool` | `false` | Never switch tools, because another mod already does |
+
+If another mod already switches tools for you, turning
+`movement.assumeExternalAutoTool` on stops HELM fighting it.
+
+## mining
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `mining.autoTool` | `true` | Switch to the fastest tool for every block mined |
+| `mining.preferSilkTouch` | `false` | Prefer a silk touch tool when it is no slower |
+| `mining.useSwordToMine` | `true` | Allow swords to be chosen as a mining tool |
+| `mining.itemSaver` | `false` | Stop using a tool once it is nearly broken |
+| `mining.itemSaverThreshold` | `10` | Durability left on a tool when the item saver stops using it |
+| `mining.avoidBreaking` | *(empty)* | Comma separated block names treated as air |
+| `mining.considerPotionEffects` | `true` | Account for haste and mining fatigue |
+
+`mining.avoidBreaking` takes block names, with or without the `minecraft:`
+prefix, comma separated. Unknown names are ignored rather than causing an error,
+so a typo in one entry does not break the rest:
+
+```
+$settings set mining.avoidBreaking "chest,dirt,minecraft:oak_log"
+```
+
+Tool choice prefers the fastest tool, then the cheaper material, then a silk
+touch tool if one is preferred and no slower. With `mining.itemSaver` on, a tool
+that is nearly broken is skipped entirely, which means HELM will walk a longer
+way rather than destroy a pickaxe.
+
+## look
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `look.freeLook` | `true` | Send aiming to the server rather than turning the camera |
+| `look.blockFreeLook` | `false` | Free look stays on while a block is being mined |
+| `look.elytraFreeLook` | `true` | Free look stays on while gliding |
+| `look.smoothLook` | `false` | Camera yaw follows an average of recent server yaw |
+| `look.elytraSmoothLook` | `false` | Camera follows the average while gliding |
+| `look.smoothLookTicks` | `5` | How many recent rotations the camera averages |
+| `look.remainWithExistingLookDirection` | `true` | Prefer the direction the player is already facing |
+| `look.antiCheatCompatibility` | `true` | Rotations are sent to the server rather than applied on the client |
+| `look.randomLooking` | `0.01` | Degrees of random yaw and pitch added every tick |
+| `look.randomLooking113` | `2.0` | Occasional larger random yaw offset |
+| `look.blockReachDistance` | `4.5` | How far away a block may be and still be mined |
+
+With `look.freeLook` off, the camera turns to face what is being mined and
+placed. That is what to use when the server refuses client side rotations.
+
+With `look.randomLooking` and `look.randomLooking113` both zero, aiming is
+exact, which is more conspicuous.
+
+`look.blockReachDistance` is how far HELM is willing to reach for a block. Lower
+it if the server enforces a shorter reach than the client thinks it has.
+
+## path
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `path.enable` | `true` | Whether navigation is allowed to run at all |
+| `path.renderPath` | `true` | Draw the route |
+| `path.renderPathAsLine` | `false` | Draw a plain line instead of a ribbon |
+| `path.renderGoal` | `true` | Draw the goal |
+| `path.renderBlocksToBreak` | `true` | Outline blocks to mine |
+| `path.renderBlocksToPlace` | `true` | Outline blocks to place |
+| `path.renderIgnoreDepth` | `false` | Draw the route through walls |
+| `path.fadePath` | `false` | Fade the route out with distance |
+| `path.lineWidth` | `5.0` | Thickness of the route line, in pixels |
+| `path.goalLineWidth` | `3.0` | Thickness of the goal line, in pixels |
+
+Turning `path.renderPath` off leaves walking working with nothing drawn, which is
+useful when another mod is already drawing something.

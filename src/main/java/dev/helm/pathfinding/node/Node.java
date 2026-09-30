@@ -2,6 +2,7 @@ package dev.helm.pathfinding.node;
 
 import dev.helm.pathfinding.cost.MoveCosts;
 import dev.helm.pathfinding.goal.Goal;
+import dev.helm.pathfinding.move.MoveKind;
 
 public final class Node {
 
@@ -17,6 +18,7 @@ public final class Node {
     public double combined;
     public Node previous;
     public int queuedAt;
+    public MoveKind arrivedBy;
 
     public Node(int x, int y, int z, Goal goal) {
         this.x = x;
@@ -34,8 +36,9 @@ public final class Node {
         return queuedAt != NOT_QUEUED;
     }
 
-    public void adopt(Node from, double reachCost) {
+    public void adopt(Node from, double reachCost, MoveKind by) {
         this.previous = from;
+        this.arrivedBy = by;
         this.cost = from.cost + reachCost;
         this.combined = this.cost + this.estimate;
     }
