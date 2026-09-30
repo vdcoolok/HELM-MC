@@ -1,0 +1,127 @@
+plugins {
+    id 'fabric-loom' version "${loom_version}"
+}
+
+version = "${helm_version}-${minecraft_version}"
+group = maven_group
+
+base {
+    archivesName = archives_base_name
+}
+
+tasks.named('jar') {
+    archiveFileName = "${archives_base_name}${version}.jar"
+}
+
+repositories {
+    maven {
+        name = 'Fabric'
+        url = 'https://maven.fabricmc.net/'
+    }
+    maven {
+        name = 'Sponge'
+        url = 'https://repo.spongepowered.org/repository/maven-public/'
+    }
+    mavenCentral()
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+
+    implementation "net.fabricmc:fabric-loader:${loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+
+    compileOnly "org.spongepowered:mixin:${mixin_version}"
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(Integer.parseInt(java_version))
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+    options.release = Integer.parseInt(java_version)
+    options.compilerArgs << '-Xlint:all' << '-Xlint:-processing'
+}
+
+processResources {
+    def expansions = [
+            mod_version      : project.version,
+            minecraft_version: project.minecraft_version,
+            loader_version   : project.loader_version,
+            java_version     : project.java_version
+    ]
+    inputs.properties expansions
+    filesMatching('fabric.mod.json') {
+        expand expansions
+    }
+}
+
+tasks.withType(AbstractArchiveTask).configureEach {
+    preserveFileTimestamps = false
+    reproducibleFileOrder = true
+}
+
+def retainedSharedCaches = [
+        'caches/fabric-loom',
+        'caches/modules-2',
+        'wrapper/dists'
+]
+
+def staleLoomLocks = {
+    def loomCache = new File(gradle.gradleUserHomeDir, 'caches/fabric-loom')
+    if (!loomCache.isDirectory()) {
+        return Collections.<File> emptyList()
+    }
+    def locks = []
+    loomCache.eachFileRecurse { candidate ->
+        if (candidate.isFile() && candidate.name.endsWith('.lock')) {
+            locks << candidate
+        }
+    }
+    return locks
+}
+
+tasks.register('cleanCaches', Delete) {
+    group = 'build'
+    description = 'Removes build output, the development run directory and stale toolchain locks.'
+
+    delete layout.buildDirectory
+    delete file('run')
+    delete staleLoomLocks()
+
+    doFirst {
+        retainedSharedCaches.each { String relative ->
+            println "retained ${new File(gradle.gradleUserHomeDir, relative)}"
+        }
+    }
+}
+
+tasks.register('purgeLoomCache', Delete) {
+    group = 'build'
+    description = 'Removes the project toolchain cache. Run this on its own; the next build re-prepares Minecraft.'
+
+    delete file('.gradle/loom-cache')
+}
+
+gradle.taskGraph.whenReady { graph ->
+    def purging = graph.hasTask(tasks.named('purgeLoomCache').get().name)
+    def building = graph.hasTask(tasks.named('build').get().name)
+    if (purging && building) {
+        throw new GradleException('purgeLoomCache must run on its own. Run: ./gradlew purgeLoomCache')
+    }
+}
+
+tasks.named('build') {
+    mustRunAfter 'cleanCaches'
+}
+
+tasks.register('helmBuild') {
+    group = 'build'
+    description = 'Cleans regenerable output, then builds the mod jar.'
+
+    dependsOn 'cleanCaches'
+    dependsOn tasks.named('build')
+}

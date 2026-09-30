@@ -1,7 +1,9 @@
-reference/
 .gradle/
 build/
 out/
 run/
+logs/
 .idea/
 *.iml
+reference/
+.gradle-user-home/

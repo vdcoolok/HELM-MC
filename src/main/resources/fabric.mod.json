@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "id": "helm",
+  "version": "${mod_version}",
+  "name": "HELM",
+  "description": "Minecraft client automation: navigation, movement, interaction, combat and building.",
+  "authors": [],
+  "license": "LGPL-3.0",
+  "environment": "client",
+  "entrypoints": {
+    "client": [
+      "dev.helm.Helm"
+    ]
+  },
+  "mixins": [
+    "helm.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "~${minecraft_version}",
+    "java": ">=${java_version}",
+    "fabric-api": "*"
+  }
+}
