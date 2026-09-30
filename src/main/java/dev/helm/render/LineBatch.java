@@ -3,14 +3,17 @@ package dev.helm.render;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.StagedVertexBuffer;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.world.phys.AABB;
 
 public final class LineBatch {
 
     private final StagedVertexBuffer buffer;
+    private final RenderType type;
     private final StagedVertexBuffer.Draw draw;
     private final PoseStack pose;
-    private VertexConsumer consumer;
+    private final VertexConsumer consumer;
 
     private float red = 1.0F;
     private float green = 1.0F;
@@ -19,9 +22,14 @@ public final class LineBatch {
     private float width = 5.0F;
 
     public LineBatch(StagedVertexBuffer buffer, PoseStack pose) {
+        this(buffer, pose, RenderTypes.LINES);
+    }
+
+    public LineBatch(StagedVertexBuffer buffer, PoseStack pose, RenderType type) {
         this.buffer = buffer;
         this.pose = pose;
-        this.draw = LinePipelines.begin(buffer);
+        this.type = type;
+        this.draw = buffer.appendDraw(type.format(), type.primitiveTopology());
         this.consumer = buffer.getVertexBuilder(draw);
     }
 
@@ -47,10 +55,8 @@ public final class LineBatch {
         if (length == 0.0D) {
             return this;
         }
-        float nx = (float) (dx / length);
-        float ny = (float) (dy / length);
-        float nz = (float) (dz / length);
-        return segment(x1, y1, z1, x2, y2, z2, nx, ny, nz);
+        return segment(x1, y1, z1, x2, y2, z2,
+                (float) (dx / length), (float) (dy / length), (float) (dz / length));
     }
 
     public LineBatch segment(double x1, double y1, double z1,
@@ -93,11 +99,11 @@ public final class LineBatch {
         return this;
     }
 
-    public void flush(boolean ignoreDepth) {
+    public void flush() {
         buffer.upload();
         StagedVertexBuffer.ExecuteInfo info = buffer.getExecuteInfo(draw);
         if (info != null) {
-            LinePipelines.forDepth(ignoreDepth).prepare().drawFromBuffer(info);
+            type.prepare().drawFromBuffer(info);
         }
         buffer.endFrame();
     }

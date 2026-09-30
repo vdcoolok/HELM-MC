@@ -227,8 +227,13 @@ The route is drawn in the world as it is walked.
   when `path.renderPathAsLine` is on
 - Blocks to mine are outlined in red, using the real shape of the block
 - Blocks to place are outlined in blue
-- `path.renderIgnoreDepth` draws the route through walls
 - `path.fadePath` fades the route out with distance
 - `path.lineWidth` sets the thickness
 - `path.renderPath`, `path.renderBlocksToBreak` and `path.renderBlocksToPlace`
   turn each part off
+
+The route is drawn with the same line pipeline the game itself uses, so it is
+depth tested and disappears behind terrain. Drawing it through walls would need a
+second pipeline, and the 26.2 rendering interface does not expose a way to build
+one without reaching into private fields, which would stop the game loading. That
+is why there is no setting for it.

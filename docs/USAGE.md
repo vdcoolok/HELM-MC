@@ -103,7 +103,6 @@ The names are listed by `$settings list`. The ones you are most likely to want:
 | `path.renderPathAsLine` | `false` | Draw a plain line instead of a ribbon |
 | `path.renderBlocksToBreak` | `true` | Outline blocks to mine |
 | `path.renderBlocksToPlace` | `true` | Outline blocks to place |
-| `path.renderIgnoreDepth` | `false` | Draw the path through walls |
 | `path.lineWidth` | `5.0` | Thickness of the path line |
 
 ## Make a macro

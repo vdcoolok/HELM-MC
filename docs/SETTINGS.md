@@ -198,7 +198,6 @@ it if the server enforces a shorter reach than the client thinks it has.
 | `path.renderGoal` | `true` | Draw the goal |
 | `path.renderBlocksToBreak` | `true` | Outline blocks to mine |
 | `path.renderBlocksToPlace` | `true` | Outline blocks to place |
-| `path.renderIgnoreDepth` | `false` | Draw the route through walls |
 | `path.fadePath` | `false` | Fade the route out with distance |
 | `path.lineWidth` | `5.0` | Thickness of the route line, in pixels |
 | `path.goalLineWidth` | `3.0` | Thickness of the goal line, in pixels |

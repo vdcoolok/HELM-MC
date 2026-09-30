@@ -34,7 +34,7 @@ public final class RoutePainter {
         }
         LineBatch batch = new LineBatch(buffer, pose).width((float) settings.lineWidth());
         drawRoute(batch, route, fromStep, colour);
-        batch.flush(settings.renderIgnoreDepth());
+        batch.flush();
     }
 
     private void drawRoute(LineBatch batch, Route route, int fromStep, LineColour colour) {
@@ -91,7 +91,7 @@ public final class RoutePainter {
         for (int[] position : blocks) {
             batch.box(shapeAt(position).inflate(BOX_EXPAND));
         }
-        batch.flush(settings.renderIgnoreDepth());
+        batch.flush();
     }
 
     private AABB shapeAt(int[] position) {
