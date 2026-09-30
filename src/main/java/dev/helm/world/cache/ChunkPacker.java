@@ -27,7 +27,7 @@ public final class ChunkPacker {
                 for (int x = 0; x < 16; x++) {
                     BlockState state = reader.read(x, y + floor, z);
                     bitmap.set(x, y, z, reader.at(x, y + floor, z));
-                    record(tracked, state.getBlock(), x, y, z);
+                    record(tracked, state.getBlock(), floor, x, y, z);
                 }
             }
         }
@@ -35,12 +35,13 @@ public final class ChunkPacker {
                 surface(bitmap, reader, floor), tracked, System.currentTimeMillis());
     }
 
-    private static void record(Map<String, List<int[]>> tracked, Block block, int x, int y, int z) {
+    private static void record(Map<String, List<int[]>> tracked, Block block, int floor,
+                              int x, int y, int z) {
         if (!TrackedBlocks.is(block)) {
             return;
         }
         tracked.computeIfAbsent(BlockNames.of(block), name -> new ArrayList<>())
-                .add(new int[]{x, y, z});
+                .add(new int[]{x, y + floor, z});
     }
 
     private static BlockState[] surface(ChunkBitmap bitmap, TerrainClassifier reader, int floor) {

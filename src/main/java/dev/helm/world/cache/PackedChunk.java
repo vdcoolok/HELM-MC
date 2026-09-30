@@ -102,7 +102,7 @@ public final class PackedChunk {
             return Blocks.BEDROCK.defaultBlockState();
         }
         if ((Level.OVERWORLD.equals(dimensionId) || Level.NETHER.equals(dimensionId))
-                && relative < dimension.minY() + 5 - floor) {
+                && relative < dimension.minY() + 5) {
             return Blocks.OBSIDIAN.defaultBlockState();
         }
         return null;

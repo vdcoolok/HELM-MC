@@ -24,18 +24,19 @@ public final class RegionCodec {
         out.writeInt(MAGIC);
         writeBitmaps(chunks, bitmapBytes, out);
         writeSurfaces(chunks, out);
-        writeTracked(chunks, out);
+        writeTracked(region.floor(), chunks, out);
         writeTimestamps(chunks, out);
     }
 
-    public static RegionPayload read(int height, DataInputStream in) throws IOException {
+    public static RegionPayload read(int height, int floor, DataInputStream in)
+            throws IOException {
         if (in.readInt() != MAGIC) {
             throw new IOException("Not a region file");
         }
         int bitmapBytes = ChunkBitmap.byteSize(height);
         ChunkBitmap[][] bitmaps = readBitmaps(height, bitmapBytes, in);
         return new RegionPayload(bitmaps, readSurfaces(bitmaps, in),
-                readTracked(bitmaps, in), readTimestamps(bitmaps, in));
+                readTracked(floor, bitmaps, in), readTimestamps(bitmaps, in));
     }
 
     private static void writeBitmaps(PackedChunk[][] chunks, int bitmapBytes,
@@ -70,7 +71,7 @@ public final class RegionCodec {
         }
     }
 
-    private static void writeTracked(PackedChunk[][] chunks, DataOutputStream out)
+    private static void writeTracked(int floor, PackedChunk[][] chunks, DataOutputStream out)
             throws IOException {
         for (int x = 0; x < GRID; x++) {
             for (int z = 0; z < GRID; z++) {
@@ -85,7 +86,7 @@ public final class RegionCodec {
                     out.writeInt(entry.getValue().size());
                     for (int[] position : entry.getValue()) {
                         out.writeByte((byte) ((position[2] << 4) | position[0]));
-                        out.writeInt(position[1]);
+                        out.writeInt(position[1] - floor);
                     }
                 }
             }
@@ -142,7 +143,7 @@ public final class RegionCodec {
         return surfaces;
     }
 
-    private static Map<String, List<int[]>>[][] readTracked(ChunkBitmap[][] bitmaps,
+    private static Map<String, List<int[]>>[][] readTracked(int floor, ChunkBitmap[][] bitmaps,
                                                             DataInputStream in)
             throws IOException {
         Map<String, List<int[]>>[][] tracked = new Map[GRID][GRID];
@@ -160,7 +161,9 @@ public final class RegionCodec {
                     List<int[]> positions = new ArrayList<>(count);
                     for (int entry = 0; entry < count; entry++) {
                         int packed = in.readByte();
-                        positions.add(new int[]{packed & 0x0F, in.readInt(), (packed >> 4) & 0x0F});
+                        int stored = in.readInt();
+                        positions.add(new int[]{packed & 0x0F, stored + floor,
+                                (packed >> 4) & 0x0F});
                     }
                     byName.put(name, positions);
                 }

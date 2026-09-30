@@ -44,7 +44,7 @@ public final class RegionFile {
              GZIPInputStream gzip = new GZIPInputStream(new BufferedInputStream(raw),
                      BUFFER);
              DataInputStream in = new DataInputStream(gzip)) {
-            region.absorb(RegionCodec.read(region.height(), in));
+            region.absorb(RegionCodec.read(region.height(), region.floor(), in));
         }
         return region;
     }

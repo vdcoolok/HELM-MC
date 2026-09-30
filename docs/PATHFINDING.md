@@ -78,21 +78,41 @@ route only needs to know whether a block is open, is water, is something to stay
 out of, or is solid, so each block is stored as two bits saying which of those
 four it is.
 
-On top of that, two exact details are kept, because losing them would change
-where the player can go:
+On top of that, two exact details are kept:
 
 - the topmost non-air block of each of the 256 columns, stored exactly, so that
   standing on a slab looks like a slab
 - the position of every block HELM tracks exactly, which is containers, shulker
   boxes, beds, ladders, vines, spawners, anvils, jukeboxes, cobwebs, beacons and
-  similar. Ladders and vines matter most, because a ladder cached as plain
-  stone is a wall the route will refuse to climb.
+  similar
 
 Everything else is answered by category. Solid becomes the dimension's ordinary
 stone, open becomes air, water becomes water, and something to avoid becomes
 lava, which is the most expensive thing to walk into. This is deliberate: the
 route's decisions are about cost and passability, and those are exactly what the
 two bits record.
+
+### Tracked blocks do not come back in the overworld
+
+Worth knowing before you rely on the cache, because it is not obvious.
+
+Tracked positions are stored against the block's real world level, but they are
+looked up against the level counted from the bottom of the world. The two are
+equal only when the world starts at level zero. So:
+
+- In the Nether and the End, which do start at level zero, a tracked block is
+  found and returned exactly.
+- In the overworld, which starts at level -64, they never line up. A cached
+  ladder comes back as ordinary stone, a cached chest as stone, and so on. The
+  route then treats them as solid, which it can path around but not through, and
+  cannot climb.
+
+The surface block of each column, which is the block you actually stand on, is
+unaffected and always exact.
+
+This is reproduced as it stands rather than corrected, so that HELM's behaviour
+is identical to the behaviour it is being matched against. If you would rather
+tracked positions were found in every dimension, that is a one line change.
 
 ### When it is read
 
@@ -110,6 +130,8 @@ instead of stopping dead at it.
 
 - A read of a block that is neither in the live world nor in the cache is air.
   The route sees open space rather than an error.
+- Tracked blocks are not returned in a world with a negative floor, so ladders
+  and vines in cached overworld terrain read as stone. See above.
 - If a cached chunk cannot be read back from disk, that chunk is ignored and the
   rest of the region is kept. A corrupt file costs you one region, not the cache.
 - The cache is a record of what the world looked like, not a record of where
