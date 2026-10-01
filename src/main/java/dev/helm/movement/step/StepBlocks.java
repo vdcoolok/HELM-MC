@@ -26,10 +26,12 @@ public final class StepBlocks {
     public static List<int[]> walkInto(BlockView world, WalkRules walk,
                                        int fromX, int fromY, int fromZ,
                                        int toX, int toZ, boolean diagonal) {
-        List<int[]> blocks = new ArrayList<>(2);
+        List<int[]> blocks = new ArrayList<>(4);
         if (diagonal) {
             addIfSolid(world, walk, blocks, fromX, fromY, toZ);
+            addIfSolid(world, walk, blocks, fromX, fromY + 1, toZ);
             addIfSolid(world, walk, blocks, toX, fromY, fromZ);
+            addIfSolid(world, walk, blocks, toX, fromY + 1, fromZ);
         }
         return blocks;
     }

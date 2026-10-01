@@ -32,12 +32,6 @@ public final class BreakTargets {
                 }
             }
             case LEAN -> {
-                at.add(block(fromX, fromY, toZ));
-                at.add(block(fromX, fromY + 1, toZ));
-                at.add(block(toX, fromY, fromZ));
-                at.add(block(toX, fromY + 1, fromZ));
-                at.add(block(toX, toY, toZ));
-                at.add(block(toX, toY + 1, toZ));
             }
             case RAISE -> at.add(block(fromX, fromY + 2, fromZ));
             case SINK -> at.add(block(toX, toY, toZ));

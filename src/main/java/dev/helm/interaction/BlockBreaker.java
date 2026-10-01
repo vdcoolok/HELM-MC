@@ -12,6 +12,7 @@ import net.minecraft.world.phys.HitResult;
 import dev.helm.access.GameModeControl;
 import dev.helm.aim.Aim;
 import dev.helm.aim.AimTrace;
+import dev.helm.diag.Trace;
 import dev.helm.setting.Settings;
 
 public final class BlockBreaker {
@@ -50,13 +51,15 @@ public final class BlockBreaker {
         }
         BlockPos pos = trace.getBlockPos();
         Direction face = trace.getDirection();
+        boolean accepted;
 
         GameModeControl.setHitting(mode, wasHitting);
         if (GameModeControl.brokenBlock(mode)) {
             GameModeControl.syncCarriedItem(mode);
-            mode.startDestroyBlock(pos, face);
+            accepted = mode.startDestroyBlock(pos, face);
             player.swing(InteractionHand.MAIN_HAND);
         } else {
+            accepted = true;
             if (mode.continueDestroyBlock(pos, face)) {
                 player.swing(InteractionHand.MAIN_HAND);
             }
@@ -65,8 +68,16 @@ public final class BlockBreaker {
                 GameModeControl.setDestroyDelay(mode, 0);
             }
         }
+        Trace.instance().repeat("mine", "mine", "working on " + pos + " holding "
+                + describe(player) + ", the game took it " + accepted);
         wasHitting = !GameModeControl.brokenBlock(mode);
         GameModeControl.setHitting(mode, false);
+    }
+
+    private static String describe(Player player) {
+        var held = player.getMainHandItem();
+        return "slot " + player.getInventory().getSelectedSlot() + " "
+                + (held.isEmpty() ? "nothing" : held.getHoverName().getString());
     }
 
     private static BlockHitResult aimed(Player player) {

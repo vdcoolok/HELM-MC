@@ -548,7 +548,7 @@ the wrong order will face the player the wrong way while clearing them.
 | Step up | The destination, then the second block above the source, then the block above the destination |
 | Step down | Two above the destination, one above it, then the destination |
 | Fall | The whole column from just above the source down to one below the destination |
-| Diagonal | Each of the two blocks beside the player and the one above each, then the destination and the one above it |
+| Diagonal | Nothing |
 | Pillar | The second block above the source, and nothing else |
 | Dig down | The destination |
 | Parkour | Nothing |
@@ -561,6 +561,25 @@ A pillar breaks only the block two above the player, never the block at their
 own head height, and a parkour breaks nothing at all. Getting either of those
 wrong means the player turns to face, and mines, a block that was never in the
 way.
+
+A diagonal breaks nothing either, and this is the one that surprises people
+most. The search only offers a diagonal when the player can get round at least
+one of the two blocks beside them: either side being passable at feet, knee and
+head height is enough, and when both sides are blocked the diagonal is never
+offered at all. So the blocks beside the player that a diagonal squeezes past
+are, by construction, not worth mining, because the search already knows the
+player can walk around them. It still prices the squeeze as a little more
+expensive than a clean diagonal, which is what stops the route from picking a
+corner-cutting diagonal every time one is available, but it never swings at one.
+
+Mining those two blocks anyway produced a route HELM could not finish. The player
+stands still, swings at a block that was never really in the way, runs out of
+ticks, throws the route away, searches again, and is handed the same diagonal
+with the same two blocks to break, over and over.
+
+The player also only sprints out of a diagonal when all four blocks beside them
+are clear, not just the two at their feet, so a diagonal taken past a knee-high
+block is walked rather than sprinted.
 
 Blocks named by `mining.avoidBreaking` are treated as solid by the search rather
 than as something to break, so the route goes around them instead of through
