@@ -22,9 +22,10 @@ $settings reset
 ```
 
 `$set` on its own opens a picker listing every setting beside its current value,
-arranged one section per column. Arrow keys move, tab or a click chooses, and a
-flag then offers `true` and `false`. Typing filters the list, so `$set look.`
-leaves only the `look` settings. The full list below is the same set.
+packed into short columns so the box stays a sensible height. Arrow keys move,
+the mouse wheel scrolls, left and right page between columns, and tab or a click
+chooses. Typing filters the list, so `$set look.` leaves only the `look`
+settings. The full list below is the same set.
 
 `$set <name>` prints one setting and its value. `$set <name> <value>` changes it,
 taking the value as one word: `true` or `false`, a whole number, a decimal, or

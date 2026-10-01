@@ -21,10 +21,13 @@ public final class PopupPlacement {
     private final int offset;
     private final int totalLines;
     private final int visibleLines;
+    private final int firstColumn;
+    private final int totalColumns;
 
     private PopupPlacement(List<PopupRow> rows, List<Cell> cells, int x, int y, int width,
                            int height, int[] columnX, int[] columnWidths, int offset,
-                           int totalLines, int visibleLines) {
+                           int totalLines, int visibleLines, int firstColumn,
+                           int totalColumns) {
         this.rows = rows;
         this.cells = cells;
         this.x = x;
@@ -36,25 +39,31 @@ public final class PopupPlacement {
         this.offset = offset;
         this.totalLines = totalLines;
         this.visibleLines = visibleLines;
+        this.firstColumn = firstColumn;
+        this.totalColumns = totalColumns;
     }
 
     public static PopupPlacement of(List<PopupRow> rows, Font font, int inputX, int inputY,
-                                    int screenWidth, int wantedColumns, int wantedOffset) {
+                                    int screenWidth, int wantedColumns, int wantedOffset,
+                                    int wantedColumnOffset) {
         List<Integer> occupied = PopupRows.occupiedColumns(rows);
-        int wanted = Math.max(1, Math.min(wantedColumns, occupied.size()));
-        int columns = PopupRows.columnsThatFit(rows, font, screenWidth, wanted);
+        int perScreen = Math.max(1, PopupRows.columnsThatFit(rows, font, screenWidth, occupied.size()));
+        int totalColumns = occupied.size();
+        int firstColumn = Math.min(Math.max(wantedColumnOffset, 0), Math.max(totalColumns - 1, 0));
+        int columns = Math.min(perScreen, totalColumns - firstColumn);
 
         int rowHeight = PopupTheme.ROW_HEIGHT;
         int totalLines = Math.max(PopupRows.heightOf(rows, occupied), 1);
         int room = inputY - PopupTheme.PADDING - PopupTheme.PAD_Y * 2;
         int visible = Math.max(1, Math.min(totalLines, room / rowHeight));
+        visible = Math.min(visible, PopupTheme.MAX_ROWS);
         int offset = Math.min(Math.max(wantedOffset, 0), Math.max(totalLines - visible, 0));
         int height = visible * rowHeight + PopupTheme.PAD_Y * 2;
 
         int[] widths = new int[columns];
         int total = 0;
         for (int slot = 0; slot < columns; slot++) {
-            widths[slot] = PopupRows.widthOf(rows, font, occupied.get(slot));
+            widths[slot] = PopupRows.widthOf(rows, font, occupied.get(firstColumn + slot));
             total += widths[slot];
         }
         total += PopupTheme.GAP * (columns - 1);
@@ -72,7 +81,7 @@ public final class PopupPlacement {
         List<Cell> cells = new ArrayList<>();
         int firstRow = y + PopupTheme.PAD_Y;
         for (int slot = 0; slot < columns; slot++) {
-            int column = occupied.get(slot);
+            int column = occupied.get(firstColumn + slot);
             int line = 0;
             for (int index = 0; index < rows.size(); index++) {
                 if (rows.get(index).column() != column) {
@@ -87,7 +96,7 @@ public final class PopupPlacement {
         }
 
         return new PopupPlacement(List.copyOf(rows), List.copyOf(cells), x, y, total, height,
-                columnX, widths, offset, totalLines, visible);
+                columnX, widths, offset, totalLines, visible, firstColumn, totalColumns);
     }
 
     private static int fitX(int inputX, int width, int screenWidth) {
@@ -148,6 +157,22 @@ public final class PopupPlacement {
 
     public boolean scrolls() {
         return totalLines > visibleLines;
+    }
+
+    public int firstColumn() {
+        return firstColumn;
+    }
+
+    public int totalColumns() {
+        return totalColumns;
+    }
+
+    public boolean scrollsSideways() {
+        return totalColumns > columns();
+    }
+
+    public int maxFirstColumn() {
+        return Math.max(totalColumns - columns(), 0);
     }
 
     public boolean atTop() {

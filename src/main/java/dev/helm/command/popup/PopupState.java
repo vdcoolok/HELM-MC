@@ -9,6 +9,7 @@ public final class PopupState {
     private List<PopupRow> rows = List.of();
     private int selected = -1;
     private int offset;
+    private int columnOffset;
 
     private PopupState() {
     }
@@ -46,16 +47,36 @@ public final class PopupState {
         rows = offered;
         selected = -1;
         offset = 0;
+        columnOffset = 0;
     }
 
     public void close() {
         rows = List.of();
         selected = -1;
         offset = 0;
+        columnOffset = 0;
     }
 
     public int offset() {
         return offset;
+    }
+
+    public int columnOffset() {
+        return columnOffset;
+    }
+
+    public void columnOffset(int value) {
+        columnOffset = Math.max(value, 0);
+    }
+
+    public boolean scrollColumnsBy(int delta, int maxOffset) {
+        int limit = Math.max(maxOffset, 0);
+        int next = Math.min(Math.max(columnOffset + delta, 0), limit);
+        if (next == columnOffset) {
+            return false;
+        }
+        columnOffset = next;
+        return true;
     }
 
     public void offset(int value) {
@@ -144,6 +165,17 @@ public final class PopupState {
         return true;
     }
 
+    public boolean selectSlot(int slot, int perScreen) {
+        List<Integer> occupied = occupied();
+        if (slot < 0 || slot >= occupied.size()) {
+            return false;
+        }
+        if (perScreen > 0 && (slot < columnOffset || slot >= columnOffset + perScreen)) {
+            columnOffset = Math.min(slot, Math.max(occupied.size() - perScreen, 0));
+        }
+        return moveToColumn(occupied.get(slot));
+    }
+
     private int nearestOffset(List<Integer> wanted) {
         if (selected < 0) {
             return 0;
@@ -168,12 +200,13 @@ public final class PopupState {
         int current = selectedColumn();
         int slot = occupied.indexOf(current);
         if (slot < 0) {
-            slot = 0;
+            slot = columnOffset;
         }
         int target = slot + delta;
         if (target < 0 || target >= occupied.size()) {
             return false;
         }
+        columnOffset = target;
         return moveToColumn(occupied.get(target));
     }
 

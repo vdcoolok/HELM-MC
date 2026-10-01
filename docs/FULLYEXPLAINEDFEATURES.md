@@ -163,10 +163,20 @@ Changes a setting. Also available as `$setting`.
 
 The picker opens as soon as `$set` is typed with a space after it, so it is never
 something that has to be remembered to reach. Each setting is one row showing
-its name and current value, arranged so each section is its own column, which
-means the sections read side by side rather than one after another. Arrow keys
-move within the list and between columns, tab or a click puts the setting under
-the cursor into the chat box, and typing filters the list as you go.
+its name and current value.
+
+The rows are packed into columns of at most eighteen, and the box is capped at
+that height, so a long list is a short wide grid rather than a column that runs
+off the top of the screen. Columns are packed by position rather than by section,
+because one section on its own is far more than eighteen settings and would
+otherwise still be a full height column.
+
+Nothing is dropped when the columns are wider than the screen. The window pages
+sideways instead, so every setting stays reachable at any width.
+
+Arrow keys move within a column and between columns, the mouse wheel scrolls
+down and pages sideways, tab or a click puts the setting under the cursor into
+the chat box, and typing filters the list as you go.
 
 Once a setting's name is complete the list becomes the values that setting
 accepts. A flag offers `true` and `false`, with the opposite of the current
@@ -275,9 +285,9 @@ into keyboard on the left and mouse and scroll on the right.
 
 That list is 82 entries, or 77 lines once two columns are used, which is taller
 than most screens. The popup clamps itself to the space above the input box and
-scrolls the rest with the mouse wheel, with a dotted mark on the edge that has
-more. Moving the selection with the arrow keys scrolls it into view. A list that
-fits entirely does not scroll.
+to a fixed row count, and scrolls the rest with the mouse wheel, with a dotted
+mark on the edge that has more. Moving the selection with the arrow keys scrolls
+it into view. A list that fits entirely does not scroll.
 
 The popup only exists while a name is being picked. Once a space appears in the
 line it closes, because the rest of the line is an argument rather than a choice,

@@ -13,13 +13,18 @@ public final class SettingPicker {
     }
 
     public static List<PopupRow> rows(String partial) {
-        List<PopupRow> built = new ArrayList<>();
-        List<String> sections = sectionNames();
+        List<PopupRow> packed = new ArrayList<>();
+        int column = 0;
+        int inColumn = 0;
         for (SettingCatalogue.Entry entry : SettingCatalogue.matching(partial)) {
-            built.add(new PopupRow(entry.key(), entry.shown(), columnOf(entry, sections),
-                    entry.key()));
+            if (inColumn >= PopupTheme.MAX_ROWS) {
+                column++;
+                inColumn = 0;
+            }
+            packed.add(new PopupRow(entry.key(), entry.shown(), column, entry.key()));
+            inColumn++;
         }
-        return built;
+        return packed;
     }
 
     public static List<PopupRow> values(SettingCatalogue.Entry entry, String partial) {
@@ -41,21 +46,6 @@ public final class SettingPicker {
         }
         boolean on = Boolean.TRUE.equals(entry.value());
         return on ? List.of("false", "true") : List.of("true", "false");
-    }
-
-    public static List<String> sectionNames() {
-        List<String> names = new ArrayList<>();
-        for (SettingCatalogue.Entry entry : SettingCatalogue.all()) {
-            if (!names.contains(entry.section())) {
-                names.add(entry.section());
-            }
-        }
-        return names;
-    }
-
-    private static int columnOf(SettingCatalogue.Entry entry, List<String> sections) {
-        int index = sections.indexOf(entry.section());
-        return index < 0 ? 0 : index;
     }
 
     private static boolean startsWith(String candidate, String partial) {

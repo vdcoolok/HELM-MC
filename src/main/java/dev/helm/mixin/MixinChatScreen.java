@@ -113,6 +113,12 @@ public abstract class MixinChatScreen {
         PopupState state = PopupState.instance();
         Font font = Minecraft.getInstance().font;
         PopupPlacement placement = helmPlacement(state.rows(), font);
+        if (placement.scrollsSideways()) {
+            if (state.scrollColumnsBy(vertical < 0 ? 1 : -1, placement.maxFirstColumn())) {
+                callback.setReturnValue(true);
+                return;
+            }
+        }
         if (!placement.scrolls()) {
             return;
         }
@@ -155,8 +161,9 @@ public abstract class MixinChatScreen {
     }
 
     private PopupPlacement helmPlacement(List<PopupRow> rows, Font font) {
+        PopupState state = PopupState.instance();
         return PopupPlacement.of(rows, font, input.getX(), input.getY(), PopupBounds.width(),
-                PopupRows.columnsUsed(rows), PopupState.instance().offset());
+                PopupRows.columnsUsed(rows), state.offset(), state.columnOffset());
     }
 
     private void helmRefresh() {
