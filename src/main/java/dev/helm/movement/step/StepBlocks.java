@@ -17,9 +17,7 @@ public final class StepBlocks {
         List<int[]> blocks = new ArrayList<>(3);
         addIfSolid(world, walk, blocks, toX, toY, toZ);
         addIfSolid(world, walk, blocks, toX, toY + 1, toZ);
-        if (toY < fromY) {
-            addIfSolid(world, walk, blocks, toX, toY - 1, toZ);
-        } else if (toY > fromY) {
+        if (toY > fromY) {
             addIfSolid(world, walk, blocks, fromX, fromY + 2, fromZ);
         }
         return blocks;

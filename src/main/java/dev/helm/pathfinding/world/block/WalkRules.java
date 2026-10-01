@@ -22,6 +22,9 @@ public final class WalkRules {
         if (Passability.neverWalk(state.getBlock())) {
             return false;
         }
+        if (doNotBreak(state)) {
+            return false;
+        }
         if (Passability.alwaysWalk(state)) {
             return true;
         }
@@ -77,10 +80,15 @@ public final class WalkRules {
     }
 
     public boolean fullyPassable(int x, int y, int z, BlockState state) {
-        if (Passability.neverFullyPass(state.getBlock()) || !state.getFluidState().isEmpty()) {
+        if (Passability.neverFullyPass(state.getBlock()) || doNotBreak(state)
+                || !state.getFluidState().isEmpty()) {
             return false;
         }
         return BlockShapes.landBound(state);
+    }
+
+    private boolean doNotBreak(BlockState state) {
+        return world.doNotBreak().contains(state.getBlock());
     }
 
     public boolean fullyPassable(int x, int y, int z) {

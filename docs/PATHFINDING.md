@@ -238,6 +238,25 @@ Mining breaks the block under the crosshair, so the aim is turned to it before t
 break is asked for. A step waiting on a block to be broken makes no progress
 until that block is gone, and runs out of time on the step if it never goes.
 
+### What a step breaks
+
+A step names the blocks it needs gone before it can be walked. The list is short
+and deliberate.
+
+- the block being stepped into
+- the block above that one, so there is headroom
+- for a step up, the second block above where the player is standing, because
+  that is where they have to fit while they jump
+
+A step down never names the block underneath the destination. That block is the
+floor being landed on, so breaking it would drop the player through the ground
+instead of onto it.
+
+Blocks named by `mining.avoidBreaking` are treated as solid by the search rather
+than as something to break, so the route goes around them instead of through
+them. They are not walkable and not passable, which is what makes the search
+leave them alone.
+
 ### Failure
 
 - The walk is abandoned if a step becomes impossible, for example because a block

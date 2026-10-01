@@ -154,7 +154,7 @@ If another mod already switches tools for you, turning
 | `mining.useSwordToMine` | `true` | Allow swords to be chosen as a mining tool |
 | `mining.itemSaver` | `false` | Stop using a tool once it is nearly broken |
 | `mining.itemSaverThreshold` | `10` | Durability left on a tool when the item saver stops using it |
-| `mining.avoidBreaking` | *(empty)* | Comma separated block names treated as air |
+| `mining.avoidBreaking` | *(empty)* | Comma separated block names the search routes around |
 | `mining.considerPotionEffects` | `true` | Account for haste and mining fatigue |
 
 `mining.avoidBreaking` takes block names, with or without the `minecraft:`
@@ -162,8 +162,16 @@ prefix, comma separated. Unknown names are ignored rather than causing an error,
 so a typo in one entry does not break the rest:
 
 ```
-$settings set mining.avoidBreaking "chest,dirt,minecraft:oak_log"
+$set mining.avoidBreaking "chest,dirt,minecraft:oak_log"
 ```
+
+A listed block is treated as something the player will not walk through and will
+not break, so the search routes around it rather than through it. Put the blocks
+you would rather not have mined here, for example `cherry_leaves` or
+`short_grass`, and HELM will path around them instead of tunnelling through.
+
+`movement.avoidBreakingMultiplier` then makes breaking one of them cheap rather
+than impossible, for when going through is genuinely the shorter route.
 
 Tool choice prefers the fastest tool, then the cheaper material, then a silk
 touch tool if one is preferred and no slower. With `mining.itemSaver` on, a tool

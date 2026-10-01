@@ -1,5 +1,8 @@
 package dev.helm.pathfinding.world;
 
+import java.util.Set;
+
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 
 public interface BlockView extends WorldView {
@@ -8,5 +11,9 @@ public interface BlockView extends WorldView {
 
     default BlockState stateAtOrNull(int x, int y, int z) {
         return loaded(x, z) ? stateAt(x, y, z) : null;
+    }
+
+    default Set<Block> doNotBreak() {
+        return Set.of();
     }
 }
