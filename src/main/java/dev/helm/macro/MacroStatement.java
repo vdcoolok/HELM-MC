@@ -37,27 +37,11 @@ public sealed interface MacroStatement {
         }
     }
 
-    record MoveHere() implements MacroStatement {
-
-        @Override
-        public String keyword() {
-            return "gotohere";
-        }
-    }
-
     record Look(Rotation rotation) implements MacroStatement {
 
         @Override
         public String keyword() {
             return "lookat";
-        }
-    }
-
-    record LookHere() implements MacroStatement {
-
-        @Override
-        public String keyword() {
-            return "lookathere";
         }
     }
 

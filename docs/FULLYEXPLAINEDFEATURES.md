@@ -284,7 +284,7 @@ line it closes, because the rest of the line is an argument rather than a choice
 and the chat bar shows the arguments instead as grey ghost text. The arguments
 come from the same declarations the rows do, scanned out of each usage string, so
 `wait <duration>` yields `<duration>` and `goto <x> <y> <z>` yields all three.
-A name that takes no arguments, such as `gotohere` or `exit`, shows no ghost.
+A name that takes no arguments, such as `exit`, shows no ghost.
 
 The ghost appears only before the first argument is typed. It is not filled in
 while an argument is being typed, because the number of arguments already given
@@ -403,9 +403,9 @@ None. The prefix is fixed and the macro folder is fixed.
 
 ### Known limitations
 
-`wait` and `loop` run. `goto`, `gotohere`, `lookat`, `lookathere`, `hold`,
-`release` and `press` are recognised and validated when a macro loads, but a
-macro that reaches one of them stops and reports that it is not available yet. Editing is per session, so closing the
+`wait` and `loop` run. `goto`, `lookat`, `hold`, `release` and `press` are
+recognised and validated when a macro loads, but a macro that reaches one of them
+stops and reports that it is not available yet. Editing is per session, so closing the
 game closes the open macro, though everything written is already saved to disk.
 There is no way to insert a line at a chosen position without moving it there
 first.

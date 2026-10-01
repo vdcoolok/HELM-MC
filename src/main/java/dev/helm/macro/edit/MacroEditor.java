@@ -9,6 +9,7 @@ import dev.helm.macro.MacroStoreException;
 import dev.helm.macro.MacroParser;
 import dev.helm.macro.MacroSyntax;
 import dev.helm.macro.MacroSyntaxException;
+import dev.helm.macro.MacroTarget;
 import dev.helm.storage.MacroStore;
 
 public final class MacroEditor {
@@ -53,7 +54,11 @@ public final class MacroEditor {
             throw new MacroSyntaxException("Unknown command '" + keyword + "'. Available: "
                     + MacroSyntax.describe());
         }
-        MacroStore.write(editing, MacroLinesEdit.added(MacroStore.read(editing), line));
+        String stored = MacroTarget.resolve(line);
+        if (!MacroSyntax.isKeyword(keywordOf(stored))) {
+            throw new MacroSyntaxException("Unknown command '" + keywordOf(stored) + "'");
+        }
+        MacroStore.write(editing, MacroLinesEdit.added(MacroStore.read(editing), stored));
     }
 
     public void remove(int position) {

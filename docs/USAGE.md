@@ -84,11 +84,12 @@ $macro action list
 
 ```
 1 line(s)
-  1  gotohere -> -10 -60 15
+  1  goto -2 88 -117
 ```
 
-`gotohere` and `lookathere` carry no numbers, so the list shows what they
-currently point at. Aim elsewhere and list it again to check a new target.
+`gotohere` and `lookathere` are shorthand. They read your aim and write the
+numbers into the line, so the macro goes to that spot however far you move
+afterwards.
 
 [MACROSYNTAX.md](MACROSYNTAX.md) has the full syntax.
 

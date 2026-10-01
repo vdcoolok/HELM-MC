@@ -72,28 +72,28 @@ All three coordinates are required and may be negative.
 
 ### gotohere
 
-Walks to whatever the crosshair is currently on, so you do not have to work
-out its coordinates.
+Shorthand for walking to whatever the crosshair is on, without working out its
+coordinates.
 
 ```text
 gotohere
 ```
 
-Takes no arguments. The target is the block under the crosshair, or the entity
-under the crosshair if there is no block. Aim at the target first, then run it.
-Aim at nothing and the macro stops with an error rather than walking nowhere.
-
-Because the target is read when the macro runs rather than when it is written,
-the line stores no coordinates. `$macro action list` shows what it currently
-points at so the target is visible without running it:
+Aim at the target, type this, and the coordinates are written into the line:
 
 ```text
 1 line(s)
-  1  gotohere -> -10 -60 15
+  1  goto -2 88 -117
 ```
 
-The numbers follow your aim, so aim somewhere else and list it again to check a
-different target.
+The line is now an ordinary `goto`. The target is fixed at the moment you add
+it, so the macro keeps going to that spot however far you walk away afterwards.
+Aim somewhere else and add another line to capture a different spot.
+
+Aim at nothing and nothing is added, rather than a line that walks nowhere.
+
+`gotohere` is only shorthand in the editor. A macro file never holds it, so a
+file containing one is rejected by name when it loads.
 
 ### lookat
 
@@ -118,24 +118,21 @@ Yaw is wrapped into the range -180 to 180, so a yaw of 240 is treated as -120.
 
 ### lookathere
 
-Turns towards whatever the crosshair is currently on, so you do not have to
-work out the angles yourself.
+Shorthand for turning to an angle without working it out yourself.
 
 ```text
 lookathere
 ```
 
-Takes no arguments. The target is resolved the same way as `gotohere`.
-
-`$macro action list` shows the current pitch and yaw rather than a block, since
-that is what the line will do:
+Your current pitch and yaw are written into the line:
 
 ```text
 1 line(s)
-  1  lookathere -> 12.4 / -88.1
+  1  lookat 12.4/-88.1
 ```
 
-That is pitch first, then yaw, matching how `lookat` is written.
+The line is now an ordinary `lookat` and the angle is fixed at the moment you
+add it, exactly as `gotohere` fixes a position.
 
 ### hold
 
@@ -427,9 +424,9 @@ macro action add
 [HELM] macro syntax
 [HELM]   wait <duration>         pause for a time, e.g. wait 1s
 [HELM]   goto <x> <y> <z>        walk to a position, e.g. goto -50 -50 -50
-[HELM]   gotohere                walk to what you are aiming at, e.g. gotohere
+[HELM]   gotohere                walk to where you are aiming, e.g. gotohere
 [HELM]   lookat <pitch> / <yaw>  turn to an angle, e.g. lookat 14/240
-[HELM]   lookathere              turn to what you are aiming at, e.g. lookathere
+[HELM]   lookathere              turn to where you are aiming, e.g. lookathere
 [HELM]   hold <input>            press and keep an input down, e.g. hold M1
 [HELM]   release <input>         let an input go, e.g. release M1
 [HELM]   press <input>           tap an input once, e.g. press M1
@@ -469,17 +466,14 @@ macro action list
 [HELM]   3  endloop
 ```
 
-A statement that carries its own numbers is shown as written. The two that do
-not are shown with what they currently point at, after an arrow:
+Every line is shown exactly as it is stored, and a stored line always carries
+its own numbers, so a shorthand never appears here:
 
 ```text
 [HELM] 2 line(s)
-[HELM]   1  gotohere -> -10 -60 15
-[HELM]   2  lookathere -> 12.4 / -88.1
+[HELM]   1  goto -2 88 -117
+[HELM]   2  lookat 12.4/-88.1
 ```
-
-A dash after the arrow means there is nothing to point at, because no world is
-loaded or the crosshair is not on a block.
 
 ### action move
 
@@ -584,6 +578,7 @@ loop
 endloop
 
 # aim at something, then walk to it and click it
+# these two read your aim now and store the numbers
 lookathere
 gotohere
 press M1
@@ -591,8 +586,8 @@ press M1
 
 ## Current availability
 
-`wait` and `loop` run. `goto`, `gotohere`, `lookat`, `lookathere`, `hold`,
-`release` and `press` are understood and validated when a macro is loaded, but
-running one of them stops the macro and reports that it is not available yet.
+`wait` and `loop` run. `goto`, `lookat`, `hold`, `release` and `press` are
+understood and validated when a macro is loaded, but running one of them stops
+the macro and reports that it is not available yet.
 Nothing is silently ignored, so a macro never appears to work while quietly
 doing nothing.

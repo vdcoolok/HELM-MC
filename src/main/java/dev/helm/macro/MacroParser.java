@@ -10,8 +10,6 @@ public final class MacroParser {
     private static final String END_LOOP = "endloop";
     private static final String GOTO = "goto";
     private static final String LOOKAT = "lookat";
-    private static final String LOOKAT_HERE = "lookathere";
-    private static final String GOTO_HERE = "gotohere";
     private static final String PRESS = "press";
     private static final String HOLD = "hold";
     private static final String RELEASE = "release";
@@ -54,14 +52,18 @@ public final class MacroParser {
             case WAIT -> new MacroStatement.Wait(MacroDuration.parse(single(line, "duration")));
             case LOOP -> loop(line, lines);
             case GOTO -> move(line);
-            case GOTO_HERE -> here(line, new MacroStatement.MoveHere());
             case LOOKAT -> look(line);
-            case LOOKAT_HERE -> here(line, new MacroStatement.LookHere());
             case HOLD -> new MacroStatement.Hold(input(line));
             case RELEASE -> new MacroStatement.Release(input(line));
             case PRESS -> new MacroStatement.Press(input(line));
-            default -> throw new MacroSyntaxException(
-                    "Unknown command '" + line.keyword() + "' on line " + line.number());
+            default -> {
+                if (MacroSyntax.needsResolving(line.keyword())) {
+                    throw new MacroSyntaxException("'" + line.keyword()
+                            + "' must be written with a target, on line " + line.number());
+                }
+                throw new MacroSyntaxException(
+                        "Unknown command '" + line.keyword() + "' on line " + line.number());
+            }
         };
     }
 
@@ -70,17 +72,6 @@ public final class MacroParser {
         List<MacroStatement> body = block(lines, true);
         lines.expectEndLoop();
         return new MacroStatement.Loop(repeats, body);
-    }
-
-    private static <T extends MacroStatement> T here(MacroLine line, T statement) {
-        requireNoArguments(line, statement.keyword());
-        return statement;
-    }
-
-    private static void requireNoArguments(MacroLine line, String keyword) {
-        if (line.hasArguments()) {
-            throw new MacroSyntaxException("'" + keyword + "' takes no arguments, on line " + line.number());
-        }
     }
 
     private static MacroStatement move(MacroLine line) {

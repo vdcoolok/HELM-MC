@@ -27,9 +27,9 @@ public final class MacroSyntax {
     private static final List<Entry> ENTRIES = List.of(
             new Entry(WAIT, "wait <duration>", "wait 1s", "pause for a time"),
             new Entry(GOTO, "goto <x> <y> <z>", "goto -50 -50 -50", "walk to a position"),
-            new Entry(GOTO_HERE, "gotohere", "gotohere", "walk to what you are aiming at"),
+            new Entry(GOTO_HERE, "gotohere", "gotohere", "walk to where you are aiming"),
             new Entry(LOOKAT, "lookat <pitch> / <yaw>", "lookat 14/240", "turn to an angle"),
-            new Entry(LOOKAT_HERE, "lookathere", "lookathere", "turn to what you are aiming at"),
+            new Entry(LOOKAT_HERE, "lookathere", "lookathere", "turn to where you are aiming"),
             new Entry(HOLD, "hold <input>", "hold M1", "press and keep an input down"),
             new Entry(RELEASE, "release <input>", "release M1", "let an input go"),
             new Entry(PRESS, "press <input>", "press M1", "tap an input once"),
@@ -46,6 +46,15 @@ public final class MacroSyntax {
     public static boolean isKeyword(String token) {
         String name = token.toLowerCase(java.util.Locale.ROOT);
         return ENTRIES.stream().anyMatch(entry -> entry.keyword().equals(name));
+    }
+
+    public static boolean needsResolving(String token) {
+        String name = token == null ? "" : token.toLowerCase(java.util.Locale.ROOT);
+        return GOTO_HERE.equals(name) || LOOKAT_HERE.equals(name);
+    }
+
+    public static boolean isStored(String keyword) {
+        return !needsResolving(keyword);
     }
 
     public static String describe() {
