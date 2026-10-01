@@ -228,10 +228,17 @@ Two behaviours come out of that which are worth knowing:
   at all, which is most sections in a cave or in open air.
 - Air answers immediately, without walking the list of blocks that stop the
   player. Air is by far the most common thing a search reads.
-- Whether a block fills its cube, and whether the player can walk through it,
-  are remembered against the block state they were first asked about. Both
-  normally mean building that block's collision shape, which costs far more than
-  reading it.
+- Every distinct block state is asked once whether the player can stand on it,
+  can walk through it, or can be jumped through, and the answer is kept against
+  that state. Later questions about the same state anywhere in the world are a
+  table lookup. This is what keeps a search fast: a route of a few thousand nodes
+  reads the same handful of block states tens of thousands of times, and deciding
+  the answer means testing the state against every block that changes the answer,
+  plus building that block's collision shape.
+- A question whose answer genuinely depends on what is next to the block, such as
+  a carpet, a snow layer, a slab or a liquid surface, is remembered as needing
+  its neighbours checked rather than as an answer, so only those pay for the extra
+  reads.
 
 ### How a route is chosen
 

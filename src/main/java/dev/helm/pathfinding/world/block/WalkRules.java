@@ -7,46 +7,28 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
-import net.minecraft.world.level.material.FluidState;
 
 public final class WalkRules {
 
     private final BlockView world;
     private final Tunables tuning;
+    private final StateVerdicts verdicts;
 
     public WalkRules(BlockView world, Tunables tuning) {
         this.world = world;
         this.tuning = tuning;
+        this.verdicts = new StateVerdicts();
     }
 
     public boolean through(int x, int y, int z, BlockState state) {
         if (doNotBreak(state)) {
             return false;
         }
-        if (state.getBlock() instanceof AirBlock) {
-            return true;
-        }
-        if (Passability.neverWalk(state.getBlock())) {
-            return false;
-        }
-        if (Passability.alwaysWalk(state)) {
-            return true;
-        }
-        if (state.getBlock() == Blocks.IRON_DOOR) {
-            return false;
-        }
-        if (state.getBlock() instanceof net.minecraft.world.level.block.FenceGateBlock
-                || state.getBlock() instanceof net.minecraft.world.level.block.DoorBlock) {
-            return true;
-        }
-        if (Passability.maybeWalk(state)) {
-            return throughAt(x, y, z, state);
-        }
-        if (!state.getFluidState().isEmpty()) {
-            return state.getFluidState().getType().getAmount(state.getFluidState()) == 8
-                    && throughAt(x, y, z, state);
-        }
-        return BlockShapes.landBound(state);
+        return switch (verdicts.through(state)) {
+            case YES -> true;
+            case NO -> false;
+            case MAYBE -> throughAt(x, y, z, state);
+        };
     }
 
     public boolean through(int x, int y, int z) {
@@ -66,8 +48,7 @@ public final class WalkRules {
             }
             return onTop(x, y - 1, z);
         }
-        FluidState fluid = state.getFluidState();
-        if (!fluid.isEmpty()) {
+        if (LiquidRules.any(state)) {
             if (LiquidRules.source(x, y, z, state, world::stateAt)) {
                 return false;
             }
@@ -75,26 +56,19 @@ public final class WalkRules {
                 return false;
             }
             BlockState above = world.stateAt(x, y + 1, z);
-            if (!above.getFluidState().isEmpty() || above.getBlock() == Blocks.LILY_PAD) {
+            if (LiquidRules.any(above) || above.getBlock() == Blocks.LILY_PAD) {
                 return false;
             }
             return LiquidRules.water(state);
         }
-        return BlockShapes.landBound(state);
+        return false;
     }
 
     public boolean fullyPassable(int x, int y, int z, BlockState state) {
         if (doNotBreak(state)) {
             return false;
         }
-        if (state.getBlock() instanceof AirBlock) {
-            return true;
-        }
-        if (Passability.neverFullyPass(state.getBlock())
-                || !state.getFluidState().isEmpty()) {
-            return false;
-        }
-        return BlockShapes.landBound(state);
+        return verdicts.fullyPassable(state) == Ternary.YES;
     }
 
     private boolean doNotBreak(BlockState state) {
@@ -106,7 +80,7 @@ public final class WalkRules {
     }
 
     public boolean replaceable(int x, int y, int z, BlockState state) {
-        if (state.getBlock() instanceof net.minecraft.world.level.block.AirBlock) {
+        if (state.getBlock() instanceof AirBlock) {
             return true;
         }
         if (state.getBlock() instanceof SnowLayerBlock) {
@@ -125,32 +99,22 @@ public final class WalkRules {
     }
 
     public boolean onTop(int x, int y, int z, BlockState state) {
-        if (BlockShapes.fullCube(state)
-                && (state.getBlock() != Blocks.MAGMA_BLOCK || tuning.magmaWalkAllowed())
-                && state.getBlock() != Blocks.BUBBLE_COLUMN
-                && state.getBlock() != Blocks.HONEY_BLOCK) {
-            return true;
+        return switch (verdicts.onTop(state)) {
+            case YES -> true;
+            case NO -> false;
+            case MAYBE -> decidedByNeighbours(x, y, z, state);
+        };
+    }
+
+    private boolean decidedByNeighbours(int x, int y, int z, BlockState state) {
+        if (state.getBlock() == Blocks.MAGMA_BLOCK) {
+            return tuning.magmaWalkAllowed();
         }
-        if (state.getBlock() instanceof net.minecraft.world.level.block.AzaleaBlock) {
-            return true;
-        }
-        if (state.getBlock() == Blocks.LADDER
-                || (Climbable.is(state.getBlock()) && tuning.vinesWalkAllowed())) {
-            return true;
-        }
-        if (state.getBlock() == Blocks.FARMLAND
-                || state.getBlock() == Blocks.DIRT_PATH
-                || state.getBlock() == Blocks.SOUL_SAND) {
-            return true;
-        }
-        if (state.getBlock() == Blocks.ENDER_CHEST
-                || state.getBlock() == Blocks.CHEST
-                || state.getBlock() == Blocks.TRAPPED_CHEST) {
-            return true;
-        }
-        if (state.getBlock() == Blocks.GLASS
-                || state.getBlock() instanceof net.minecraft.world.level.block.StainedGlassBlock
-                || state.getBlock() instanceof net.minecraft.world.level.block.StairBlock) {
+        if (state.getBlock() instanceof net.minecraft.world.level.block.SlabBlock) {
+            if (!tuning.bottomSlabWalkAllowed()) {
+                return state.getValue(net.minecraft.world.level.block.SlabBlock.TYPE)
+                        != SlabType.BOTTOM;
+            }
             return true;
         }
         if (LiquidRules.water(state)) {
@@ -159,13 +123,7 @@ public final class WalkRules {
         if (LiquidRules.lava(state)) {
             return !LiquidRules.source(x, y, z, state, world::stateAt);
         }
-        if (state.getBlock() instanceof net.minecraft.world.level.block.SlabBlock) {
-            if (!tuning.bottomSlabWalkAllowed()) {
-                return state.getValue(net.minecraft.world.level.block.SlabBlock.TYPE) != SlabType.BOTTOM;
-            }
-            return true;
-        }
-        return false;
+        return tuning.vinesWalkAllowed();
     }
 
     private boolean onTopOver(int x, int y, int z, BlockState state) {
@@ -175,7 +133,8 @@ public final class WalkRules {
             return true;
         }
         boolean moving = LiquidRules.source(x, y, z, state, world::stateAt)
-                || above.getFluidState().getType() == net.minecraft.world.level.material.Fluids.FLOWING_WATER;
+                || above.getFluidState().getType()
+                        == net.minecraft.world.level.material.Fluids.FLOWING_WATER;
         if (moving) {
             return LiquidRules.water(above) && !tuning.assumeWalkOnWater();
         }
