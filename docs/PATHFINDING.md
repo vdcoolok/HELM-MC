@@ -442,6 +442,13 @@ mid step.
 Placing happens when it is cheaper than mining, which in practice means bridging
 a gap, stepping up onto an empty column, and pillaring.
 
+Whether a step needs a block placed is decided by the block the player will land
+on top of, which sits directly below the destination, never the destination
+itself. For a step up the destination is the space the player rises into, and
+that space is air, so judging it would make every ordinary jump look like it
+needed a block placed underneath it. A step up onto solid ground therefore
+equips nothing, does not sneak, and does not back away.
+
 A block is placed against one of its five neighbours, never the one the player is
 standing in the way of. The player turns to face that neighbour, and the block is
 placed once they are looking at it.
@@ -515,6 +522,16 @@ Sprint is not simply held down. It is re-decided every tick:
 
 That last one is why walking up a slope looks smooth instead of stuttering
 through every step.
+
+### Per-step state
+
+Each kind of step keeps a little state while it runs, such as how many ticks it
+has spent without a block placed, or whether a bridge block was already there.
+That state starts fresh for every step, so one step that had to wait for a
+placement does not make the next one behave as though it had been waiting too.
+
+The state is also cleared when the route rewinds or skips, so returning to an
+earlier step starts it clean rather than halfway through.
 
 ### Staying on the route
 

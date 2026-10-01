@@ -6,4 +6,7 @@ import dev.helm.movement.MoveTick;
 public interface StepExecutor {
 
     MoveState advance(StepContext context, MoveTick tick, PlanStep step);
+
+    default void begin() {
+    }
 }

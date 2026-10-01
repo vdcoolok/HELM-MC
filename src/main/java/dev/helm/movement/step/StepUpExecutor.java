@@ -16,6 +16,11 @@ public final class StepUpExecutor implements StepExecutor {
     private int ticksWithoutPlacement;
 
     @Override
+    public void begin() {
+        ticksWithoutPlacement = 0;
+    }
+
+    @Override
     public MoveState advance(StepContext context, MoveTick tick, PlanStep step) {
         int[] feet = context.feet();
         if (feet[1] < step.fromY()) {
@@ -32,7 +37,7 @@ public final class StepUpExecutor implements StepExecutor {
             return MoveState.SUCCESS;
         }
         int[] landing = step.placeAt() == null
-                ? new int[]{step.toX(), step.toY(), step.toZ()}
+                ? new int[]{step.toX(), step.toY() - 1, step.toZ()}
                 : step.placeAt();
         if (!context.walk().onTop(landing[0], landing[1], landing[2])) {
             ticksWithoutPlacement++;

@@ -23,6 +23,7 @@ public final class RouteWalker {
     private final MovementSettings settings;
 
     private int index;
+    private int enteredStep = -1;
     private int ticksAway;
     private int ticksOnStep;
     private double originalCost;
@@ -62,6 +63,7 @@ public final class RouteWalker {
 
     public void begin(int length) {
         index = 0;
+        enteredStep = -1;
         ticksAway = 0;
         ticksOnStep = 0;
         costRecorded = false;
@@ -98,6 +100,10 @@ public final class RouteWalker {
         PlanStep step = route.at(index);
         int[] feet = stepContext.feet();
         current = step;
+        if (index != enteredStep) {
+            enteredStep = index;
+            runners.begin(step);
+        }
 
         int rewound = rewindTo(route, feet);
         if (rewound >= 0) {

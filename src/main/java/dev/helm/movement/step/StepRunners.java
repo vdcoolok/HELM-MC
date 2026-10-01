@@ -18,6 +18,10 @@ public final class StepRunners {
         return runnerFor(step).advance(context, tick, step);
     }
 
+    public void begin(PlanStep step) {
+        runnerFor(step).begin();
+    }
+
     public DropStepExecutor drop() {
         return drop;
     }

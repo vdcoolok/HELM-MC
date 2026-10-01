@@ -29,6 +29,11 @@ public final class FlatStepExecutor implements StepExecutor {
     private boolean bridgeWasAlwaysThere = true;
 
     @Override
+    public void begin() {
+        bridgeWasAlwaysThere = true;
+    }
+
+    @Override
     public MoveState advance(StepContext context, MoveTick tick, PlanStep step) {
         if (!StepPreparation.ready(context, tick, step)) {
             return MoveState.PREPPING;

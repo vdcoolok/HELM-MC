@@ -11,6 +11,11 @@ public final class SinkStepExecutor implements StepExecutor {
     private int ticks;
 
     @Override
+    public void begin() {
+        ticks = 0;
+    }
+
+    @Override
     public MoveState advance(StepContext context, MoveTick tick, PlanStep step) {
         if (!StepPreparation.ready(context, tick, step)) {
             return MoveState.PREPPING;

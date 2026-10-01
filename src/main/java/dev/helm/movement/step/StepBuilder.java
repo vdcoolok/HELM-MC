@@ -43,7 +43,7 @@ public final class StepBuilder {
                                       int toX, int toY, int toZ) {
         return switch (kind) {
             case STEP -> StepBlocks.placeUnder(world, walk, toX, toY - 1, toZ);
-            case STEP_UP -> StepBlocks.placeUnder(world, walk, toX, toY, toZ);
+            case STEP_UP -> StepBlocks.placeUnder(world, walk, toX, toY - 1, toZ);
             case RAISE -> StepBlocks.placeUnder(world, walk, fromX, fromY, fromZ);
             default -> null;
         };
