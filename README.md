@@ -1,98 +1,188 @@
+<div align="center">
+
 # HELM
 
-Minecraft client automation mod for Fabric. Navigation, movement, world
-interaction, combat, inventory handling and schematic construction.
+### Minecraft client automation for Fabric
 
-- Minecraft: 26.2
-- Fabric Loader: 0.19.3 or newer
-- Fabric API: 0.161.0+26.2
-- Java: 25
+**Navigation. Movement. World interaction. Inventory. Macros.**
 
-## Documentation
+[Documentation](docs/FULLYEXPLAINEDFEATURES.md) ·
+[Commands](docs/USAGE.md) ·
+[Features](docs/FEATURES.md) ·
+[Settings](docs/SETTINGS.md) ·
+[Macro syntax](docs/MACROSYNTAX.md) ·
+[Report an issue](https://github.com/vdcoolok/HELM-MC/issues) ·
+[License](LICENSE)
 
-| Document | Contents |
+</div>
+
+---
+
+<div align="center">
+
+[![Minecraft](https://img.shields.io/badge/Minecraft-26.2-5C7CFA?style=for-the-badge&logo=modrinth&logoColor=white&labelColor=1B1B1F)](https://minecraft.net)
+[![Fabric Loader](https://img.shields.io/badge/Fabric%20Loader-0.19.3%2B-DB4C3C?style=for-the-badge&logo=fabric&logoColor=white&labelColor=1B1B1F)](https://fabricmc.net)
+[![Fabric API](https://img.shields.io/badge/Fabric%20API-0.161.0%2B26.2-DB4C3C?style=for-the-badge&logo=fabric&logoColor=white&labelColor=1B1B1F)](https://modrinth.com/mod/fabric-api)
+[![Java](https://img.shields.io/badge/Java-25-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white&labelColor=1B1B1F)](https://openjdk.org)
+[![Client only](https://img.shields.io/badge/Client--only-8B5CF6?style=for-the-badge&labelColor=1B1B1F)](https://fabricmc.net)
+[![License](https://img.shields.io/badge/License-LGPL--3.0-8B5CF6?style=for-the-badge&labelColor=1B1B1F)](COPYING)
+
+[![Stars](https://img.shields.io/github/stars/vdcoolok/HELM-MC?style=for-the-badge&logo=github&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC/stargazers)
+[![Forks](https://img.shields.io/github/forks/vdcoolok/HELM-MC?style=for-the-badge&logo=github&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC/network/members)
+[![Watchers](https://img.shields.io/github/watchers/vdcoolok/HELM-MC?style=for-the-badge&logo=github&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC/watchers)
+
+[![Last commit](https://img.shields.io/github/last-commit/vdcoolok/HELM-MC?style=for-the-badge&logo=git&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC/commits)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/vdcoolok/HELM-MC?style=for-the-badge&logo=git&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC/commits)
+[![Issues](https://img.shields.io/github/issues/vdcoolok/HELM-MC?style=for-the-badge&logo=github&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC/issues)
+[![Pull requests](https://img.shields.io/github/issues-pr/vdcoolok/HELM-MC?style=for-the-badge&logo=github&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC/pulls)
+[![Contributors](https://img.shields.io/github/contributors/vdcoolok/HELM-MC?style=for-the-badge&logo=github&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC/graphs/contributors)
+[![Top language](https://img.shields.io/github/languages/top/vdcoolok/HELM-MC?style=for-the-badge&logo=openjdk&logoColor=white&labelColor=1B1B1F)](https://github.com/vdcoolok/HELM-MC)
+
+</div>
+
+---
+
+## What it does
+
+HELM is a client side automation mod. Everything runs on your machine, nothing is
+sent to the server, and every command is typed in your own chat box.
+
+| Area | What you get |
 | --- | --- |
-| [docs/FEATURES.md](docs/FEATURES.md) | Short index of every feature |
-| [docs/USAGE.md](docs/USAGE.md) | How to use every command |
-| [docs/FULLYEXPLAINEDFEATURES.md](docs/FULLYEXPLAINEDFEATURES.md) | Detailed behaviour of every feature |
-| [docs/MACROSYNTAX.md](docs/MACROSYNTAX.md) | The macro script syntax |
-| [docs/PATHFINDING.md](docs/PATHFINDING.md) | How routes are found and walked |
-| [docs/SETTINGS.md](docs/SETTINGS.md) | Every setting, its default and what it does |
+| **Navigation** | `goto` any block, and keep going: the route is re-planned from wherever you actually end up |
+| **Movement** | Continuous walking with no gap at a step boundary, real sprinting, jumps, gaps, diagonals and drops |
+| **World** | Breaks what is in the way, places what is missing, picks the right tool, all without a keypress |
+| **Aiming** | Free look, so mining and placing never drag the camera around |
+| **Macros** | A readable script language for anything the commands do not already cover |
+| **Storage** | Everything you author lives in one readable folder inside your game directory |
+
+Full details of every feature are in
+[FULLYEXPLAINEDFEATURES.md](docs/FULLYEXPLAINEDFEATURES.md). The one line index
+is in [FEATURES.md](docs/FEATURES.md).
+
+## Requirements
+
+| | Version |
+| --- | --- |
+| Minecraft | 26.2 |
+| Fabric Loader | 0.19.3 or newer |
+| Fabric API | 0.161.0+26.2 |
+| Java | 25 |
+
+HELM is client only. It does not need to be installed on a server, and a server
+never sees a HELM command.
+
+## Commands
+
+Type `$` in the chat box, then the command. Anything starting with `$` is handled
+by HELM and is never sent to the server.
+
+```
+$goto 120 64 -35
+$stop
+$help
+```
+
+| Command | What it does |
+| --- | --- |
+| `$help` | List every command |
+| `$version` | Show the HELM version |
+| `$goto <x> <y> <z>` | Walk to a block position |
+| `$stop` | Stop walking |
+| `$set` | Open the settings picker |
+| `$set <name> [<value>]` | Show or change one setting |
+| `$settings reset` | Restore every setting to its default |
+| `$macro <create\|edit\|load\|stop\|list>` | Work with macros |
+
+[USAGE.md](docs/USAGE.md) has the full list, every alias, and the exact reply
+each command gives.
+
+## Installing
+
+1. Install [Fabric Loader](https://fabricmc.net/use/installer) for Minecraft
+   26.2.
+2. Install [Fabric API](https://modrinth.com/mod/fabric-api) for 26.2.
+3. Drop `HELM` and Fabric API into the `mods` folder of that instance.
 
 ## Building
 
 The build produces `HELM<version>-<minecraft version>.jar`, for example
 `HELM0.0.1-26.2.jar`, and copies it to the repository root.
 
-Linux and macOS:
-
-```
-./build.sh
-```
-
-Windows:
-
-```
-build.bat
-```
+| Platform | Command |
+| --- | --- |
+| Windows | `build.bat` |
+| Linux, macOS | `./build.sh` |
 
 To build without the convenience scripts:
 
 | Platform | Command |
 | --- | --- |
-| Linux, macOS | `./gradlew build` |
 | Windows | `gradlew.bat build` |
+| Linux, macOS | `./gradlew build` |
 
-Both Gradle wrappers are committed, so no separate Gradle installation is
-needed. The wrapper selects the required Gradle and Java versions.
+Both Gradle wrappers are committed, so no separate Gradle installation is needed.
+The wrapper selects the required Gradle and Java versions.
 
 ## Running the development client
 
 | Platform | Command |
 | --- | --- |
-| Linux, macOS | `./gradlew runClient` |
 | Windows | `gradlew.bat runClient` |
+| Linux, macOS | `./gradlew runClient` |
 
-## Installing
+## Where your data lives
 
-Copy the built jar into the `mods` folder of the Minecraft instance you want to
-use it with, and make sure Fabric API is installed alongside it.
-
-## Where user data is stored
-
-HELM stores its user data inside the Minecraft game directory, in a top level
-`HELM` folder:
+Everything you author is stored inside the Minecraft game directory, in a top
+level `HELM` folder:
 
 ```
 <game directory>/HELM/
 ```
 
 The game directory is `.minecraft` on Linux and macOS and `%APPDATA%\.minecraft`
-on Windows. HELM resolves this location through the game at runtime and never
-hardcodes it, so the folder is named the same on both platforms. Macros are
-stored in the `macros` folder inside it, settings in `settings.conf` beside it,
-and a plain text record of what HELM did this session in `debuglogs.log`. A
-compressed record of chunks HELM has seen lives in `cache` so routes can cross
-terrain the game no longer holds. The three text files are safe to edit by hand;
-`cache` is safe to delete when the game is closed.
+on Windows. HELM resolves this through the game at runtime and never hardcodes
+it, so the folder is named the same on both platforms.
 
-The folder and its `macros` subfolder are created automatically the first time
-you join a world. If they cannot be created, HELM reports it once in chat and
-the features that need them stay unavailable rather than failing silently.
+| Path | What it holds |
+| --- | --- |
+| `HELM/macros/` | Your macro files |
+| `HELM/settings.conf` | Every setting, one per line |
+| `HELM/debuglogs.log` | A record of what HELM did this session |
+| `HELM/cache/` | Remembered chunks, so routes can cross unloaded terrain |
+
+The text files are safe to read, edit or delete while the game is closed.
+`cache` is safe to delete at any time; you only lose remembered terrain.
 
 ## Project layout
 
-Source lives under `src/main/java/dev/helm`. Folders are created as the
-features they serve are added, so every folder in the tree contains code that
-does something.
+Source lives under `src/main/java/dev/helm`. Folders are created as the features
+they serve are added, so every folder in the tree contains code that does
+something.
 
 | Package | Responsibility |
 | --- | --- |
+| `access` | Reaching into the game where no accessor exists yet |
+| `aim` | Where the body is pointed, and whether the camera is free |
 | `command` | Command declaration, parsing, execution and dispatch |
+| `control` | What the player is pressing |
+| `diag` | The session log and its formatting |
+| `input` | Key and button names |
+| `interaction` | Mining and placing |
+| `macro` | The macro language, its editor and its runtime |
+| `movement` | Step execution, route following and sprint decisions |
+| `navigate` | Goals, journeys and the walk loop |
+| `pathfinding` | Search, costs, moves and world rules |
+| `render` | Drawing the route |
+| `rotation` | Applying and capturing rotations |
+| `setting` | Every setting, and where they are stored |
+| `storage` | Where files are written |
+| `tools` | Tool choice, break strength and block lists |
+| `world` | Reading the world, and the chunk cache |
 | `mixin` | Mixins declared by `helm.mixins.json` |
 
-Minecraft and Fabric specific hooks live in `mixin`, while command behaviour is
-expressed in terms of small, focused components under `command`.
+Minecraft and Fabric specific hooks live in `mixin`; everything else is
+expressed in terms of small, focused classes.
 
 ## Contributing
 
@@ -102,17 +192,32 @@ expressed in terms of small, focused components under `command`.
 
    | Platform | Command |
    | --- | --- |
-   | Linux, macOS | `./build.sh` |
    | Windows | `build.bat` |
+   | Linux, macOS | `./build.sh` |
 
 4. Commit with a short message that describes the change.
 5. Open a pull request.
 
-No platform specific tooling is required. Building on either platform needs
-only its own Gradle wrapper, which is committed.
+Windows and Linux are both first class. No platform specific tooling is required:
+building on either needs only its own Gradle wrapper, which is committed. A change
+that would only work on one platform is not acceptable.
 
-Windows and Linux are both supported. Changes that would only work on one
-platform are not acceptable.
+Attach `HELM/debuglogs.log` to a bug report. It is the fastest way to see what
+HELM thought it was doing.
+
+## Star history
+
+<div align="center">
+
+<a href="https://star-history.com/#vdcoolok/HELM-MC&Date">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=vdcoolok/HELM-MC&type=Date&theme=dark" />
+    <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/svg?repos=vdcoolok/HELM-MC&type=Date" />
+    <img alt="Star History" src="https://api.star-history.com/svg?repos=vdcoolok/HELM-MC&type=Date" />
+  </picture>
+</a>
+
+</div>
 
 ## License
 

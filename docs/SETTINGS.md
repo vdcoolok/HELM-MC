@@ -266,4 +266,5 @@ immediately.
 bound. Setting it to something like `604800`, one week, keeps recent terrain and
 drops the rest.
 
-See [PATHFINDING.md](PATHFINDING.md) for what is remembered and how it is read.
+See [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for what the cache
+remembers and how it is read.

@@ -1,114 +1,101 @@
 # Usage
 
 Type `$` in the chat box, then a command. Anything starting with `$` is handled
-by HELM. Anything else is normal chat.
+by HELM and never sent to the server. Anything else is normal chat.
 
 ## Commands
 
-| Command | What it does |
+| Command | Aliases | Arguments |
+| --- | --- | --- |
+| `$help` | `h`, `?` | none |
+| `$version` | `ver` | none |
+| `$goto <x> <y> <z>` | `g`, `go`, `to` | three whole numbers |
+| `$stop` | `cancel`, `abort`, `halt` | none |
+| `$set` | `setting` | none, opens the picker |
+| `$set <name>` | `setting` | one setting name |
+| `$set <name> <value>` | `setting` | one setting name, one value |
+| `$settings reset` | `defaults` | none |
+| `$exitEditMode` | `exit`, `stopEdit`, `exitEdit` | none |
+| `$macro <subcommand>` | `macros` | see below |
+| `$macro create <name>` | | one name |
+| `$macro edit [<name>]` | | one name, or none to close |
+| `$macro load <name>` | | one name |
+| `$macro stop` | | none |
+| `$macro list` | | none |
+| `$macro action <subcommand>` | `a` | see below |
+| `$macro action add [<syntax>]` | `a` | one line to add |
+| `$macro action remove <line>` | `rm`, `delete` | one line number |
+| `$macro action move <from> <to>` | | two line numbers |
+| `$macro action list` | | none |
+| `$macro exitEditMode` | `exit`, `stopEdit`, `exitEdit` | none |
+
+`$macro action` and `$exitEditMode` are only offered while a macro is open.
+
+## Replies
+
+| Reply | Means |
 | --- | --- |
-| `$help` | List every command |
-| `$version` | Show the HELM version |
-| `$goto <x> <y> <z>` | Walk to a block position |
-| `$stop` | Stop walking |
-| `$set` | Open the settings picker |
-| `$set <name>` | Show one setting |
-| `$set <name> <value>` | Change one setting |
-| `$settings reset` | Restore every setting to its default |
-| `$macro create <name>` | Make a new empty macro |
-| `$macro edit <name>` | Open a macro for editing |
-| `$macro edit` | Close the open macro |
-| `$exitEditMode` | Close the open macro |
-| `$macro action add <syntax>` | Add a line |
-| `$macro action remove <line>` | Delete a numbered line |
-| `$macro action move <from> <to>` | Move a line |
-| `$macro action list` | Show the open macro's lines, numbered |
-| `$macro load <name>` | Start a macro |
-| `$macro stop` | Stop the running macro |
-| `$macro list` | List your macros |
+| `Searching for a way to x y z.` | Accepted, the search is running |
+| `Path found: N steps.` | The route reaches the goal |
+| `Partial path: N steps.` | The route falls short and will be re-planned |
+| `Already at x y z.` | Your feet are already on the goal |
+| `Arrived at x y z.` | The walk brought you onto the goal |
+| `No path to x y z.` | Nothing walkable connects you to that block |
+| `Stopped searching.` | `$stop` caught an unfinished search |
+| `Stopped.` | `$stop` caught a walk |
+| `Nothing to stop.` | You were neither walking nor searching |
+| `Unknown command: name` | No such command |
+| `Unknown setting: name` | No such setting |
+| `No macro named name` | No such macro |
+| `'loop' is missing 'endloop'` | The open macro has an unclosed loop |
 
-`goto` is also `g`, `go` or `to`. `stop` is also `cancel`, `abort` or `halt`.
-`set` is also `setting`. `macro` is also `macros`. `action` is also `a`.
-`remove` is also `rm` or `delete`. `exitEditMode` is also `exit`.
-
-## Walk somewhere
+## Examples
 
 ```
 $goto 120 64 -35
+$goto -2 88 -117
 $stop
 ```
 
-Coordinates are block positions. You first get `Searching for a way to x y z.`,
-then one of `Path found: N steps.`, `Partial path: N steps.`, `Already at x y z.`
-or `No path to x y z.` once the search finishes. The search runs off the thread
-that draws the game, so the game stays responsive while it works and the answer
-arrives a moment later rather than straight away.
-
-The path is drawn in the world. Blocks to mine are outlined in red, blocks to
-place in blue.
-
-Giving a new goal while a search is still running cancels the running one.
-`$stop` cancels a search too, and answers `Stopped searching.` if that is what it
-caught, otherwise `Stopped.` or `Nothing to stop.`
-
-## Change a setting
+```
+$help
+$version
+```
 
 ```
 $set
 $set movement.allowBreak
 $set movement.allowBreak false
+$set movement.sprintAllowed true
 $settings reset
 ```
 
-Type `$set` and a space and the picker opens: every setting in one column, with
-the space beside it explaining whatever you are pointing at. Arrows move, tab or
-a click chooses, typing filters, the mouse wheel scrolls. A flag then offers
-`true` and `false`.
-
-Typing filters on any part of a setting's name, not just the front, so `parkour`
-finds `movement.allowParkour` even though the word is in the middle of the name.
-An exact name comes first, then names starting with what you typed, then names
-containing it at a word boundary, then the rest. Searching by what a setting is
-called also works, so `sprint` finds `movement.sprintAllowed`.
-
-You can also just type it. A flag accepts `true`, `false`, `yes`, `no`, `on`,
-`off`, `1` or `0`.
-
-[SETTINGS.md](SETTINGS.md) lists every setting.
-
-## Make a macro
+A flag value is one of `true`, `false`, `yes`, `no`, `on`, `off`, `1`, `0`.
 
 ```
 $macro create farm
 $macro edit farm
+$macro action add gotohere
+$macro action list
 $macro load farm
 $macro stop
 $macro list
+$macro edit
 ```
 
-While a macro is open, any `$` line that is not a real command is added to it.
-A popup lists the syntaxes you can add on the left and the editing tools on the
-right. `hold`, `release` and `press` show a list of every key and button.
-Arrows move, tab or a click fills in, typing narrows the list.
+## Editing keys
 
-```
-$macro action add gotohere
-$macro action list
-```
+| Key | What it does |
+| --- | --- |
+| `↑` `↓` | Move the cursor |
+| `Tab` or click | Choose the highlighted entry |
+| `Enter` | Confirm and send |
+| `Esc` | Close the picker |
 
-```
-1 line(s)
-  1  goto -2 88 -117
-```
+Anything typed in the chat box is filtered live as you type, and the command
+suggestions strip appears once `$` and a space are typed.
 
-`gotohere` records the block you are standing in and `lookathere` records the
-angle you are facing. Both write the numbers into the line as an ordinary `goto`
-or `lookat`, so the macro returns to that spot or angle however far you move
-afterwards.
-
-[MACROSYNTAX.md](MACROSYNTAX.md) has the full syntax.
-
-## Where your data lives
+## Your data
 
 ```
 <game directory>/HELM/
@@ -119,34 +106,17 @@ afterwards.
 | Path | What it holds |
 | --- | --- |
 | `HELM/macros/` | Your macro files |
-| `HELM/settings.conf` | Every setting, as `name = value` |
+| `HELM/settings.conf` | Every setting, one per line |
 | `HELM/debuglogs.log` | A record of what HELM did this session |
-| `HELM/cache/` | Remembered chunks, one folder per dimension |
-
-All plain text and all safe to read, edit or delete while the game is closed.
-
-## If something goes wrong
-
-| Message | What to do |
-| --- | --- |
-| `Unknown command: fly` | No such command, or a macro is open and read it as syntax |
-| `No path to 10 64 10` | Nothing walkable connects you to that block |
-| `Nothing to stop.` | You were neither walking nor searching |
-| `Stopped searching.` | `$stop` caught a search that had not finished yet |
-| `Unknown setting: movement.fast` | Check [SETTINGS.md](SETTINGS.md) for the exact name |
-| `No macro named farm` | Check `$macro list` |
-| `'loop' is missing 'endloop'` | Close the loop |
+| `HELM/cache/` | Remembered chunks |
 
 Attach `HELM/debuglogs.log` to a bug report.
 
-If the log says `no storage field on the chunk cache` or similar, this version of
-the game moved its chunk data somewhere else. Searching still works, but only
-over terrain HELM has already stored, so it will not see chunks the game is
-holding right now.
+## Further reading
 
-## What runs today
-
-Everything runs. Walking, mining, placing, aiming, rendering, and every macro
-statement.
-
-[FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) has the detail.
+| Document | Contents |
+| --- | --- |
+| [FEATURES.md](FEATURES.md) | One line per feature |
+| [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) | How everything behaves |
+| [SETTINGS.md](SETTINGS.md) | Every setting, its default and what it does |
+| [MACROSYNTAX.md](MACROSYNTAX.md) | The macro script syntax |
