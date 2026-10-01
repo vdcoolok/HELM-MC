@@ -6,6 +6,7 @@ import dev.helm.aim.Aiming;
 import dev.helm.control.Control;
 import dev.helm.movement.MoveState;
 import dev.helm.movement.MoveTick;
+import dev.helm.movement.sprint.DescendSafety;
 import dev.helm.pathfinding.world.block.LiquidRules;
 
 public final class DropStepExecutor implements StepExecutor {
@@ -23,6 +24,7 @@ public final class DropStepExecutor implements StepExecutor {
     @Override
     public void begin() {
         ticks = 0;
+        clearSafeLanding();
     }
 
     @Override
@@ -40,6 +42,10 @@ public final class DropStepExecutor implements StepExecutor {
             return MoveState.SUCCESS;
         }
         if (safeLanding) {
+            creepDown(context, tick, step);
+            return MoveState.RUNNING;
+        }
+        if (DescendSafety.needed(context, step)) {
             creepDown(context, tick, step);
             return MoveState.RUNNING;
         }

@@ -1,8 +1,12 @@
 package dev.helm.navigate;
 
+import net.minecraft.client.Minecraft;
+
 import dev.helm.aim.LookController;
 import dev.helm.control.Control;
 import dev.helm.control.ControlState;
+import dev.helm.diag.RouteTrace;
+import dev.helm.diag.Trace;
 import dev.helm.interaction.BlockBreaker;
 import dev.helm.interaction.BlockPlacer;
 import dev.helm.movement.MoveState;
@@ -13,8 +17,6 @@ import dev.helm.movement.WalkOutcome;
 import dev.helm.movement.step.StepContext;
 import dev.helm.pathfinding.search.SearchJob;
 import dev.helm.setting.ClientNotice;
-import dev.helm.diag.RouteTrace;
-import dev.helm.diag.Trace;
 
 public final class Pilot {
 
@@ -28,9 +30,8 @@ public final class Pilot {
     private MoveTick tick = new MoveTick(MoveState.PREPPING);
     private StepContext context;
     private SearchJob pending;
-    private int pendingX;
-    private int pendingY;
-    private int pendingZ;
+    private Destination destination;
+    private boolean pendingAnnouncement;
     private boolean active;
 
     public Pilot(RouteWalker walker) {
@@ -69,11 +70,10 @@ public final class Pilot {
         walker.begin(next.length());
     }
 
-    public void await(SearchJob job, int x, int y, int z) {
+    public void await(SearchJob job, Destination where) {
         this.pending = job;
-        this.pendingX = x;
-        this.pendingY = y;
-        this.pendingZ = z;
+        this.destination = where;
+        this.pendingAnnouncement = true;
     }
 
     public boolean searching() {
@@ -90,6 +90,10 @@ public final class Pilot {
         look.clear();
     }
 
+    public void forgetDestination() {
+        this.destination = null;
+    }
+
     public void tick() {
         collect();
         if (context == null) {
@@ -97,15 +101,7 @@ public final class Pilot {
         }
         boolean wantsBreak = controls.isDown(Control.ATTACK);
         boolean wantsPlace = controls.isDown(Control.USE);
-        controls.set(Control.ATTACK, false);
-        controls.set(Control.USE, false);
-        controls.set(Control.SPRINT, false);
-        controls.set(Control.MOVE_FORWARD, false);
-        controls.set(Control.MOVE_BACK, false);
-        controls.set(Control.MOVE_LEFT, false);
-        controls.set(Control.MOVE_RIGHT, false);
-        controls.set(Control.JUMP, false);
-        controls.set(Control.SNEAK, false);
+        release();
 
         breaker.tick(wantsBreak);
         placer.tick(wantsPlace);
@@ -124,8 +120,20 @@ public final class Pilot {
             controls.set(Control.SPRINT, true);
         }
         if (outcome == WalkOutcome.DONE || walker.failed()) {
-            halt();
+            finish(outcome);
         }
+    }
+
+    private void release() {
+        controls.set(Control.ATTACK, false);
+        controls.set(Control.USE, false);
+        controls.set(Control.SPRINT, false);
+        controls.set(Control.MOVE_FORWARD, false);
+        controls.set(Control.MOVE_BACK, false);
+        controls.set(Control.MOVE_LEFT, false);
+        controls.set(Control.MOVE_RIGHT, false);
+        controls.set(Control.JUMP, false);
+        controls.set(Control.SNEAK, false);
     }
 
     private void collect() {
@@ -134,25 +142,72 @@ public final class Pilot {
             return;
         }
         pending = null;
+        boolean announce = pendingAnnouncement;
+        pendingAnnouncement = false;
+        Destination target = destination;
+        if (target == null) {
+            return;
+        }
         NavigatorAgent agent = NavigatorAgent.instance();
-        long spent = job.millis();
         Journey.Result result = Journey.collect(job.search(), agent.navigator().blocks(),
                 agent.navigator().walk());
-        Trace.instance().event("goto", "search finished after " + spent + "ms");
+        Trace.instance().event("goto", "search finished after " + job.millis() + "ms");
         if (result.arrived()) {
             Trace.instance().event("goto", "already standing on the goal");
             halt();
-            ClientNotice.warn("Already at " + pendingX + " " + pendingY + " " + pendingZ + ".");
+            ClientNotice.warn("Already at " + target.describe() + ".");
             return;
         }
         if (!result.usable()) {
             Trace.instance().event("goto", "unusable result, nothing drawn");
-            ClientNotice.warn("No path to " + pendingX + " " + pendingY + " " + pendingZ + ".");
+            ClientNotice.warn("No path to " + target.describe() + ".");
             return;
         }
         RouteTrace.describe(result.route());
         travel(result.route());
-        ClientNotice.warn((result.reached() ? "Path found: " : "Partial path: ")
-                + result.route().length() + " steps.");
+        if (announce) {
+            ClientNotice.warn((result.reached() ? "Path found: " : "Partial path: ")
+                    + result.route().length() + " steps.");
+        }
+    }
+
+    private void finish(WalkOutcome outcome) {
+        halt();
+        Destination target = destination;
+        if (target == null) {
+            return;
+        }
+        if (standingOn(target)) {
+            Trace.instance().event("walk", "arrived at " + target.describe());
+            ClientNotice.warn("Arrived at " + target.describe() + ".");
+            return;
+        }
+        Trace.instance().event("walk", "route " + (outcome == WalkOutcome.ABANDONED
+                ? "abandoned" : "finished") + " short of " + target.describe()
+                + ", searching again from here");
+        replan(target);
+    }
+
+    private void replan(Destination target) {
+        NavigatorAgent agent = NavigatorAgent.instance();
+        if (!agent.navigator().ready()) {
+            return;
+        }
+        var player = Minecraft.getInstance().player;
+        if (player == null) {
+            return;
+        }
+        var feet = player.blockPosition();
+        SearchJob job = agent.navigator()
+                .searchFor(target.goal(), feet.getX(), feet.getY(), feet.getZ());
+        if (job != null) {
+            await(job, target);
+            pendingAnnouncement = false;
+        }
+    }
+
+    private boolean standingOn(Destination target) {
+        var player = Minecraft.getInstance().player;
+        return player != null && target.reachedBy(player.blockPosition());
     }
 }

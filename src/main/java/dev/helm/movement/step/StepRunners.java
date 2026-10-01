@@ -22,6 +22,10 @@ public final class StepRunners {
         runnerFor(step).begin();
     }
 
+    public boolean safeToCancel(StepContext context, PlanStep step, MoveTick tick) {
+        return runnerFor(step).safeToCancel(context, step, tick);
+    }
+
     public DropStepExecutor drop() {
         return drop;
     }

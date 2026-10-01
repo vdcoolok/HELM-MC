@@ -77,13 +77,7 @@ public final class Route {
             return new Route(List.of(), destination);
         }
         List<PlanStep> kept = new ArrayList<>(steps.subList(count, steps.size()));
-        kept.set(0, withSource(kept.get(0), steps.get(count - 1)));
+        kept.set(0, kept.get(0).startingFrom(steps.get(count - 1)));
         return new Route(kept, destination);
-    }
-
-    private static PlanStep withSource(PlanStep step, PlanStep previous) {
-        return new PlanStep(previous.toX(), previous.toY(), previous.toZ(),
-                step.toX(), step.toY(), step.toZ(), step.kind(), step.move(),
-                step.blocksToBreak(), step.placeAt(), step.blocksToWalkInto());
     }
 }

@@ -15,6 +15,7 @@ public final class StopCommand {
             boolean searching = agent.pilot().searching();
             boolean walking = agent.pilot().isWalking();
             agent.pilot().halt();
+            agent.pilot().forgetDestination();
             agent.navigator().cancelSearch();
             if (searching) {
                 ClientNotice.warn("Stopped searching.");

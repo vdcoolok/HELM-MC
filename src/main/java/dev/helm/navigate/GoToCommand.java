@@ -67,7 +67,7 @@ public final class GoToCommand {
             ClientNotice.warn("Not in a world yet.");
             return CommandResult.FAILURE;
         }
-        agent.pilot().await(job, x, y, z);
+        agent.pilot().await(job, new Destination(x, y, z));
         ClientNotice.warn("Searching for a way to " + x + " " + y + " " + z + ".");
         return CommandResult.SUCCESS;
     }

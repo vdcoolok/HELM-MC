@@ -4,9 +4,12 @@ import dev.helm.control.Control;
 import dev.helm.diag.WalkTrace;
 import dev.helm.movement.step.PlanStep;
 import dev.helm.movement.step.StepContext;
-import dev.helm.movement.step.StepKind;
 import dev.helm.movement.step.StepRunners;
-import dev.helm.pathfinding.world.block.Hazards;
+import dev.helm.movement.sprint.FallSprint;
+import dev.helm.movement.sprint.SprintChoice;
+import dev.helm.movement.sprint.SprintPlanner;
+import dev.helm.movement.sprint.SprintStamina;
+import dev.helm.pathfinding.world.block.LiquidRules;
 import dev.helm.setting.MovementSettings;
 
 public final class RouteWalker {
@@ -14,9 +17,6 @@ public final class RouteWalker {
     private static final double OFF_PATH_DISTANCE = 2.0D;
     private static final double WAY_OFF_DISTANCE = 3.0D;
     private static final int MAX_TICKS_OFF_PATH = 200;
-    private static final int SKIP_LOOKAHEAD = 3;
-    private static final int RISE_SCAN = 3;
-    private static final int WIDTH_SCAN = 2;
 
     private final StepRunners runners = new StepRunners();
     private final StepPricer pricer;
@@ -26,8 +26,7 @@ public final class RouteWalker {
     private int enteredStep = -1;
     private int ticksAway;
     private int ticksOnStep;
-    private double originalCost;
-    private boolean costRecorded;
+    private StepBudget budget;
     private boolean failed;
     private boolean sprinting;
     private boolean moved;
@@ -66,16 +65,17 @@ public final class RouteWalker {
         enteredStep = -1;
         ticksAway = 0;
         ticksOnStep = 0;
-        costRecorded = false;
+        budget = null;
         failed = false;
         sprinting = false;
         releasedControls = false;
     }
 
-    public void restart() {
+    public void restart(MoveTick state) {
         ticksOnStep = 0;
-        costRecorded = false;
+        budget = null;
         releasedControls = true;
+        state.inputs().clear();
     }
 
     public WalkOutcome tick(Route route, MoveTick state, StepContext stepContext) {
@@ -92,6 +92,12 @@ public final class RouteWalker {
         return WalkOutcome.CONTINUE;
     }
 
+    public void abort() {
+        failed = true;
+        index = Integer.MAX_VALUE;
+        releasedControls = true;
+    }
+
     private WalkOutcome attempt(Route route, MoveTick state, StepContext stepContext) {
         if (index >= route.length()) {
             WalkTrace.finished(route, index);
@@ -99,29 +105,30 @@ public final class RouteWalker {
         }
         PlanStep step = route.at(index);
         int[] feet = stepContext.feet();
-        current = step;
         if (index != enteredStep) {
             enteredStep = index;
             runners.begin(step);
         }
 
-        int rewound = rewindTo(route, feet);
-        if (rewound >= 0) {
-            WalkTrace.rewind(route, index, rewound, feet);
-            index = rewound;
-            restart();
-            moved = true;
-            return WalkOutcome.CONTINUE;
+        if (!RouteProximity.standingOn(step, feet)) {
+            int rewound = RouteResync.earlier(route, index, feet[0], feet[1], feet[2]);
+            if (rewound >= 0) {
+                WalkTrace.rewind(route, index, rewound, feet);
+                index = rewound;
+                restart(state);
+                moved = true;
+                return WalkOutcome.CONTINUE;
+            }
+            int skipped = RouteResync.later(route, index, feet[0], feet[1], feet[2]);
+            if (skipped >= 0) {
+                WalkTrace.skip(route, index, skipped, feet);
+                index = skipped - 1;
+                restart(state);
+                moved = true;
+                return WalkOutcome.CONTINUE;
+            }
         }
-        int skipped = skipTo(route, feet);
-        if (skipped >= 0) {
-            WalkTrace.skip(route, index, skipped, feet);
-            index = skipped - 1;
-            restart();
-            moved = true;
-            return WalkOutcome.CONTINUE;
-        }
-        if (leftBehind(route, stepContext, feet)) {
+        if (leftBehind(route, step, stepContext, feet)) {
             return WalkOutcome.ABANDONED;
         }
         if (index < route.length() - 1) {
@@ -129,79 +136,80 @@ public final class RouteWalker {
             if (!stepContext.world().loaded(next.toX(), next.toZ())) {
                 WalkTrace.paused(route, index, new int[]{next.toX(), next.toY(), next.toZ()});
                 state.inputs().clear();
+                sprinting = false;
                 return WalkOutcome.PAUSED;
             }
         }
 
-        if (!costRecorded) {
-            originalCost = pricer.reprice(step);
-            costRecorded = true;
-            if (impossibleAhead(route)) {
-                abandon(route, feet, "a following step is no longer possible");
-                return WalkOutcome.ABANDONED;
-            }
+        if (budget == null) {
+            budget = new StepBudget(pricer, settings, index, step);
         }
-        double current = pricer.reprice(step);
-        WalkTrace.step(route, index, ticksOnStep, originalCost, current);
-        if (current >= dev.helm.pathfinding.cost.MoveCosts.IMPOSSIBLE) {
-            abandon(route, feet, "this step is no longer possible");
-            return WalkOutcome.ABANDONED;
-        }
-        if (current - originalCost > settings.maxCostIncrease()) {
-            abandon(route, feet, "cost rose past the allowed increase");
-            return WalkOutcome.ABANDONED;
-        }
+        budget.refresh();
 
         MoveState outcome = runners.advance(stepContext, state, step);
+        boolean cancellable = runners.safeToCancel(stepContext, step, state);
         if (outcome == MoveState.UNREACHABLE || outcome == MoveState.FAILED) {
             abandon(route, feet, "step executor returned " + outcome);
             return WalkOutcome.ABANDONED;
         }
+        if (cancellable && budget.impossible()) {
+            abandon(route, feet, "this step is no longer possible");
+            return WalkOutcome.ABANDONED;
+        }
+        if (cancellable && budget.roseTooFar()) {
+            abandon(route, feet, "cost rose past the allowed increase");
+            return WalkOutcome.ABANDONED;
+        }
+        if (cancellable && budget.anyAheadImpossible(route)) {
+            abandon(route, feet, "a following step is no longer possible");
+            return WalkOutcome.ABANDONED;
+        }
+
         if (outcome == MoveState.SUCCESS) {
             index++;
-            restart();
+            restart(state);
             moved = true;
             return WalkOutcome.CONTINUE;
         }
+        WalkTrace.step(route, index, ticksOnStep, budget.original(), budget.live());
         aimWith(state);
-        overrideAbilities(stepContext, state);
+        overrideAbilities(stepContext, state, step);
 
-        sprinting = sprintNextTick(route, state);
+        SprintChoice choice = decide(route, state);
+        if (choice.skips()) {
+            index = choice.skipTo();
+            restart(state);
+            moved = true;
+            return WalkOutcome.CONTINUE;
+        }
+        FallSprint.Glide glide = FallSprint.extension(route, index, context);
+        if (glide != null) {
+            if (glide.landedOn(context)) {
+                index = glide.landingIndex();
+                restart(state);
+                moved = true;
+                return WalkOutcome.CONTINUE;
+            }
+            glide(context, state, glide);
+            sprinting = true;
+            return WalkOutcome.CONTINUE;
+        }
+        sprinting = choice.sprint();
         WalkTrace.sprinting(sprinting);
         if (!sprinting && stepContext.player() != null) {
             stepContext.player().setSprinting(false);
         }
         ticksOnStep++;
-        if (ticksOnStep > originalCost + settings.movementTimeoutTicks()) {
+        if (ticksOnStep > budget.original() + settings.movementTimeoutTicks()) {
             abandon(route, feet, "ran out of ticks on this step");
             return WalkOutcome.ABANDONED;
         }
         return WalkOutcome.CONTINUE;
     }
 
-    private int rewindTo(Route route, int[] feet) {
-        for (int earlier = 0; earlier < index && earlier < route.length(); earlier++) {
-            PlanStep step = route.at(earlier);
-            if (step.fromX() == feet[0] && step.fromY() == feet[1] && step.fromZ() == feet[2]) {
-                return earlier;
-            }
-        }
-        return -1;
-    }
-
-    private int skipTo(Route route, int[] feet) {
-        for (int later = index + SKIP_LOOKAHEAD; later < route.length() - 1; later++) {
-            PlanStep step = route.at(later);
-            if (step.fromX() == feet[0] && step.fromY() == feet[1] && step.fromZ() == feet[2]) {
-                return later;
-            }
-        }
-        return -1;
-    }
-
-    private boolean leftBehind(Route route, StepContext stepContext, int[] feet) {
-        double nearest = nearestOnRoute(route, stepContext);
-        if (nearest > OFF_PATH_DISTANCE) {
+    private boolean leftBehind(Route route, PlanStep step, StepContext stepContext, int[] feet) {
+        double nearest = RouteProximity.distanceFrom(route, stepContext);
+        if (beyond(nearest, step, stepContext, OFF_PATH_DISTANCE)) {
             ticksAway++;
             if (ticksAway > MAX_TICKS_OFF_PATH) {
                 abandon(route, feet, "strayed from the route for " + ticksAway + " ticks");
@@ -210,7 +218,7 @@ public final class RouteWalker {
         } else {
             ticksAway = 0;
         }
-        if (nearest > WAY_OFF_DISTANCE) {
+        if (beyond(nearest, step, stepContext, WAY_OFF_DISTANCE)) {
             abandon(route, feet, "strayed " + Math.round(nearest * 100.0D) / 100.0D
                     + " blocks from the route");
             return true;
@@ -218,33 +226,14 @@ public final class RouteWalker {
         return false;
     }
 
-    private double nearestOnRoute(Route route, StepContext stepContext) {
-        if (stepContext.player() == null) {
-            return 0.0D;
+    private boolean beyond(double nearest, PlanStep step, StepContext stepContext, double leniency) {
+        if (nearest <= leniency) {
+            return false;
         }
-        double best = Double.MAX_VALUE;
-        for (PlanStep step : route.steps()) {
-            best = Math.min(best, centreDistance(stepContext, step.toX(), step.toY(), step.toZ()));
-            best = Math.min(best, centreDistance(stepContext, step.fromX(), step.fromY(), step.fromZ()));
+        if (RouteProximity.falling(step)) {
+            return RouteProximity.distanceFromFalling(step, stepContext) >= leniency;
         }
-        return best;
-    }
-
-    private double centreDistance(StepContext stepContext, int x, int y, int z) {
-        double dx = stepContext.player().getX() - (x + 0.5D);
-        double dy = stepContext.player().getY() - (y + 0.5D);
-        double dz = stepContext.player().getZ() - (z + 0.5D);
-        return Math.sqrt(dx * dx + dy * dy + dz * dz);
-    }
-
-    private boolean impossibleAhead(Route route) {
-        int limit = Math.min(settings.costVerificationLookahead(), route.length() - index - 1);
-        for (int ahead = 1; ahead < limit; ahead++) {
-            if (pricer.impossible(route.at(index + ahead))) {
-                return true;
-            }
-        }
-        return false;
+        return true;
     }
 
     private void abandon(Route route, int[] feet, String reason) {
@@ -256,18 +245,28 @@ public final class RouteWalker {
         releasedControls = true;
     }
 
-    private void overrideAbilities(StepContext stepContext, MoveTick state) {
+    private void glide(StepContext stepContext, MoveTick state, FallSprint.Glide glide) {
+        state.inputs().clear();
+        state.intent().aimedAt(glide.aimFrom(stepContext), false);
+        state.press(Control.MOVE_FORWARD);
+    }
+
+    private void aimWith(MoveTick state) {
+        if (!state.intent().hasAim()) {
+            dev.helm.aim.LookController.instance().clear();
+            return;
+        }
+        dev.helm.aim.LookController.instance()
+                .aimAt(state.intent().aim(), state.intent().forcesAim());
+    }
+
+    private void overrideAbilities(StepContext stepContext, MoveTick state, PlanStep step) {
         if (stepContext.player() == null) {
             return;
         }
         stepContext.player().getAbilities().flying = false;
-        PlanStep step = current;
-        if (step == null) {
-            return;
-        }
         int[] feet = stepContext.feet();
-        if (dev.helm.pathfinding.world.block.LiquidRules.any(
-                stepContext.world().stateAt(feet[0], feet[1], feet[2]))
+        if (LiquidRules.any(stepContext.world().stateAt(feet[0], feet[1], feet[2]))
                 && stepContext.player().getY() < step.toY() + 0.6D) {
             state.set(Control.JUMP, true);
         }
@@ -281,130 +280,19 @@ public final class RouteWalker {
         }
     }
 
-    private PlanStep current;
-
-    private void aimWith(MoveTick state) {
-        if (!state.intent().hasAim()) {
-            dev.helm.aim.LookController.instance().clear();
-            return;
-        }
-        dev.helm.aim.LookController.instance()
-                .aimAt(state.intent().aim(), state.intent().forcesAim());
-    }
-
-    public void abort() {
-        failed = true;
-        index = Integer.MAX_VALUE;
-        releasedControls = true;
-    }
-
-    private boolean sprintNextTick(Route route, MoveTick state) {
-        boolean requested = state.inputs().isSet(Control.SPRINT);
+    private SprintChoice decide(Route route, MoveTick state) {
+        boolean asked = state.inputs().isSet(Control.SPRINT);
         state.set(Control.SPRINT, false);
-        if (!settings.sprintAllowed() || index >= route.length()) {
-            return false;
+        if (index >= route.length() || !SprintStamina.available(context)) {
+            return SprintChoice.hold();
         }
-        if (requested) {
-            return true;
+        SprintChoice choice = SprintPlanner.decide(route, index, context, asked);
+        if (choice.safeDescend()) {
+            runners.drop().forceSafeLanding();
         }
-        PlanStep current = route.at(index);
-        if (current.kind() == StepKind.DROP) {
-            if (sprintOffDrop(route, current)) {
-                return true;
-            }
+        if (choice.releaseJump()) {
+            state.set(Control.JUMP, false);
         }
-        if (current.kind() == StepKind.STEP_UP && index > 0) {
-            PlanStep previous = route.at(index - 1);
-            if (previous.kind() == StepKind.DROP && continuesForward(previous, current)) {
-                return true;
-            }
-            if (index < route.length() - 2 && previous.kind() == StepKind.STEP
-                    && sprintableStepUp(previous, current, route.at(index + 1))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean sprintOffDrop(Route route, PlanStep current) {
-        if (index + 1 >= route.length()) {
-            return false;
-        }
-        PlanStep next = route.at(index + 1);
-        if (next.kind() == StepKind.STEP_UP && continuesForward(current, next)) {
-            index++;
-            restart();
-            return true;
-        }
-        if (next.kind() == StepKind.DROP && continuesForward(current, next)) {
-            return true;
-        }
-        if (next.kind() == StepKind.LEAN && settings.overshootDiagonalDescend()) {
-            return true;
-        }
-        if (frosteableLanding(next) && frostBlocked(current)) {
-            return false;
-        }
-        if (!context.walk().onTop(current.toX() + current.directionX(), current.toY(),
-                current.toZ() + current.directionZ())) {
-            return false;
-        }
-        return next.kind() == StepKind.STEP && continuesForward(current, next);
-    }
-
-    private boolean frosteableLanding(PlanStep next) {
-        return next.kind() == StepKind.STEP || next.kind() == StepKind.BOUND;
-    }
-
-    private boolean frostBlocked(PlanStep current) {
-        if (context.player() == null || !FrostWalker.wornBy(context.player())) {
-            return false;
-        }
-        return true;
-    }
-
-    private boolean continuesForward(PlanStep first, PlanStep second) {
-        return first.directionX() == second.directionX()
-                && first.directionZ() == second.directionZ();
-    }
-
-    private boolean sprintableStepUp(PlanStep previous, PlanStep next, PlanStep after) {
-        if (!settings.sprintAscends()) {
-            return false;
-        }
-        if (previous.directionX() != next.directionX()
-                || previous.directionZ() != next.directionZ()) {
-            return false;
-        }
-        if (after.directionX() != next.directionX() || after.directionZ() != next.directionZ()) {
-            return false;
-        }
-        if (!context.walk().onTop(previous.toX(), previous.toY() - 1, previous.toZ())) {
-            return false;
-        }
-        if (!context.walk().onTop(next.toX(), next.toY() - 1, next.toZ())) {
-            return false;
-        }
-        if (!next.blocksToBreak().isEmpty()) {
-            return false;
-        }
-        for (int across = 0; across < WIDTH_SCAN; across++) {
-            for (int up = 0; up < RISE_SCAN; up++) {
-                int x = previous.fromX() + (across == 1 ? previous.directionX() : 0);
-                int y = previous.fromY() + up;
-                int z = previous.fromZ() + (across == 1 ? previous.directionZ() : 0);
-                if (!context.walk().fullyPassable(x, y, z)) {
-                    return false;
-                }
-            }
-        }
-        if (Hazards.avoidWalkingInto(
-                context.world().stateAt(previous.fromX(), previous.fromY() + RISE_SCAN,
-                        previous.fromZ()), settings.magmaWalkAllowed())) {
-            return false;
-        }
-        return !Hazards.avoidWalkingInto(
-                context.world().stateAt(next.toX(), next.toY() + 2, next.toZ()),
-                settings.magmaWalkAllowed());
+        return choice;
     }
 }

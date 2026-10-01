@@ -26,8 +26,8 @@ public final class StepBuilder {
         List<int[]> walkInto = StepBlocks.walkInto(world, walk, leg.fromX(), leg.fromY(),
                 leg.fromZ(), toX, toZ, kind == StepKind.LEAN);
 
-        return new PlanStep(leg.fromX(), leg.fromY(), leg.fromZ(), toX, toY, toZ, kind,
-                move, breaks, placement, walkInto);
+        return PlanStep.of(leg.fromX(), leg.fromY(), leg.fromZ(), toX, toY, toZ, kind, move,
+                world.loaded(toX, toZ), breaks, placement, walkInto);
     }
 
     private static StepKind kindFor(MoveKind move, int fromY, int toY) {

@@ -1,8 +1,5 @@
 package dev.helm.movement.step;
 
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 import net.minecraft.world.level.block.Blocks;
 
 import dev.helm.control.Control;
@@ -25,7 +22,7 @@ public final class LeanStepExecutor implements StepExecutor {
         if (feet[0] == step.toX() && feet[1] == step.toY() && feet[2] == step.toZ()) {
             return MoveState.SUCCESS;
         }
-        if (!valid(context, step)) {
+        if (!onRoute(step, feet)) {
             return MoveState.UNREACHABLE;
         }
         if (step.toY() > step.fromY()
@@ -33,7 +30,7 @@ public final class LeanStepExecutor implements StepExecutor {
                 && context.player().horizontalCollision) {
             tick.press(Control.JUMP);
         }
-        if (canSprint(context, step)) {
+        if (canSprint(context, step, feet)) {
             tick.press(Control.SPRINT);
         }
         tick.set(Control.SNEAK, context.movement().magmaWalkAllowed()
@@ -43,53 +40,42 @@ public final class LeanStepExecutor implements StepExecutor {
         return MoveState.RUNNING;
     }
 
-    private boolean canSprint(StepContext context, PlanStep step) {
-        int[] feet = context.feet();
+    private boolean canSprint(StepContext context, PlanStep step, int[] feet) {
         if (LiquidRules.any(context.world().stateAt(feet[0], feet[1], feet[2]))
                 && !context.movement().sprintInWater()) {
             return false;
         }
-        for (int[] position : step.blocksToWalkInto()) {
-            if (!context.walk().through(position[0], position[1], position[2])) {
-                return false;
-            }
-        }
-        return true;
+        return StepBlocks.walkInto(context.world(), context.walk(), step.fromX(), step.fromY(),
+                step.fromZ(), step.toX(), step.toZ(), true).isEmpty();
     }
 
-    private boolean valid(StepContext context, PlanStep step) {
-        Set<int[]> spots = validSpots(step);
-        for (int[] spot : spots) {
-            int[] feet = context.feet();
-            if (feet[0] == spot[0] && feet[1] == spot[1] && feet[2] == spot[2]) {
-                return true;
-            }
-        }
-        return false;
+    private boolean onRoute(PlanStep step, int[] feet) {
+        return step.footprint().contains(feet[0], feet[1], feet[2]);
     }
 
-    private Set<int[]> validSpots(PlanStep step) {
-        Set<int[]> spots = new LinkedHashSet<>();
-        int diagAX = step.fromX();
-        int diagAZ = step.toZ();
-        int diagBX = step.toX();
-        int diagBZ = step.fromZ();
-        spots.add(new int[]{step.fromX(), step.fromY(), step.fromZ()});
-        if (step.toY() < step.fromY()) {
-            spots.add(new int[]{step.toX(), step.toY() + 1, step.toZ()});
-            spots.add(new int[]{step.toX(), step.toY(), step.toZ()});
-            spots.add(new int[]{diagAX, step.fromY() - 1, diagAZ});
-            spots.add(new int[]{diagBX, step.fromY() - 1, diagBZ});
-        } else if (step.toY() > step.fromY()) {
-            spots.add(new int[]{step.fromX(), step.fromY() + 1, step.fromZ()});
-            spots.add(new int[]{step.toX(), step.toY(), step.toZ()});
-            spots.add(new int[]{diagAX, step.fromY() + 1, diagAZ});
-            spots.add(new int[]{diagBX, step.fromY() + 1, diagBZ});
-        } else {
-            spots.add(new int[]{step.toX(), step.toY(), step.toZ()});
+    @Override
+    public boolean safeToCancel(StepContext context, PlanStep step, MoveTick tick) {
+        int[] feet = context.feet();
+        if (feet[0] == step.fromX() && feet[1] == step.fromY() && feet[2] == step.fromZ()) {
+            return true;
         }
-        spots.add(new int[]{diagAX, step.fromY(), diagAZ});
-        spots.add(new int[]{diagBX, step.fromY(), diagBZ});
-        return spots;
+        int fromY = step.fromY();
+        boolean cornerA = context.walk().onTop(step.fromX(), fromY - 1, step.toZ());
+        boolean cornerB = context.walk().onTop(step.toX(), fromY - 1, step.fromZ());
+        if (cornerA && cornerB) {
+            return true;
+        }
+        boolean inCorner = feet[0] == step.fromX() && feet[1] == fromY && feet[2] == step.toZ()
+                || feet[0] == step.toX() && feet[1] == fromY && feet[2] == step.fromZ();
+        if (!inCorner) {
+            return true;
+        }
+        int x = (int) context.player().getX();
+        int y = (int) (context.player().getY() - 1);
+        int z = (int) context.player().getZ();
+        return context.walk().onTop(x + 1, y, z + 1)
+                || context.walk().onTop(x + 1, y, z - 1)
+                || context.walk().onTop(x - 1, y, z + 1)
+                || context.walk().onTop(x - 1, y, z - 1);
     }
 }

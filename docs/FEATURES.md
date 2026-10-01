@@ -8,6 +8,7 @@
 - `settings` command to reset every setting
 - `goto` command walking to a block position
 - `stop` command cancelling a walk or a running search, and releasing all controls
+- Walking to a goal as a journey, searching again from wherever a route ran out
 - Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps
 - Automatic tool switching for every block mined
 - Breaking blocks that stand in the way

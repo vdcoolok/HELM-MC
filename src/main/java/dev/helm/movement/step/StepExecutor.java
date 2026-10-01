@@ -9,4 +9,8 @@ public interface StepExecutor {
 
     default void begin() {
     }
+
+    default boolean safeToCancel(StepContext context, PlanStep step, MoveTick tick) {
+        return true;
+    }
 }

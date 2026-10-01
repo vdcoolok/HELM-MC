@@ -17,6 +17,11 @@ public final class BoundStepExecutor implements StepExecutor {
     private static final int GUARDED_SPAN = 3;
 
     @Override
+    public boolean safeToCancel(StepContext context, PlanStep step, MoveTick tick) {
+        return tick.state() != MoveState.RUNNING;
+    }
+
+    @Override
     public MoveState advance(StepContext context, MoveTick tick, PlanStep step) {
         if (!StepPreparation.ready(context, tick, step)) {
             return MoveState.PREPPING;
@@ -69,7 +74,7 @@ public final class BoundStepExecutor implements StepExecutor {
         if (allowLandingBlock(context, tick, step)) {
             tick.press(Control.USE);
         }
-        if (span.guarded() && nearSource(context, step)) {
+        if (span.guarded() && !span.climbs() && nearSource(context, step)) {
             return MoveState.RUNNING;
         }
         tick.press(Control.JUMP);

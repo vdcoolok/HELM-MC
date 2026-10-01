@@ -21,4 +21,13 @@ public final class FallStepExecutor implements StepExecutor {
         StepPreparation.walkTowards(context, tick, step.toX(), step.toY(), step.toZ());
         return MoveState.RUNNING;
     }
+
+    @Override
+    public boolean safeToCancel(StepContext context, PlanStep step, MoveTick tick) {
+        int[] feet = context.feet();
+        boolean stillOnTheLedge = feet[0] == step.fromX()
+                && feet[1] == step.fromY()
+                && feet[2] == step.fromZ();
+        return stillOnTheLedge || tick.state() != MoveState.RUNNING;
+    }
 }

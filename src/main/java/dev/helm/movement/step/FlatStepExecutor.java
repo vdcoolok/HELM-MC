@@ -34,6 +34,12 @@ public final class FlatStepExecutor implements StepExecutor {
     }
 
     @Override
+    public boolean safeToCancel(StepContext context, PlanStep step, MoveTick tick) {
+        return tick.state() != MoveState.RUNNING
+                || context.walk().onTop(step.toX(), step.toY() - 1, step.toZ());
+    }
+
+    @Override
     public MoveState advance(StepContext context, MoveTick tick, PlanStep step) {
         if (!StepPreparation.ready(context, tick, step)) {
             return MoveState.PREPPING;

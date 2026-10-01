@@ -21,6 +21,11 @@ public final class StepUpExecutor implements StepExecutor {
     }
 
     @Override
+    public boolean safeToCancel(StepContext context, PlanStep step, MoveTick tick) {
+        return tick.state() != MoveState.RUNNING || ticksWithoutPlacement == 0;
+    }
+
+    @Override
     public MoveState advance(StepContext context, MoveTick tick, PlanStep step) {
         int[] feet = context.feet();
         if (feet[1] < step.fromY()) {
