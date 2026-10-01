@@ -18,7 +18,7 @@ public final class SearchBudget {
     private long failureDeadline;
     private int chunkBorderFetches;
     private boolean madeProgress;
-    private boolean cancelled;
+    private volatile boolean cancelled;
 
     public SearchBudget(long primaryMillis, long failureMillis, int maxChunkBorderFetch,
                         double minImprovement) {
@@ -33,7 +33,6 @@ public final class SearchBudget {
         this.failureDeadline = nowMillis + failureMillis;
         this.chunkBorderFetches = 0;
         this.madeProgress = false;
-        this.cancelled = false;
     }
 
     public void cancel() {

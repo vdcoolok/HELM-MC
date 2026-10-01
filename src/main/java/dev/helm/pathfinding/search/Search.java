@@ -78,6 +78,10 @@ public final class Search {
         return end == null ? null : NodePath.of(startNode, end);
     }
 
+    public void cancel() {
+        budget.cancel();
+    }
+
     public SearchOutcome run(java.util.function.LongSupplier clock) {
         budget.begin(clock.getAsLong());
         visited = 0;

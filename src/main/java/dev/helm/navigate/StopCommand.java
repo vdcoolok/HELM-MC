@@ -12,11 +12,18 @@ public final class StopCommand {
     public static Command build() {
         return Command.leaf("stop", call -> {
             NavigatorAgent agent = NavigatorAgent.instance();
-            if (!agent.pilot().isWalking()) {
+            boolean searching = agent.pilot().searching();
+            boolean walking = agent.pilot().isWalking();
+            agent.pilot().halt();
+            agent.navigator().cancelSearch();
+            if (searching) {
+                ClientNotice.warn("Stopped searching.");
+                return CommandResult.SUCCESS;
+            }
+            if (!walking) {
                 ClientNotice.warn("Nothing to stop.");
                 return CommandResult.FAILURE;
             }
-            agent.pilot().halt();
             ClientNotice.warn("Stopped.");
             return CommandResult.SUCCESS;
         }).also("cancel", "abort", "halt").describedAs("Stops walking and releases all controls.");

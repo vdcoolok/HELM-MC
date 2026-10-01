@@ -11,6 +11,10 @@ import dev.helm.movement.Route;
 import dev.helm.movement.RouteWalker;
 import dev.helm.movement.WalkOutcome;
 import dev.helm.movement.step.StepContext;
+import dev.helm.pathfinding.search.SearchJob;
+import dev.helm.setting.ClientNotice;
+import dev.helm.diag.RouteTrace;
+import dev.helm.diag.Trace;
 
 public final class Pilot {
 
@@ -23,6 +27,10 @@ public final class Pilot {
     private Route route = Route.empty();
     private MoveTick tick = new MoveTick(MoveState.PREPPING);
     private StepContext context;
+    private SearchJob pending;
+    private int pendingX;
+    private int pendingY;
+    private int pendingZ;
     private boolean active;
 
     public Pilot(RouteWalker walker) {
@@ -61,8 +69,20 @@ public final class Pilot {
         walker.begin(next.length());
     }
 
+    public void await(SearchJob job, int x, int y, int z) {
+        this.pending = job;
+        this.pendingX = x;
+        this.pendingY = y;
+        this.pendingZ = z;
+    }
+
+    public boolean searching() {
+        return pending != null;
+    }
+
     public void halt() {
         this.active = false;
+        this.pending = null;
         this.route = Route.empty();
         this.tick = new MoveTick(MoveState.PREPPING);
         controls.clear();
@@ -71,6 +91,7 @@ public final class Pilot {
     }
 
     public void tick() {
+        collect();
         if (context == null) {
             return;
         }
@@ -105,5 +126,33 @@ public final class Pilot {
         if (outcome == WalkOutcome.DONE || walker.failed()) {
             halt();
         }
+    }
+
+    private void collect() {
+        SearchJob job = pending;
+        if (job == null || !job.done()) {
+            return;
+        }
+        pending = null;
+        NavigatorAgent agent = NavigatorAgent.instance();
+        long spent = job.millis();
+        Journey.Result result = Journey.collect(job.search(), agent.navigator().blocks(),
+                agent.navigator().walk());
+        Trace.instance().event("goto", "search finished after " + spent + "ms");
+        if (result.arrived()) {
+            Trace.instance().event("goto", "already standing on the goal");
+            halt();
+            ClientNotice.warn("Already at " + pendingX + " " + pendingY + " " + pendingZ + ".");
+            return;
+        }
+        if (!result.usable()) {
+            Trace.instance().event("goto", "unusable result, nothing drawn");
+            ClientNotice.warn("No path to " + pendingX + " " + pendingY + " " + pendingZ + ".");
+            return;
+        }
+        RouteTrace.describe(result.route());
+        travel(result.route());
+        ClientNotice.warn((result.reached() ? "Path found: " : "Partial path: ")
+                + result.route().length() + " steps.");
     }
 }

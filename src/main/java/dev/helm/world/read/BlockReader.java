@@ -14,18 +14,21 @@ public final class BlockReader {
     public static final BlockState AIR = Blocks.AIR.defaultBlockState();
 
     private final BuildRange range;
-    private final ChunkLookup chunks;
+    private final ChunkSource chunks;
     private final boolean preferLoaded;
     private final boolean cachingOn;
     private CachedRegion region;
     private int regionX;
     private int regionZ;
+    private LevelChunk recent;
+    private int recentX = Integer.MIN_VALUE;
+    private int recentZ = Integer.MIN_VALUE;
 
     public BlockReader(ClientLevel level, boolean preferLoaded, boolean cachingOn) {
         this(BuildRange.of(level), new ChunkLookup(level), preferLoaded, cachingOn);
     }
 
-    public BlockReader(BuildRange range, ChunkLookup chunks, boolean preferLoaded,
+    public BlockReader(BuildRange range, ChunkSource chunks, boolean preferLoaded,
                        boolean cachingOn) {
         this.range = range;
         this.chunks = chunks;
@@ -43,10 +46,19 @@ public final class BlockReader {
             return AIR;
         }
         if (preferLoaded) {
-            LevelChunk chunk = chunks.loaded(x >> 4, z >> 4);
-            if (chunk != null) {
-                return fromChunk(chunk, x, section, z);
+            int chunkX = x >> 4;
+            int chunkZ = z >> 4;
+            LevelChunk chunk = recent;
+            if (chunk == null || recentX != chunkX || recentZ != chunkZ) {
+                chunk = chunks.loaded(chunkX, chunkZ);
+                if (chunk == null) {
+                    return cached(x, y, z);
+                }
+                recent = chunk;
+                recentX = chunkX;
+                recentZ = chunkZ;
             }
+            return fromChunk(chunk, x, section, z);
         }
         return cached(x, y, z);
     }

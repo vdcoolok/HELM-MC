@@ -38,11 +38,18 @@ $goto 120 64 -35
 $stop
 ```
 
-Coordinates are block positions. You get back `Path found: N steps.`,
-`Partial path: N steps.`, `Already at x y z.` or `No path to x y z.`
+Coordinates are block positions. You first get `Searching for a way to x y z.`,
+then one of `Path found: N steps.`, `Partial path: N steps.`, `Already at x y z.`
+or `No path to x y z.` once the search finishes. The search runs off the thread
+that draws the game, so the game stays responsive while it works and the answer
+arrives a moment later rather than straight away.
 
 The path is drawn in the world. Blocks to mine are outlined in red, blocks to
 place in blue.
+
+Giving a new goal while a search is still running cancels the running one.
+`$stop` cancels a search too, and answers `Stopped searching.` if that is what it
+caught, otherwise `Stopped.` or `Nothing to stop.`
 
 ## Change a setting
 
@@ -118,7 +125,8 @@ All plain text and all safe to read, edit or delete while the game is closed.
 | --- | --- |
 | `Unknown command: fly` | No such command, or a macro is open and read it as syntax |
 | `No path to 10 64 10` | Nothing walkable connects you to that block |
-| `Nothing to stop.` | You were not walking |
+| `Nothing to stop.` | You were neither walking nor searching |
+| `Stopped searching.` | `$stop` caught a search that had not finished yet |
 | `Unknown setting: movement.fast` | Check [SETTINGS.md](SETTINGS.md) for the exact name |
 | `No macro named farm` | Check `$macro list` |
 | `'loop' is missing 'endloop'` | Close the loop |

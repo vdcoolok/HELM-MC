@@ -9,6 +9,8 @@ import dev.helm.pathfinding.move.MoveKind;
 import dev.helm.pathfinding.move.expand.Expanders;
 import dev.helm.pathfinding.search.Search;
 import dev.helm.pathfinding.search.SearchBudget;
+import dev.helm.pathfinding.search.SearchCoordinator;
+import dev.helm.pathfinding.search.SearchJob;
 import dev.helm.pathfinding.world.BlockView;
 import dev.helm.pathfinding.world.block.WalkRules;
 import dev.helm.pathfinding.world.block.WorkCosts;
@@ -29,10 +31,12 @@ import net.minecraft.world.level.block.state.BlockState;
 public final class Navigator implements MoveEnvironment {
 
     private final MoveExpander[] expanders = new MoveExpander[MoveKind.values().length];
+    private final SearchCoordinator searches = new SearchCoordinator();
 
     private WalkRules walk;
     private WorkCosts work;
     private ClientLevelView view;
+    private java.util.Set<net.minecraft.world.level.block.Block> doNotBreak;
     private BreakStrength strength;
     private Tunables tuning;
     private boolean ready;
@@ -51,7 +55,8 @@ public final class Navigator implements MoveEnvironment {
         }
         MovementSettings movement = Settings.holder().movement();
         tuning = TunablesFactory.from(movement);
-        view = new ClientLevelView(level, BlockAvoidList.all());
+        doNotBreak = BlockAvoidList.all();
+        view = new ClientLevelView(level, doNotBreak);
         walk = new WalkRules(view, tuning);
         strength = new MinedToolStrength(new PlayerInventory(player), Settings.holder().mining(), movement);
         work = new WorkCosts(view, walk, tuning, strength);
@@ -131,5 +136,17 @@ public final class Navigator implements MoveEnvironment {
         return new Search(fromX, fromY, fromZ, goal, view, expanders,
                 new SearchBudget(path.primaryTimeoutMillis(), path.failureTimeoutMillis(),
                         path.maxChunkBorderFetch(), improvement));
+    }
+
+    public SearchJob searchFor(Goal goal, int fromX, int fromY, int fromZ) {
+        return searches.submit(goal, fromX, fromY, fromZ, doNotBreak);
+    }
+
+    public boolean cancelSearch() {
+        return searches.cancel();
+    }
+
+    public void shutdown() {
+        searches.shutdown();
     }
 }

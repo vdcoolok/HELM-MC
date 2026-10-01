@@ -27,20 +27,55 @@ final class MacroActions {
         var feet = client.player.blockPosition();
 
         var agent = NavigatorAgent.instance();
-        var search = agent.navigator().searchTo(new BlockGoal(x, y, z),
-                feet.getX(), feet.getY(), feet.getZ());
-        search.run(System::currentTimeMillis);
-        Journey.Result result = Journey.collect(search, agent.navigator().blocks(),
-                agent.navigator().walk());
-
-        if (result.arrived()) {
+        if (feet.getX() == x && feet.getY() == y && feet.getZ() == z) {
             return null;
         }
-        if (!result.usable()) {
-            throw MacroFailure.unreachable(x, y, z);
+        var job = agent.navigator().searchFor(new BlockGoal(x, y, z),
+                feet.getX(), feet.getY(), feet.getZ());
+        if (job == null) {
+            throw MacroFailure.noWorld();
         }
-        agent.pilot().travel(result.route());
-        return () -> !agent.pilot().isWalking();
+        return new MacroWalker(agent, job, x, y, z);
+    }
+
+    private static final class MacroWalker implements MacroRunner.Ongoing {
+
+        private final NavigatorAgent agent;
+        private final dev.helm.pathfinding.search.SearchJob job;
+        private final int x;
+        private final int y;
+        private final int z;
+        private boolean started;
+
+        MacroWalker(NavigatorAgent agent, dev.helm.pathfinding.search.SearchJob job,
+                    int x, int y, int z) {
+            this.agent = agent;
+            this.job = job;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+        }
+
+        @Override
+        public boolean done() {
+            if (started) {
+                return !agent.pilot().isWalking();
+            }
+            if (!job.done()) {
+                return false;
+            }
+            started = true;
+            Journey.Result result = Journey.collect(job.search(), agent.navigator().blocks(),
+                    agent.navigator().walk());
+            if (result.arrived()) {
+                return true;
+            }
+            if (!result.usable()) {
+                throw MacroFailure.unreachable(x, y, z);
+            }
+            agent.pilot().travel(result.route());
+            return !agent.pilot().isWalking();
+        }
     }
 
     static void look(MacroStatement.Look look) {

@@ -2,6 +2,7 @@ package dev.helm.pathfinding.world.block;
 
 import dev.helm.pathfinding.context.Tunables;
 import dev.helm.pathfinding.world.BlockView;
+import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SnowLayerBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -19,10 +20,13 @@ public final class WalkRules {
     }
 
     public boolean through(int x, int y, int z, BlockState state) {
-        if (Passability.neverWalk(state.getBlock())) {
+        if (doNotBreak(state)) {
             return false;
         }
-        if (doNotBreak(state)) {
+        if (state.getBlock() instanceof AirBlock) {
+            return true;
+        }
+        if (Passability.neverWalk(state.getBlock())) {
             return false;
         }
         if (Passability.alwaysWalk(state)) {
@@ -80,7 +84,13 @@ public final class WalkRules {
     }
 
     public boolean fullyPassable(int x, int y, int z, BlockState state) {
-        if (Passability.neverFullyPass(state.getBlock()) || doNotBreak(state)
+        if (doNotBreak(state)) {
+            return false;
+        }
+        if (state.getBlock() instanceof AirBlock) {
+            return true;
+        }
+        if (Passability.neverFullyPass(state.getBlock())
                 || !state.getFluidState().isEmpty()) {
             return false;
         }

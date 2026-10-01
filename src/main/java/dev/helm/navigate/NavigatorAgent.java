@@ -52,6 +52,7 @@ public final class NavigatorAgent {
 
     public void onDisconnect() {
         pilot.halt();
+        navigator.shutdown();
     }
 
     public LookSettings look() {

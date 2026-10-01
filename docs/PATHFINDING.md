@@ -29,7 +29,34 @@ progress, so a goal across an ocean fails in a reasonable time instead of
 freezing the game. The clock is read once every 64 nodes, not on every node, so
 timing costs almost nothing.
 
-Three budgets apply, all adjustable under `path`:
+### Searching off the frame thread
+
+A search does far too much work to sit on the thread that draws the frame. When
+you give HELM a goal it captures what it needs and hands the work to a worker,
+then answers `Searching for a way to ...` straight away. The reply that matters
+arrives a moment later, once the worker is finished.
+
+Nothing about the world is held still to make this safe. The worker is given its
+own view of which chunks are loaded, captured before the work is handed over, so
+it never reads the live chunk storage while the game is loading and dropping
+chunks underneath it. The chunks themselves are shared rather than copied, so a
+block that changes mid search can still be seen, which is the same trade the
+rest of the search makes when the world changes under it.
+
+Settings are read at the moment the work is handed over, so changing a setting
+while a search runs cannot change what that search is comparing against.
+
+Only one search runs at a time. Asking for a new goal while one is in flight
+cancels the running one, because its answer is for a goal nobody is walking to
+any more. `$stop` cancels one too, and says so.
+
+The workers are daemons, so a search that is somehow still running can never hold
+the game open when you close it, and idle ones are reaped.
+
+### Budgets
+
+Three budgets apply, all adjustable under `path`. They bound how much searching
+happens, not how long the frame is held, because the frame is never held:
 
 - `path.primaryTimeoutMillis` applies until the search has actually moved more
   than five blocks from where it started. A search wedged in a hole gets the
@@ -60,6 +87,18 @@ Two behaviours come out of this that are worth knowing:
   loaded, returns air rather than failing. The search simply sees open space.
 - A chunk section that holds nothing but air short circuits without any lookup
   at all, which is most sections in a cave or in open air.
+- Air answers immediately, without walking the list of blocks that stop the
+  player. Air is by far the most common thing a search reads.
+- Whether a block fills its cube, and whether the player can walk through it,
+  are remembered against the block state they were first asked about. Both
+  normally mean building that block's collision shape, which costs far more than
+  the lookup that skips it. States are immutable and there are only thousands of
+  them, so the answer stays correct and the table cannot grow without bound.
+
+The last two matter more than they look. A single node costs tens of block reads,
+so a route of a few thousand nodes is millions of reads, and air is most of
+them. Together these cut about a quarter off the time a search takes, which means
+roughly a quarter more of the world gets considered inside the same budget.
 
 Moves that would cross into an unloaded chunk are rejected outright, and each
 rejection counts towards `path.maxChunkBorderFetch`.

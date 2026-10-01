@@ -4,6 +4,8 @@ import dev.helm.command.Command;
 import dev.helm.command.CommandResult;
 import dev.helm.diag.RouteTrace;
 import dev.helm.diag.Trace;
+import dev.helm.pathfinding.goal.BlockGoal;
+import dev.helm.pathfinding.search.SearchJob;
 import dev.helm.setting.ClientNotice;
 
 public final class GoToCommand {
@@ -51,36 +53,22 @@ public final class GoToCommand {
                 + " sprint=" + agent.movement().sprintAllowed()
                 + " maxFall=" + agent.movement().maxFallHeightNoWater()
                 + " autotool=" + dev.helm.setting.Settings.holder().mining().autoTool());
-        var budget = dev.helm.setting.Settings.holder().path();
-        Trace.instance().event("goto", "budget: primary=" + budget.primaryTimeoutMillis()
-                + "ms failure=" + budget.failureTimeoutMillis()
-                + "ms chunkBorderFetch=" + budget.maxChunkBorderFetch()
-                + " repropagate=" + budget.repropagateImprovement()
-                + " cutoff=" + budget.cutoffMinimumLength() + "/" + budget.cutoffFactor());
-        long began = System.currentTimeMillis();
-        var search = agent.navigator().searchTo(new dev.helm.pathfinding.goal.BlockGoal(x, y, z),
-                position.getX(), position.getY(), position.getZ());
-        search.run(System::currentTimeMillis);
-        Trace.instance().event("goto", "search took "
-                + (System.currentTimeMillis() - began) + "ms");
-        Journey.Result result = Journey.collect(search, agent.navigator().blocks(),
-                agent.navigator().walk());
 
-        if (result.arrived()) {
+        if (position.getX() == x && position.getY() == y && position.getZ() == z) {
             Trace.instance().event("goto", "already standing on the goal");
             agent.pilot().halt();
             ClientNotice.warn("Already at " + x + " " + y + " " + z + ".");
             return CommandResult.SUCCESS;
         }
-        if (!result.usable()) {
-            Trace.instance().event("goto", "unusable result, nothing drawn");
-            ClientNotice.warn("No path to " + x + " " + y + " " + z + ".");
+
+        SearchJob job = agent.navigator().searchFor(new BlockGoal(x, y, z),
+                position.getX(), position.getY(), position.getZ());
+        if (job == null) {
+            ClientNotice.warn("Not in a world yet.");
             return CommandResult.FAILURE;
         }
-        RouteTrace.describe(result.route());
-        agent.pilot().travel(result.route());
-        ClientNotice.warn((result.reached() ? "Path found: " : "Partial path: ")
-                + result.route().length() + " steps.");
+        agent.pilot().await(job, x, y, z);
+        ClientNotice.warn("Searching for a way to " + x + " " + y + " " + z + ".");
         return CommandResult.SUCCESS;
     }
 }

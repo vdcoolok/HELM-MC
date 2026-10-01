@@ -4,19 +4,32 @@ import net.minecraft.world.level.border.WorldBorder;
 
 public final class WorldBounds {
 
-    private final WorldBorder border;
+    private final double minX;
+    private final double maxX;
+    private final double minZ;
+    private final double maxZ;
 
     public WorldBounds(WorldBorder border) {
-        this.border = border;
+        this.minX = border.getMinX();
+        this.maxX = border.getMaxX();
+        this.minZ = border.getMinZ();
+        this.maxZ = border.getMaxZ();
+    }
+
+    public WorldBounds(double minX, double maxX, double minZ, double maxZ) {
+        this.minX = minX;
+        this.maxX = maxX;
+        this.minZ = minZ;
+        this.maxZ = maxZ;
     }
 
     public boolean entirelyContains(int x, int z) {
-        return x + 1 > border.getMinX() && x < border.getMaxX()
-                && z + 1 > border.getMinZ() && z < border.getMaxZ();
+        return x + 1 > minX && x < maxX
+                && z + 1 > minZ && z < maxZ;
     }
 
     public boolean canPlaceAt(int x, int z) {
-        return x > border.getMinX() && x + 1 < border.getMaxX()
-                && z > border.getMinZ() && z + 1 < border.getMaxZ();
+        return x > minX && x + 1 < maxX
+                && z > minZ && z + 1 < maxZ;
     }
 }

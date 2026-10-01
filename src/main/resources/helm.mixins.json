@@ -13,7 +13,9 @@
     "MixinLevelRenderer",
     "MixinEntityMovementRotation",
     "MixinLivingEntityJumpRotation",
-    "accessor.GameModeAccess"
+    "accessor.GameModeAccess",
+    "accessor.ChunkCacheAccess",
+    "accessor.ChunkStorageAccess"
   ],
   "injectors": {
     "defaultRequire": 1

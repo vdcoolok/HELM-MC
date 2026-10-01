@@ -4,7 +4,7 @@ import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.chunk.status.ChunkStatus;
 
-public final class ChunkLookup {
+public final class ChunkLookup implements ChunkSource {
 
     private final ClientLevel level;
     private LevelChunk memo;
@@ -15,6 +15,7 @@ public final class ChunkLookup {
         this.level = level;
     }
 
+    @Override
     public LevelChunk loaded(int chunkX, int chunkZ) {
         if (memo != null && memoX == chunkX && memoZ == chunkZ) {
             return memo;
@@ -28,6 +29,7 @@ public final class ChunkLookup {
         return chunk;
     }
 
+    @Override
     public boolean resident(int chunkX, int chunkZ) {
         return level.getChunkSource().hasChunk(chunkX, chunkZ);
     }

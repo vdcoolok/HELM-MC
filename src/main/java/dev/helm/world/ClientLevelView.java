@@ -9,6 +9,9 @@ import dev.helm.pathfinding.world.BlockView;
 import dev.helm.setting.CacheSettings;
 import dev.helm.setting.Settings;
 import dev.helm.world.read.BlockReader;
+import dev.helm.world.read.BuildRange;
+import dev.helm.world.read.ChunkLookup;
+import dev.helm.world.read.ChunkSource;
 import dev.helm.world.read.WorldBounds;
 
 public final class ClientLevelView implements BlockView {
@@ -27,9 +30,15 @@ public final class ClientLevelView implements BlockView {
     }
 
     public ClientLevelView(ClientLevel level, Set<Block> doNotBreak, CacheSettings cache) {
+        this(level, new ChunkLookup(level), new WorldBounds(level.getWorldBorder()),
+                cache.preferLoaded(), cache.enabled(), doNotBreak);
+    }
+
+    public ClientLevelView(ClientLevel level, ChunkSource chunks, WorldBounds bounds,
+                           boolean preferLoaded, boolean cachingOn, Set<Block> doNotBreak) {
         this.level = level;
-        this.reader = new BlockReader(level, cache.preferLoaded(), cache.enabled());
-        this.bounds = new WorldBounds(level.getWorldBorder());
+        this.reader = new BlockReader(BuildRange.of(level), chunks, preferLoaded, cachingOn);
+        this.bounds = bounds;
         this.doNotBreak = doNotBreak;
     }
 

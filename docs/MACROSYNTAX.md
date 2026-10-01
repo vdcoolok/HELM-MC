@@ -70,6 +70,11 @@ goto <x> <y> <z>
 
 All three coordinates are required and may be negative.
 
+The search runs off the thread that draws the game. The macro waits for it the
+same way it waits for the walk, so the next line does not start early. The macro
+pauses rather than freezing the game, so nothing else is disturbed while it
+searches.
+
 ### gotohere
 
 Shorthand for walking back to where you are standing, without typing your own

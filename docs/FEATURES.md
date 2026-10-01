@@ -7,7 +7,7 @@
 - `set` command opening a scrollable picker that explains each setting as you point at it
 - `settings` command to reset every setting
 - `goto` command walking to a block position
-- `stop` command cancelling a walk and releasing all controls
+- `stop` command cancelling a walk or a running search, and releasing all controls
 - Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps
 - Automatic tool switching for every block mined
 - Breaking blocks that stand in the way
