@@ -2,7 +2,6 @@ package dev.helm.setting;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public final class SettingCatalogue {
 
@@ -97,20 +96,6 @@ public final class SettingCatalogue {
     }
 
     public static List<Entry> matching(String partial) {
-        String prefix = partial == null ? "" : partial.toLowerCase(Locale.ROOT).trim();
-        List<Entry> found = new ArrayList<>();
-        for (Entry entry : all()) {
-            for (String name : namesFor(entry)) {
-                if (name.toLowerCase(Locale.ROOT).startsWith(prefix)) {
-                    found.add(entry);
-                    break;
-                }
-            }
-        }
-        return found;
-    }
-
-    public static boolean anyNameStartsWith(String partial) {
-        return !matching(partial).isEmpty();
+        return SettingSearch.rank(all(), partial);
     }
 }

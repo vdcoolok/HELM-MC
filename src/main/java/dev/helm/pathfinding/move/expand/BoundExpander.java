@@ -8,7 +8,6 @@ import dev.helm.pathfinding.world.block.BlockShapes;
 import dev.helm.pathfinding.world.block.Climbable;
 import dev.helm.pathfinding.world.block.Hazards;
 import dev.helm.pathfinding.world.block.LiquidRules;
-import dev.helm.pathfinding.world.block.LiquidRules;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.StairBlock;
 import net.minecraft.world.level.block.state.BlockState;
@@ -34,17 +33,16 @@ public final class BoundExpander implements MoveExpander {
             out.cost = MoveCosts.IMPOSSIBLE;
             return out;
         }
-        int dirX = out.x - x;
-        int dirZ = out.z - z;
-        int dir = dirOf(dirX, dirZ);
-        if (dir < 0) {
+        int dirX = Integer.signum(out.x - x);
+        int dirZ = Integer.signum(out.z - z);
+        if (!cardinal(dirX, dirZ)) {
             out.cost = MoveCosts.IMPOSSIBLE;
             return out;
         }
-        return bound(x, y, z, dirX, dirZ, dir, out);
+        return bound(x, y, z, dirX, dirZ, out);
     }
 
-    private MoveTarget bound(int x, int y, int z, int dirX, int dirZ, int dir, MoveTarget out) {
+    private MoveTarget bound(int x, int y, int z, int dirX, int dirZ, MoveTarget out) {
         if (!env.walk().fullyPassable(x + dirX, y, z + dirZ)) {
             out.cost = MoveCosts.IMPOSSIBLE;
             return out;
@@ -93,6 +91,7 @@ public final class BoundExpander implements MoveExpander {
             reach = 3;
         }
 
+        int verified = 1;
         for (int step = 2; step <= reach; step++) {
             int landX = x + dirX * step;
             int landZ = z + dirZ * step;
@@ -123,7 +122,7 @@ public final class BoundExpander implements MoveExpander {
                     out.x = landX;
                     out.y = y;
                     out.z = landZ;
-                    out.cost = jumpCost(step) + env.tuning().jumpPenalty();
+                    out.cost = BoundCosts.forJumpDistance(step) + env.tuning().jumpPenalty();
                     return out;
                 }
                 break;
@@ -131,9 +130,9 @@ public final class BoundExpander implements MoveExpander {
             if (!env.walk().fullyPassable(landX, y + 3, landZ)) {
                 break;
             }
+            verified = step;
         }
-        out.cost = MoveCosts.IMPOSSIBLE;
-        return out;
+        return ParkourPlacement.tryFrom(env, x, y, z, dirX, dirZ, verified, out);
     }
 
     private boolean overshootSafe(int x, int y, int z) {
@@ -143,21 +142,12 @@ public final class BoundExpander implements MoveExpander {
         return !here && !above;
     }
 
-    private static int dirOf(int dirX, int dirZ) {
+    private static boolean cardinal(int dirX, int dirZ) {
         for (int dir = 0; dir < 4; dir++) {
             if (DIRECTION_X[dir] == dirX && DIRECTION_Z[dir] == dirZ) {
-                return dir;
+                return true;
             }
         }
-        return -1;
-    }
-
-    private static double jumpCost(int reach) {
-        return switch (reach) {
-            case 2 -> MoveCosts.WALK_ONE * 2;
-            case 3 -> MoveCosts.WALK_ONE * 3;
-            case 4 -> MoveCosts.SPRINT_ONE * 4;
-            default -> throw new IllegalStateException("Unreachable parkour span " + reach);
-        };
+        return false;
     }
 }

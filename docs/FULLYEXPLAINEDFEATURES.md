@@ -183,6 +183,14 @@ described, so the panel never explains something you cannot see.
 Arrow keys move through the list and scroll it to follow, tab or a click puts the
 setting under the cursor into the chat box, and typing filters the list as you go.
 
+Filtering looks for what was typed anywhere in a setting's name, not only at the
+front of it, so a word that describes what a setting does finds it even when the
+name is phrased differently. Results are ordered so the closest match is under
+the cursor: an exact name first, then names beginning with it, then names
+containing it where a word starts, then anywhere else. A setting's display name
+is only consulted when its setting name does not match at all, so a setting is
+never pushed down the list by a label that happens to read well.
+
 Once a setting's name is complete the list becomes the values that setting
 accepts. A flag offers `true` and `false`, with the opposite of the current
 value first, so it can be flipped with two presses. Anything else offers its

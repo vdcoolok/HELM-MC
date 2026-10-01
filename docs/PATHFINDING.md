@@ -449,6 +449,15 @@ sprinting, three while walking, two on soul sand or magma.
 A parkour jump also has to not overshoot into something hazardous, which is
 checked before the jump is committed to.
 
+When no landing is within reach, `movement.allowParkourPlace` lets a block be
+placed on the far side to land on instead, provided there is something to place
+it against. Without that there is no way across at all, because the gap has to
+be crossed in one jump.
+
+Looking for a gap costs something on ground that has none, since the only way to
+know a gap is not there is to check. That is the trade for never having to build
+a bridge over a gap that could simply be jumped.
+
 ### Corner cases the cost model covers
 
 - A one block gap is bridged, a wider one is jumped
