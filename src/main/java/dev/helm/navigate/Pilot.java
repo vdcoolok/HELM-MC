@@ -74,6 +74,8 @@ public final class Pilot {
         if (context == null) {
             return;
         }
+        boolean wantsBreak = controls.isDown(Control.ATTACK);
+        boolean wantsPlace = controls.isDown(Control.USE);
         controls.set(Control.ATTACK, false);
         controls.set(Control.USE, false);
         controls.set(Control.SPRINT, false);
@@ -84,8 +86,8 @@ public final class Pilot {
         controls.set(Control.JUMP, false);
         controls.set(Control.SNEAK, false);
 
-        breaker.tick(controls.isDown(Control.ATTACK));
-        placer.tick(controls.isDown(Control.USE));
+        breaker.tick(wantsBreak);
+        placer.tick(wantsPlace);
         look.tick();
 
         if (!active) {

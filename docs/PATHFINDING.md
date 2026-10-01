@@ -224,6 +224,20 @@ Each step also records its own cost when it begins, rather than comparing every
 step against the first one. A later step being naturally more expensive than the
 first is not a reason to give up on it.
 
+### Mining and placing
+
+A step that has a block in the way asks for it to be broken, and one that has a
+gap asks for a block to be placed. Those requests are read at the start of the
+next tick, before the controls are reset for it.
+
+The order matters. Reading them after the reset would find nothing pressed,
+because the reset happens first, and neither mining nor placing would ever run.
+So the intents are captured first and the controls are cleared afterwards.
+
+Mining breaks the block under the crosshair, so the aim is turned to it before the
+break is asked for. A step waiting on a block to be broken makes no progress
+until that block is gone, and runs out of time on the step if it never goes.
+
 ### Failure
 
 - The walk is abandoned if a step becomes impossible, for example because a block
