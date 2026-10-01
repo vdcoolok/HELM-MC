@@ -8,6 +8,7 @@ import net.minecraft.world.phys.HitResult;
 
 import dev.helm.aim.Aim;
 import dev.helm.aim.Aiming;
+import dev.helm.aim.AimTrace;
 import dev.helm.aim.BlockReach;
 import dev.helm.control.Control;
 import dev.helm.movement.MoveIntent;
@@ -78,7 +79,9 @@ public final class StepPreparation {
     }
 
     private static boolean lookingAt(StepContext context, BlockPos pos) {
-        HitResult trace = net.minecraft.client.Minecraft.getInstance().hitResult;
+        var player = context.player();
+        HitResult trace = AimTrace.towards(player, new Aim(player.getYRot(), player.getXRot()),
+                context.look().blockReachDistance(), player.isCrouching());
         return trace != null && trace.getType() == HitResult.Type.BLOCK
                 && ((BlockHitResult) trace).getBlockPos().equals(pos);
     }

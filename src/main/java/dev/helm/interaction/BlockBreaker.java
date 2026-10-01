@@ -4,10 +4,14 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.MultiPlayerGameMode;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
 import dev.helm.access.GameModeControl;
+import dev.helm.aim.Aim;
+import dev.helm.aim.AimTrace;
 import dev.helm.setting.Settings;
 
 public final class BlockBreaker {
@@ -34,24 +38,27 @@ public final class BlockBreaker {
         Minecraft client = Minecraft.getInstance();
         MultiPlayerGameMode mode = client.gameMode;
         Player player = client.player;
-        HitResult trace = client.hitResult;
-        if (mode == null || player == null || client.level == null
-                || !wantsBreak || trace == null || trace.getType() != HitResult.Type.BLOCK) {
+        if (mode == null || player == null || client.level == null || !wantsBreak) {
             wasHitting = false;
             return;
         }
 
-        BlockPos pos = ((net.minecraft.world.phys.BlockHitResult) trace).getBlockPos();
-        Direction face = ((net.minecraft.world.phys.BlockHitResult) trace).getDirection();
+        BlockHitResult trace = aimed(player);
+        if (trace == null) {
+            wasHitting = false;
+            return;
+        }
+        BlockPos pos = trace.getBlockPos();
+        Direction face = trace.getDirection();
 
         GameModeControl.setHitting(mode, wasHitting);
         if (GameModeControl.brokenBlock(mode)) {
             GameModeControl.syncCarriedItem(mode);
             mode.startDestroyBlock(pos, face);
-            player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+            player.swing(InteractionHand.MAIN_HAND);
         } else {
             if (mode.continueDestroyBlock(pos, face)) {
-                player.swing(net.minecraft.world.InteractionHand.MAIN_HAND);
+                player.swing(InteractionHand.MAIN_HAND);
             }
             if (GameModeControl.brokenBlock(mode)) {
                 delay = Settings.holder().movement().blockBreakSpeed() - BASE_DELAY;
@@ -60,6 +67,16 @@ public final class BlockBreaker {
         }
         wasHitting = !GameModeControl.brokenBlock(mode);
         GameModeControl.setHitting(mode, false);
+    }
+
+    private static BlockHitResult aimed(Player player) {
+        Aim aim = new Aim(player.getYRot(), player.getXRot());
+        HitResult trace = AimTrace.towards(player, aim,
+                Settings.holder().look().blockReachDistance(), player.isCrouching());
+        if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
+            return null;
+        }
+        return (BlockHitResult) trace;
     }
 
     public boolean isBreaking() {

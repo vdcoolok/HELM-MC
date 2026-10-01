@@ -24,9 +24,14 @@ public final class BlockPlacer {
         Minecraft client = Minecraft.getInstance();
         MultiPlayerGameMode mode = client.gameMode;
         net.minecraft.client.player.LocalPlayer player = client.player;
-        HitResult trace = client.hitResult;
         if (!wantsPlace || mode == null || player == null || client.level == null
-                || player.isUsingItem() || trace == null || trace.getType() != HitResult.Type.BLOCK) {
+                || player.isUsingItem()) {
+            return;
+        }
+        HitResult trace = dev.helm.aim.AimTrace.towards(player,
+                new dev.helm.aim.Aim(player.getYRot(), player.getXRot()),
+                Settings.holder().look().blockReachDistance(), player.isCrouching());
+        if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
             return;
         }
         delay = Settings.holder().movement().rightClickSpeed() - BASE_DELAY;

@@ -48,7 +48,7 @@ public final class BlockReach {
     }
 
     private static Aim held(Entity viewer, BlockPos pos, LookSettings settings, boolean sneaking) {
-        if (!settings.remainWithLookDirection() || !lookingAt(viewer, pos)) {
+        if (!settings.remainWithLookDirection() || !lookingAt(viewer, pos, settings)) {
             return null;
         }
         Aim hypothetical = current(viewer).shifted(0.0D, 0.0001D);
@@ -59,8 +59,9 @@ public final class BlockReach {
         return hits(trace, pos) ? hypothetical : null;
     }
 
-    private static boolean lookingAt(Entity viewer, BlockPos pos) {
-        HitResult trace = Minecraft.getInstance().hitResult;
+    private static boolean lookingAt(Entity viewer, BlockPos pos, LookSettings settings) {
+        HitResult trace = AimTrace.towards(viewer, new Aim(viewer.getYRot(), viewer.getXRot()),
+                settings.blockReachDistance(), false);
         return hits(trace, pos);
     }
 

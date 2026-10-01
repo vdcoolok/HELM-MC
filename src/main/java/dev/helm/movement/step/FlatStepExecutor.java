@@ -278,7 +278,10 @@ public final class FlatStepExecutor implements StepExecutor {
     }
 
     private boolean lookingAt(StepContext context, BlockPos pos) {
-        var trace = net.minecraft.client.Minecraft.getInstance().hitResult;
+        var player = context.player();
+        var trace = dev.helm.aim.AimTrace.towards(player,
+                new dev.helm.aim.Aim(player.getYRot(), player.getXRot()),
+                context.look().blockReachDistance(), player.isCrouching());
         return trace != null
                 && trace.getType() == net.minecraft.world.phys.HitResult.Type.BLOCK
                 && ((net.minecraft.world.phys.BlockHitResult) trace).getBlockPos().equals(pos);

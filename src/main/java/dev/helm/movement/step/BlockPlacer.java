@@ -59,10 +59,10 @@ public final class BlockPlacer {
             }
         }
 
-        BlockPos selected = aimedAt();
+        BlockHitResult aimed = aimedAt(context);
+        BlockPos selected = aimed == null ? null : aimed.getBlockPos();
         if (selected != null) {
-            BlockHitResult trace = (BlockHitResult) net.minecraft.client.Minecraft.getInstance().hitResult;
-            Direction side = trace.getDirection();
+            Direction side = aimed.getDirection();
             if (selected.equals(placeAt)
                     || (Passability.placeableAgainst(context.world().stateAt(
                             selected.getX(), selected.getY(), selected.getZ()))
@@ -93,11 +93,14 @@ public final class BlockPlacer {
         return dev.helm.aim.Aiming.lookFrom(eyes.x, eyes.y, eyes.z, faceX, faceY, faceZ);
     }
 
-    private static BlockPos aimedAt() {
-        HitResult trace = net.minecraft.client.Minecraft.getInstance().hitResult;
+    private static BlockHitResult aimedAt(StepContext context) {
+        var player = context.player();
+        HitResult trace = dev.helm.aim.AimTrace.towards(player,
+                new Aim(player.getYRot(), player.getXRot()),
+                context.look().blockReachDistance(), false);
         if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
             return null;
         }
-        return ((BlockHitResult) trace).getBlockPos();
+        return (BlockHitResult) trace;
     }
 }

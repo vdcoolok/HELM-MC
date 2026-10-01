@@ -238,6 +238,26 @@ Mining breaks the block under the crosshair, so the aim is turned to it before t
 break is asked for. A step waiting on a block to be broken makes no progress
 until that block is gone, and runs out of time on the step if it never goes.
 
+### What "looking at" means
+
+Which block counts as the one being looked at is decided by a raycast along the
+angle the player is facing, from the player's own eye position. The camera's own
+raycast is never used.
+
+That distinction is why mining works. With free look on, the body can face a
+block the camera is not pointing at, and the camera can be pointing at something
+else entirely. Reading the camera would mean the aim says one block and the
+break acts on another, so the arm swings and nothing is mined. Reading the
+player's own facing means the block being broken is the block that was aimed at,
+which is the only one that can make progress.
+
+The same raycast answers every other question about what is being looked at:
+placing against a face, opening a door or a fence gate, and deciding whether the
+player is already facing a block, so all of those agree on the same block.
+
+A crouching player traces from the crouching eye height, which is what moves
+where the ray starts and therefore which face of a block it meets.
+
 ### What a step breaks
 
 A step names the blocks it needs gone before it can be walked. The list is short
