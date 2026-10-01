@@ -63,7 +63,9 @@ public final class SearchCoordinator {
                 dev.helm.setting.Settings.holder().path().repropagateImprovement()
                         ? SearchBudget.MIN_IMPROVEMENT : 0);
 
-        Search search = new Search(fromX, fromY, fromZ, goal, environment, expanders, budget);
+        Search search = new Search(fromX, fromY, fromZ,
+                GoalTarget.reachable(goal, frozen, dev.helm.setting.Settings.holder().path()),
+                environment, expanders, budget);
         SearchJob job = new SearchJob(search);
         inProgress = job;
         pool.submit(job::execute);

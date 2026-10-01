@@ -1,23 +1,17 @@
 package dev.helm.pathfinding.goal;
 
-public final class BlockGoal implements Goal {
+public final class ColumnGoal implements Goal {
 
     private final int x;
-    private final int y;
     private final int z;
 
-    public BlockGoal(int x, int y, int z) {
+    public ColumnGoal(int x, int z) {
         this.x = x;
-        this.y = y;
         this.z = z;
     }
 
     public int x() {
         return x;
-    }
-
-    public int y() {
-        return y;
     }
 
     public int z() {
@@ -26,12 +20,16 @@ public final class BlockGoal implements Goal {
 
     @Override
     public double estimate(int otherX, int otherY, int otherZ) {
-        return GoalDistances.level(y, otherY)
-                + GoalDistances.flat(otherX - x, otherZ - z);
+        return GoalDistances.flat(otherX - x, otherZ - z);
     }
 
     @Override
     public boolean reached(int otherX, int otherY, int otherZ) {
-        return otherX == x && otherY == y && otherZ == z;
+        return otherX == x && otherZ == z;
+    }
+
+    @Override
+    public String toString() {
+        return x + " " + z;
     }
 }

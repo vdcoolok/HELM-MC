@@ -16,6 +16,8 @@ public final class PathSettings extends SettingSection {
     public static final String PRIMARY_TIMEOUT = "path.primaryTimeoutMillis";
     public static final String FAILURE_TIMEOUT = "path.failureTimeoutMillis";
     public static final String CHUNK_BORDER_FETCH = "path.maxChunkBorderFetch";
+    public static final String COST_HEURISTIC = "path.costHeuristic";
+    public static final String SIMPLIFY_UNLOADED_GOAL = "path.simplifyUnloadedGoal";
     public static final String REPROPAGATE_IMPROVEMENT = "path.repropagateImprovement";
     public static final String CUTOFF_AT_LOAD_BOUNDARY = "path.cutoffAtLoadBoundary";
     public static final String CUTOFF_MINIMUM_LENGTH = "path.cutoffMinimumLength";
@@ -48,6 +50,13 @@ public final class PathSettings extends SettingSection {
                 "Milliseconds allowed before the search gives up entirely.", 2000, 0, 600000);
         count(CHUNK_BORDER_FETCH, "Chunk border fetch limit",
                 "How many moves into unloaded chunks the search may consider.", 50, 0, 10000);
+        amount(COST_HEURISTIC, "Cost heuristic",
+                "Price the search gives each block of distance left. The default matches the "
+                        + "cost of one block of sprinting.", 3.563D, 0.1D, 100.0D);
+        flag(SIMPLIFY_UNLOADED_GOAL, "Simplify unloaded goals",
+                "When the goal is in a chunk that is not loaded, aim for that column at any "
+                        + "height instead, so a distant goal still pulls the player towards it.",
+                true);
         flag(REPROPAGATE_IMPROVEMENT, "Repropagate improvements",
                 "Require a minimum cost improvement before a node is revisited.", true);
         flag(CUTOFF_AT_LOAD_BOUNDARY, "Cut off at the loaded boundary",
@@ -112,6 +121,14 @@ public final class PathSettings extends SettingSection {
 
     public int maxChunkBorderFetch() {
         return level(CHUNK_BORDER_FETCH);
+    }
+
+    public double costHeuristic() {
+        return rate(COST_HEURISTIC);
+    }
+
+    public boolean simplifyUnloadedGoal() {
+        return on(SIMPLIFY_UNLOADED_GOAL);
     }
 
     public boolean repropagateImprovement() {

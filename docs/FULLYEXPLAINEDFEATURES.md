@@ -253,6 +253,39 @@ jumping costs hunger.
 The fall costs come from integrating the same gravity and drag the game uses, so
 a longer fall really does cost more than a shorter one in the right proportion.
 
+### What the search believes is left
+
+Alongside the real cost of every move, the search keeps an estimate of how many
+ticks remain to the goal, so it knows which moves are worth looking at first. The
+estimate is priced in the same ticks as the real costs, using
+`path.costHeuristic`, whose default of `3.563` is the cost of one block of
+sprinting.
+
+Flat distance is priced the way the player can actually cover it: moving
+diagonally for one block is charged `√2` blocks rather than `2`, because a
+diagonal and a straight step are both single moves. Height is priced separately
+and differently in each direction, because climbing and dropping cost differently:
+going up is charged the cost of the part of a jump that gains a block, and coming
+down is charged half the cost of falling two blocks for each block.
+
+This matters more than it sounds. If the estimate were priced too cheaply, the
+search would have almost no reason to prefer blocks that get it closer, and would
+spend its whole budget wandering. Priced correctly it walks a narrow corridor
+towards the goal and finishes in a fraction of the time.
+
+### Goals that are not loaded
+
+A goal far outside the loaded world cannot be reached in one search, because
+there is nothing to walk on out there. Rather than giving up, HELM searches for
+the goal's *column* at any height when the goal's chunk is not loaded, treating
+any block in that column as good enough for that search. The walk therefore still
+heads straight towards the goal, which loads the chunks along the way, and the
+next search aims for the real goal now that more of the world is loaded. This
+repeats until the goal itself is in loaded terrain.
+
+Set `path.simplifyUnloadedGoal` to `false` to require the exact block every
+time, which means a distant goal in unloaded terrain reports no path.
+
 A route is built out of these moves, and only these:
 
 | Move | What it does |

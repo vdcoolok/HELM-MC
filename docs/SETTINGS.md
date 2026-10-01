@@ -227,6 +227,8 @@ it if the server enforces a shorter reach than the client thinks it has.
 | `path.primaryTimeoutMillis` | `500` | Milliseconds the search may run before it has moved away from the start |
 | `path.failureTimeoutMillis` | `2000` | Milliseconds the search may run in total before it gives up |
 | `path.maxChunkBorderFetch` | `50` | How many moves into unloaded chunks the search may consider |
+| `path.costHeuristic` | `3.563` | Price the search gives each block of distance remaining. Matches the cost of one block of sprinting |
+| `path.simplifyUnloadedGoal` | `true` | When the goal is in an unloaded chunk, aim for that column at any height so the walk still heads towards it |
 | `path.repropagateImprovement` | `true` | Require a minimum cost improvement before a node is revisited |
 | `path.cutoffAtLoadBoundary` | `false` | Drop the tail of a route that runs into unloaded chunks |
 | `path.cutoffMinimumLength` | `30` | Routes shorter than this are never shortened |
