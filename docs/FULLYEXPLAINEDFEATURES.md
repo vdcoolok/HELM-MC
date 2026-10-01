@@ -1,4 +1,4 @@
-# Features in detail
+# Features in detail (**Yes this is the only thing I've ever used AI on this project, to generate this useless, time taking, document for people who are curious.**)
 
 ## Command system
 

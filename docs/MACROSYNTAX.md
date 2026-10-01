@@ -70,6 +70,14 @@ goto <x> <y> <z>
 
 All three coordinates are required and may be negative.
 
+`goto` behaves exactly like the `$goto` command: it walks to the position rather
+than to whatever one search happened to reach. When a search only gets part of
+the way, the macro keeps going and searches again from wherever the player has
+got to, until the position is reached.
+
+If the position cannot be reached, the macro stops and reports `No path to x y z`.
+The next line does not run.
+
 The search runs off the thread that draws the game. The macro waits for it the
 same way it waits for the walk, so the next line does not start early. The macro
 pauses rather than freezing the game, so nothing else is disturbed while it

@@ -25,17 +25,10 @@ final class MacroActions {
         int y = (int) Math.floor(move.y());
         int z = (int) Math.floor(move.z());
         var feet = client.player.blockPosition();
-
-        var agent = NavigatorAgent.instance();
         if (feet.getX() == x && feet.getY() == y && feet.getZ() == z) {
             return null;
         }
-        var job = agent.navigator().searchFor(new BlockGoal(x, y, z),
-                feet.getX(), feet.getY(), feet.getZ());
-        if (job == null) {
-            throw MacroFailure.noWorld();
-        }
-        return new MacroWalker(agent, job, x, y, z);
+        return MacroJourney.towards(NavigatorAgent.instance(), move);
     }
 
     private static final class MacroWalker implements MacroRunner.Ongoing {
