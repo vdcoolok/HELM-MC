@@ -4,7 +4,8 @@
 - Command suggestions when typing `$` in chat
 - `help` command listing every available command
 - `version` command reporting the loaded HELM version
-- `settings` command to read, change and reset every setting
+- `set` command opening a picker of every setting beside its value
+- `settings` command to reset every setting
 - `goto` command walking to a block position
 - `stop` command cancelling a walk and releasing all controls
 - Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps
@@ -14,6 +15,7 @@
 - Aiming at blocks before mining or placing them
 - Free look, so aiming does not turn the camera
 - Direction control driving forward, back, strafe, jump, sneak and sprint
+- Continuous movement between steps, with no gap at a step boundary
 - Path line drawn on the world, plus outlines of blocks to break and place
 - Walking follows the route's direction, with the body turning and the camera left alone
 - Settings stored as text in `.minecraft/HELM/settings.conf`

@@ -198,6 +198,32 @@ away or standing directly underfoot is walked to normally. The two are kept
 apart deliberately: the filter exists to avoid offering a hopeless walk, not to
 discard a walk that succeeded.
 
+### Between two steps
+
+A step that finishes releases every key it was holding. The next step therefore
+starts from nothing, and if it did not get started until the following tick the
+player would spend a whole tick standing still between steps. On flat ground a
+step takes only a few ticks, so losing one to every boundary turns a walk into a
+series of little hops.
+
+The handover is therefore made inside the same tick. A finished step releases its
+keys, the next step is started straight away, and the forward press it asks for
+lands before the tick ends. What the player experiences is one continuous
+movement input across the whole route rather than a press, a gap, and a press
+again.
+
+The same applies when the player has drifted onto an earlier or later step of the
+route and the walker needs to catch up: it re-points and carries on within the
+tick rather than idling one.
+
+Waiting and giving up are the two cases that do not hand over, because neither is
+a step boundary. Waiting for an unloaded chunk leaves the player still on purpose,
+and giving up ends the walk.
+
+Each step also records its own cost when it begins, rather than comparing every
+step against the first one. A later step being naturally more expensive than the
+first is not a reason to give up on it.
+
 ### Failure
 
 - The walk is abandoned if a step becomes impossible, for example because a block

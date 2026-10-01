@@ -29,6 +29,7 @@ public final class RouteWalker {
     private boolean costRecorded;
     private boolean failed;
     private boolean sprinting;
+    private boolean moved;
     private boolean releasedControls;
     private StepContext context;
 
@@ -71,11 +72,25 @@ public final class RouteWalker {
 
     public void restart() {
         ticksOnStep = 0;
+        costRecorded = false;
         releasedControls = true;
     }
 
     public WalkOutcome tick(Route route, MoveTick state, StepContext stepContext) {
         context = stepContext;
+        int guard = route.length() + 2;
+        while (guard > 0) {
+            guard--;
+            moved = false;
+            WalkOutcome outcome = attempt(route, state, stepContext);
+            if (!moved) {
+                return outcome;
+            }
+        }
+        return WalkOutcome.CONTINUE;
+    }
+
+    private WalkOutcome attempt(Route route, MoveTick state, StepContext stepContext) {
         if (index >= route.length()) {
             WalkTrace.finished(route, index);
             return WalkOutcome.DONE;
@@ -89,6 +104,7 @@ public final class RouteWalker {
             WalkTrace.rewind(route, index, rewound, feet);
             index = rewound;
             restart();
+            moved = true;
             return WalkOutcome.CONTINUE;
         }
         int skipped = skipTo(route, feet);
@@ -96,6 +112,7 @@ public final class RouteWalker {
             WalkTrace.skip(route, index, skipped, feet);
             index = skipped - 1;
             restart();
+            moved = true;
             return WalkOutcome.CONTINUE;
         }
         if (leftBehind(route, stepContext, feet)) {
@@ -137,6 +154,7 @@ public final class RouteWalker {
         if (outcome == MoveState.SUCCESS) {
             index++;
             restart();
+            moved = true;
             return WalkOutcome.CONTINUE;
         }
         aimWith(state);
