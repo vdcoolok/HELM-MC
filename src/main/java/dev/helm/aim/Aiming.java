@@ -23,4 +23,18 @@ public final class Aiming {
     public static Aim towardCentre(int fromX, int fromY, int fromZ, int toX, int toY, int toZ) {
         return lookFrom(fromX, fromY, fromZ, toX + 0.5D, toY + 0.5D, toZ + 0.5D);
     }
+
+    public static Aim towardBlock(net.minecraft.world.entity.Entity viewer,
+                                  net.minecraft.core.BlockPos pos) {
+        return lookFrom(viewer.getX(), viewer.getEyeY(), viewer.getZ(),
+                pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
+    }
+
+    public static Aim shortestFrom(Aim current, Aim target) {
+        if (current.yawNear(target)) {
+            return new Aim(current.yaw(), target.pitch());
+        }
+        return new Aim(current.yaw() + AimAngles.wrapYaw(target.yaw() - current.yaw()),
+                target.pitch());
+    }
 }

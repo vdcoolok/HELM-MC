@@ -27,7 +27,8 @@ public final class CommandSystem {
                 ExitEditModeCommand.build(),
                 GoToCommand.build(),
                 StopCommand.build(),
-                SettingsCommand.build());
+                SettingsCommand.build(),
+                SettingsCommand.changeCommand());
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HelmStorage.prepare()
                 .ifPresent(problem -> new SystemMessageOutput(client).error(Component.literal(problem))));
     }

@@ -4,6 +4,7 @@ import dev.helm.command.ArgumentAccess;
 import dev.helm.command.ArgumentDefinition;
 import dev.helm.command.ArgumentType;
 import dev.helm.command.Command;
+import dev.helm.command.CommandCall;
 import dev.helm.command.CommandException;
 import dev.helm.command.CommandFeedback;
 import dev.helm.command.CommandResult;
@@ -35,21 +36,28 @@ public final class SettingsCommand {
     }
 
     private static Command set() {
-        return Command.leaf("set", call -> {
-            ArgumentAccess arguments = call.arguments();
-            String name = arguments.requireString("name");
-            Setting<?> setting = find(name);
-            if (setting == null) {
-                call.output().error(CommandFeedback.unknownSetting(name));
-                return CommandResult.FAILURE;
-            }
-            String value = arguments.requireString("value");
-            setting.accept(parse(setting, value.trim()));
-            call.output().feedback(net.minecraft.network.chat.Component.literal(setting.describe()));
-            BlockAvoidList.refresh(Settings.holder().mining());
-            SettingsFile.save(HelmStorage.root().resolve(SettingsFile.fileName()));
-            return CommandResult.SUCCESS;
-        }).describedAs("Changes one setting.")
+        return changeCommand();
+    }
+
+    private static CommandResult change(CommandCall call) {
+        ArgumentAccess arguments = call.arguments();
+        String name = arguments.requireString("name");
+        Setting<?> setting = find(name);
+        if (setting == null) {
+            call.output().error(CommandFeedback.unknownSetting(name));
+            return CommandResult.FAILURE;
+        }
+        String value = arguments.requireString("value");
+        setting.accept(parse(setting, value.trim()));
+        call.output().feedback(net.minecraft.network.chat.Component.literal(setting.describe()));
+        BlockAvoidList.refresh(Settings.holder().mining());
+        SettingsFile.save(HelmStorage.root().resolve(SettingsFile.fileName()));
+        return CommandResult.SUCCESS;
+    }
+
+    public static Command changeCommand() {
+        return Command.leaf("set", SettingsCommand::change)
+                .describedAs("Changes one setting.")
                 .taking(
                         ArgumentDefinition.required("name", ArgumentType.STRING, "setting name"),
                         ArgumentDefinition.required("value", ArgumentType.STRING, "new value"));

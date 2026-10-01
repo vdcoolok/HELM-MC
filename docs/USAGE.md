@@ -15,6 +15,7 @@ by HELM. Anything else is normal chat.
 | `$settings get <name>` | Show one setting |
 | `$settings set <name> <value>` | Change one setting |
 | `$settings reset` | Restore every setting to its default |
+| `$set <name> <value>` | Change one setting, same as `$settings set` |
 | `$macro create <name>` | Make a new empty macro |
 | `$macro edit <name>` | Open a macro for editing |
 | `$macro edit` | Close the open macro |
@@ -31,6 +32,11 @@ Short forms: `goto` is also `g`, `go` or `to`. `stop` is also `cancel`, `abort`
 or `halt`. `settings` is also `setting` or `option`. `macro` is also `macros`,
 `action` is also `a`, `remove` is also `rm` or `delete`, and `exitEditMode` is
 also `exit`, `stopEdit` or `exitEdit`.
+
+`$set` is a top level command rather than a subcommand of `$settings`, because
+changing a setting is the thing you type most often. It is the same code, so it
+behaves identically, down to the confirmation line it prints and the immediate
+save.
 
 ## Walk somewhere
 
@@ -76,12 +82,13 @@ than walking into a wall.
 $settings list
 $settings get movement.allowBreak
 $settings set movement.allowBreak false
+$set movement.allowBreak false
 $settings reset
 ```
 
-`$settings get` shows the value and a one line description. `$settings set`
-takes the value as one word: `true` or `false`, a whole number, a decimal, or
-free text for block lists. Changes are saved straight away.
+`$settings get` shows the value and a one line description. `$settings set` and
+`$set` both take the value as one word: `true` or `false`, a whole number, a
+decimal, or free text for block lists. Changes are saved straight away.
 
 The names are listed by `$settings list`. The ones you are most likely to want:
 

@@ -1,7 +1,7 @@
 # Settings
 
 Every part of HELM that can be changed is a setting. Settings are grouped into
-four sections, and the name of a setting is its section, a dot, and the name
+five sections, and the name of a setting is its section, a dot, and the name
 inside it.
 
 | Section | Covers |
@@ -9,7 +9,8 @@ inside it.
 | `movement` | Walking, mining, placing, pathing, tools, timing |
 | `mining` | Tool choice and what to avoid breaking |
 | `look` | Aiming, free look, smoothing, reach |
-| `path` | Drawing the route |
+| `path` | Drawing the route and search limits |
+| `cache` | Remembering chunks that are no longer loaded |
 
 ## Reading and changing
 
@@ -17,12 +18,16 @@ inside it.
 $settings list
 $settings get movement.allowBreak
 $settings set movement.allowBreak false
+$set movement.allowBreak false
 $settings reset
 ```
 
 `$settings list` prints every setting, its current value, and a one line
 explanation. `$settings get` prints one. `$settings set` takes the value as one
 word: `true` or `false`, a whole number, a decimal, or free text.
+
+`$set` is a top level command that changes a single setting, which is the same
+thing `$settings set` does. Use whichever is shorter to type.
 
 `$settings` is also `setting` or `option`. `$settings reset` is also
 `$settings defaults`.
@@ -179,8 +184,16 @@ way rather than destroy a pickaxe.
 | `look.randomLooking113` | `2.0` | Occasional larger random yaw offset |
 | `look.blockReachDistance` | `4.5` | How far away a block may be and still be mined |
 
-With `look.freeLook` off, the camera turns to face what is being mined and
-placed. That is what to use when the server refuses client side rotations.
+With `look.freeLook` off, the camera turns to face the route while walking and
+to face what is being mined and placed. That is what to use when the server
+refuses client side rotations.
+
+`look.antiCheatCompatibility` only has an effect while `look.freeLook` is on.
+With both on, which is the default, a walk sends the angle to the server and
+leaves the camera alone. Turning `look.antiCheatCompatibility` off while leaving
+`look.freeLook` on stops the angle being sent at all, which is the only way to
+turn aiming off completely. Mining still turns the camera either way, because
+`look.blockFreeLook` is off by default.
 
 With `look.randomLooking` and `look.randomLooking113` both zero, aiming is
 exact, which is more conspicuous.

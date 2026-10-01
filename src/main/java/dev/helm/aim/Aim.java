@@ -5,7 +5,10 @@ public record Aim(double yaw, double pitch) {
     public static final double EPSILON = 0.01D;
 
     public Aim {
-        yaw = AimAngles.wrapYaw(yaw);
+        if (Double.isNaN(yaw) || Double.isInfinite(yaw)
+                || Double.isNaN(pitch) || Double.isInfinite(pitch)) {
+            throw new IllegalStateException(yaw + " " + pitch);
+        }
         pitch = AimAngles.clampPitch(pitch);
     }
 
@@ -22,8 +25,8 @@ public record Aim(double yaw, double pitch) {
     }
 
     public boolean yawNear(Aim other) {
-        double difference = Math.abs(AimAngles.wrapYaw(yaw) - AimAngles.wrapYaw(other.yaw));
-        return difference < EPSILON || difference > 360.0D - EPSILON;
+        double difference = Math.abs(AimAngles.wrapYaw(yaw - other.yaw));
+        return difference < EPSILON;
     }
 
     public boolean near(Aim other) {

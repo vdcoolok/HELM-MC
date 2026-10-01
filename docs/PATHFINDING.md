@@ -371,6 +371,30 @@ By default, aiming is sent to the server and the camera stays where the player
 left it. That is `look.freeLook`, and it is why walking around does not swing
 the view.
 
+An angle is measured from the player's eye, that is the feet position plus the
+eye height, to the centre of the block being aimed at, which is the block corner
+plus a half on each axis. Measuring from anything else is wrong in both axes:
+the block corner is level with the feet, so the pitch comes out pointing at the
+ceiling, and the yaw is skewed by half a block on each side of the travel
+direction.
+
+Walking only ever changes the yaw. The pitch is replaced with whatever pitch the
+player already had, so the aim is the direction of travel and nothing more. A
+walk along flat ground therefore stays level instead of tipping down at the
+centre of the next block.
+
+The yaw asked for is the one nearest the yaw the player already has. A target
+that sits just past the 180 degree line is asked for at 180.1 and not at
+-179.9, so the turn is a fifth of a degree rather than a full spin the wrong
+way. An aim is never rewrapped into the range -180 to 180 after it is worked
+out, because that would undo the nearest-angle choice and turn it back into the
+long way round.
+
+The rotation the player arrived with is remembered before the aim is applied,
+and the camera is put back to that rotation afterwards. Restoring the angle that
+was sent to the server instead would make the aim depend on its own result, and
+the view would pull a little further off course on every step.
+
 The aim is nudged onto whole mouse steps, so the angle asked for is the angle the
 game can actually produce at the current sensitivity. A small random offset is
 added each tick, larger on yaw, so the aim does not look mechanically exact.

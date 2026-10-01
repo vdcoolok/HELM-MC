@@ -63,23 +63,18 @@ public final class StepPreparation {
     }
 
     public static void walkTowards(StepContext context, MoveTick tick, int x, int y, int z) {
-        tick.intent().aimedAt(centeredOn(context, new BlockPos(x, y, z)), false);
-        tick.press(Control.MOVE_FORWARD);
-    }
-
-    public static void walkTowardsKeepingPitch(StepContext context, MoveTick tick,
-                                               int x, int y, int z) {
         Aim aimed = centeredOn(context, new BlockPos(x, y, z));
         tick.intent().aimedAt(aimed.withPitch(context.player().getXRot()), false);
         tick.press(Control.MOVE_FORWARD);
     }
 
     public static Aim centeredOn(StepContext context, BlockPos pos) {
-        return Aiming.towardCentre(
-                context.player().blockPosition().getX(),
-                context.player().blockPosition().getY(),
-                context.player().blockPosition().getZ(),
-                pos.getX(), pos.getY(), pos.getZ());
+        Aim facing = new Aim(context.player().getYRot(), context.player().getXRot());
+        return Aiming.shortestFrom(facing, Aiming.towardBlock(context.player(), pos));
+    }
+
+    private static Aim facing(StepContext context) {
+        return new Aim(context.player().getYRot(), context.player().getXRot());
     }
 
     private static boolean lookingAt(StepContext context, BlockPos pos) {

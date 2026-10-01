@@ -73,8 +73,8 @@ public final class LookController {
         if (player == null) {
             return null;
         }
-        previous = playerRotation(player);
-        Aim actual = processor.from(previous, target);
+        previous = new Aim(player.getYRot(), player.getXRot());
+        Aim actual = processor.from(playerRotation(player), target);
         player.setYRot((float) actual.yaw());
         player.setXRot((float) actual.pitch());
         return actual;
