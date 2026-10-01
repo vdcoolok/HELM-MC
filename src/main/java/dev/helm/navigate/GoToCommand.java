@@ -4,7 +4,6 @@ import dev.helm.command.Command;
 import dev.helm.command.CommandResult;
 import dev.helm.diag.RouteTrace;
 import dev.helm.diag.Trace;
-import dev.helm.pathfinding.goal.BlockGoal;
 import dev.helm.pathfinding.search.SearchJob;
 import dev.helm.setting.ClientNotice;
 
@@ -61,13 +60,14 @@ public final class GoToCommand {
             return CommandResult.SUCCESS;
         }
 
-        SearchJob job = agent.navigator().searchFor(new BlockGoal(x, y, z),
+        Destination target = new Destination(x, y, z);
+        SearchJob job = SegmentPlanner.first(agent.navigator(), target.goal(),
                 position.getX(), position.getY(), position.getZ());
         if (job == null) {
             ClientNotice.warn("Not in a world yet.");
             return CommandResult.FAILURE;
         }
-        agent.pilot().await(job, new Destination(x, y, z));
+        agent.pilot().await(job, target);
         ClientNotice.warn("Searching for a way to " + x + " " + y + " " + z + ".");
         return CommandResult.SUCCESS;
     }

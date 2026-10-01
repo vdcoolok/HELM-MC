@@ -27,7 +27,7 @@ public final class StepBuilder {
                 leg.fromZ(), toX, toZ, kind == StepKind.LEAN);
 
         return PlanStep.of(leg.fromX(), leg.fromY(), leg.fromZ(), toX, toY, toZ, kind, move,
-                world.loaded(toX, toZ), breaks, placement, walkInto);
+                leg.cost(), world.loaded(toX, toZ), breaks, placement, walkInto);
     }
 
     private static StepKind kindFor(MoveKind move, int fromY, int toY) {

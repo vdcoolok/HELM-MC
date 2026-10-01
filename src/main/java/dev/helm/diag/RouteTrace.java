@@ -23,6 +23,7 @@ public final class RouteTrace {
             return;
         }
         Trace.instance().event("route", "wanted " + steps.size() + " steps, "
+                + ticks(steps) + " ticks, "
                 + distinctDestinations(steps) + " distinct destinations, ends at "
                 + destination(steps.get(steps.size() - 1)));
         Trace.instance().event("route", "standing at " + origin(steps.get(0))
@@ -93,6 +94,14 @@ public final class RouteTrace {
     private static String pad(int index) {
         String text = Integer.toString(index);
         return index < 10 ? "0" + text : text;
+    }
+
+    private static int ticks(List<PlanStep> steps) {
+        double total = 0;
+        for (PlanStep step : steps) {
+            total += step.cost();
+        }
+        return (int) Math.ceil(total);
     }
 
     private static int distinctDestinations(List<PlanStep> steps) {

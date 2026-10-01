@@ -147,13 +147,23 @@ This only works in a world. Outside one it reports that and does nothing.
 
 A goal is a destination, not a single route.
 
-1. The search runs and produces a route. Only the first search of a `$goto` is
-   announced in chat; later ones only appear in the session log.
-2. The route is walked one step at a time.
-3. If the route runs out, or a step becomes impossible while it is being walked,
-   a new search starts from the block the player is actually standing on and
-   step 2 continues.
-4. That repeats until the player is standing on the goal, which prints
+A journey is walked one segment at a time. Each segment is a route that begins
+where the previous one ended.
+
+1. The search runs and produces the first segment. Only the first search of a
+   `$goto` is announced in chat; later ones only appear in the session log.
+2. The segment is walked one step at a time.
+3. When fewer than `path.planningTickLookahead` ticks remain in the segment, a
+   search for the segment after it starts from the block the current one ends on.
+   The player keeps walking while that runs.
+4. Once the next segment is ready and the player is standing somewhere it also
+   covers, HELM switches onto it immediately rather than finishing the current
+   segment. That is why a long walk does not pause and reorient every few dozen
+   blocks.
+5. If the segment runs out anyway, or a step becomes impossible while it is being
+   walked, and the next segment does not cover where the player ended up, a search
+   starts from the block the player is actually standing on and step 2 continues.
+6. That repeats until the player is standing on the goal, which prints
    `Arrived at x y z.`, or until a search finds nothing usable, which prints
    `No path to x y z.`
 
@@ -162,6 +172,19 @@ correction that pushes the player sideways do not end the walk. They cost a
 moment while the next search runs, during which the player stands still.
 
 `$stop` ends the journey, so no further searching happens after it.
+
+### Keeping segments on one route
+
+Each new search discounts blocks lying on the segment being walked, so it prefers
+to carry on down the same route rather than cut across open ground to save a few
+ticks. The discount is `path.backtrackCostFavoringCoefficient`, `0.5` by default,
+which makes a block on the current route half price. Raising it toward `1`
+weakens the preference; setting it to exactly `1` removes it, and each segment
+then picks its own route.
+
+The searches that run ahead of the player get longer budgets,
+`path.planAheadPrimaryTimeoutMillis` and `path.planAheadFailureTimeoutMillis`,
+because they are not blocking anything and can afford to look further.
 
 ### Searching off the frame thread
 
@@ -192,10 +215,45 @@ any more. `$stop` cancels one too, and says so.
 The workers are daemons, so a search that is somehow still running can never hold
 the game open when you close it, and idle ones are reaped.
 
+### Segments
+
+A journey is walked one segment at a time. Each segment is a route that starts
+where the last one ended. A segment is planned as one search and then walked.
+
+Long journeys therefore need more than one segment, and HELM does not wait for
+the current segment to run out before starting the next search. Once fewer than
+`path.planningTickLookahead` ticks remain in the segment being walked, a search
+starts from the block that segment ends on, not from the player. The player keeps
+walking while it runs, so by the time the segment runs out the next one is usually
+already waiting.
+
+Two things make those segments join up instead of looking like a series of
+separate errands:
+
+- `path.backtrackCostFavoringCoefficient` discounts blocks that lie on the
+  segment already being walked, so the next search prefers to carry on down the
+  same route rather than cut across open ground to save a few ticks. The default
+  `0.5` makes a block on the current route half price. Setting it to `1` removes
+  the preference entirely and lets each segment choose freely.
+- `path.planAheadPrimaryTimeoutMillis` and `path.planAheadFailureTimeoutMillis`
+  are the budgets for a segment searched ahead of time. They are longer than the
+  ordinary ones, because that search is not blocking anything and can afford to
+  look further.
+
+If the next segment is ready before the current one runs out, and the player is
+standing somewhere that next segment also passes through, HELM switches onto it
+straight away instead of finishing the current segment first. That is what stops
+a walk from visibly pausing and reorienting at every segment boundary.
+
+If the next segment turns out not to cover where the player actually ended up,
+for instance because the segment being walked failed partway, it is dropped and
+a fresh search runs from the player's real position.
+
 ### Budgets
 
-Three budgets apply, all adjustable under `path`. They bound how much searching
-happens, not how long the frame is held, because the frame is never held:
+Three budgets apply to the first segment of a journey, all adjustable under
+`path`. They bound how much searching happens, not how long the frame is held,
+because the frame is never held:
 
 - `path.primaryTimeoutMillis` applies until the search has actually moved more
   than five blocks from where it started. A search wedged in a hole gets the
@@ -204,6 +262,10 @@ happens, not how long the frame is held, because the frame is never held:
 - `path.maxChunkBorderFetch` caps how many moves may land in a chunk the client
   has not loaded. Reaching the cap ends the search, which is what stops a goal
   in unloaded terrain from wandering off after data that is not there.
+
+Segments searched ahead of time use `path.planAheadPrimaryTimeoutMillis` and
+`path.planAheadFailureTimeoutMillis` in place of the first two, and the same
+chunk border cap.
 
 Every step is checked against the real world as it is produced, and a route only
 keeps a node when it is meaningfully closer than the best already known. That is
@@ -656,6 +718,10 @@ The settings that change walking and searching are grouped as follows.
 | `movement.jumpAtBuildLimit` | `false` | Allow parkour jumps at the top of the world |
 | `path.primaryTimeoutMillis` | `500` | Milliseconds before a search that has not moved is cut short |
 | `path.failureTimeoutMillis` | `2000` | Milliseconds before a search gives up |
+| `path.planningTickLookahead` | `150` | Ticks left in a segment before the next one starts being searched for |
+| `path.planAheadPrimaryTimeoutMillis` | `4000` | Same as the primary timeout, for a segment searched ahead |
+| `path.planAheadFailureTimeoutMillis` | `5000` | Same as the failure timeout, for a segment searched ahead |
+| `path.backtrackCostFavoringCoefficient` | `0.5` | How much blocks on the current segment are discounted, so the next one keeps the same route |
 | `path.maxChunkBorderFetch` | `50` | Moves into unloaded chunks a search may consider |
 | `path.repropagateImprovement` | `true` | Require a cost improvement before revisiting a node |
 | `path.cutoffAtLoadBoundary` | `false` | Drop the tail of a route that runs into unloaded chunks |

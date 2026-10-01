@@ -27,6 +27,7 @@ public final class RouteWalker {
     private int ticksAway;
     private int ticksOnStep;
     private StepBudget budget;
+    private boolean cancellable;
     private boolean failed;
     private boolean sprinting;
     private boolean moved;
@@ -60,12 +61,31 @@ public final class RouteWalker {
         return released;
     }
 
+    public boolean cancellable() {
+        return cancellable;
+    }
+
+    public double ticksRemainingInSegment(boolean includeCurrentStep) {
+        if (currentRoute == null) {
+            return Double.MAX_VALUE;
+        }
+        int from = includeCurrentStep ? index : index + 1;
+        double remaining = 0;
+        for (int at = from; at < currentRoute.length(); at++) {
+            remaining += currentRoute.at(at).cost();
+        }
+        return remaining;
+    }
+
+    private Route currentRoute;
+
     public void begin(int length) {
         index = 0;
         enteredStep = -1;
         ticksAway = 0;
         ticksOnStep = 0;
         budget = null;
+        cancellable = true;
         failed = false;
         sprinting = false;
         releasedControls = false;
@@ -80,6 +100,7 @@ public final class RouteWalker {
 
     public WalkOutcome tick(Route route, MoveTick state, StepContext stepContext) {
         context = stepContext;
+        currentRoute = route;
         int guard = route.length() + 2;
         while (guard > 0) {
             guard--;
@@ -99,6 +120,7 @@ public final class RouteWalker {
     }
 
     private WalkOutcome attempt(Route route, MoveTick state, StepContext stepContext) {
+        cancellable = true;
         if (index >= route.length()) {
             WalkTrace.finished(route, index, stepContext.feet());
             return WalkOutcome.DONE;
@@ -148,7 +170,7 @@ public final class RouteWalker {
         budget.refresh();
 
         MoveState outcome = runners.advance(stepContext, state, step);
-        boolean cancellable = runners.safeToCancel(stepContext, step, state);
+        cancellable = runners.safeToCancel(stepContext, step, state);
         if (outcome == MoveState.UNREACHABLE || outcome == MoveState.FAILED) {
             abandon(route, step, feet, "step executor returned " + outcome);
             return WalkOutcome.ABANDONED;

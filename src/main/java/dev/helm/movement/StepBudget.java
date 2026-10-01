@@ -20,7 +20,7 @@ public final class StepBudget {
         this.settings = settings;
         this.index = index;
         this.step = step;
-        this.original = pricer.reprice(step);
+        this.original = step.cost();
     }
 
     public void refresh() {

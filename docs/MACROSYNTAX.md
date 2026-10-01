@@ -70,10 +70,19 @@ goto <x> <y> <z>
 
 All three coordinates are required and may be negative.
 
+`goto` behaves exactly like the `$goto` command: it walks to the position rather
+than to whatever one search happened to reach. A long walk is done as several
+segments, with the next one searched for while the current one is being walked,
+so the macro does not stop and restart every few dozen blocks. Blocks on the
+segment being walked are discounted so each new segment keeps to the same route.
+
 The search runs off the thread that draws the game. The macro waits for it the
 same way it waits for the walk, so the next line does not start early. The macro
 pauses rather than freezing the game, so nothing else is disturbed while it
 searches.
+
+If the position cannot be reached, the macro stops and reports `No path to x y z`.
+The next line does not run.
 
 ### gotohere
 

@@ -27,10 +27,12 @@ public final class Pilot {
     private final LookController look = LookController.instance();
 
     private Route route = Route.empty();
+    private Route ahead = Route.empty();
     private MoveTick tick = new MoveTick(MoveState.PREPPING);
     private StepContext context;
     private SearchJob pending;
     private Destination destination;
+    private boolean searchingAhead;
     private boolean pendingAnnouncement;
     private boolean active;
 
@@ -73,6 +75,7 @@ public final class Pilot {
     public void await(SearchJob job, Destination where) {
         this.pending = job;
         this.destination = where;
+        this.searchingAhead = false;
         this.pendingAnnouncement = true;
     }
 
@@ -81,10 +84,10 @@ public final class Pilot {
     }
 
     public void halt() {
-        this.active = false;
         this.pending = null;
-        this.route = Route.empty();
-        this.tick = new MoveTick(MoveState.PREPPING);
+        this.searchingAhead = false;
+        stopWalking();
+        this.ahead = Route.empty();
         controls.clear();
         breaker.stop();
         look.clear();
@@ -122,7 +125,12 @@ public final class Pilot {
         }
         if (outcome == WalkOutcome.DONE || walker.failed()) {
             finish(outcome);
+            return;
         }
+        if (spliceOntoAhead()) {
+            return;
+        }
+        considerSearchingAhead();
     }
 
     private void release() {
@@ -154,8 +162,8 @@ public final class Pilot {
             return;
         }
         pending = null;
-        boolean announce = pendingAnnouncement;
-        pendingAnnouncement = false;
+        boolean forAhead = searchingAhead;
+        searchingAhead = false;
         Destination target = destination;
         if (target == null) {
             return;
@@ -167,6 +175,12 @@ public final class Pilot {
                 + job.millis() + "ms, outcome " + result.outcome() + ", "
                 + result.visited() + " nodes seen, " + result.route().length() + " steps usable"
                 + whereAmI());
+        if (forAhead) {
+            holdAsAhead(result, target);
+            return;
+        }
+        boolean announce = pendingAnnouncement;
+        pendingAnnouncement = false;
         if (result.arrived()) {
             Trace.instance().event("goto", "already standing on the goal " + target.describe());
             halt();
@@ -189,11 +203,71 @@ public final class Pilot {
         }
     }
 
+    private void holdAsAhead(Journey.Result result, Destination target) {
+        ahead = Route.empty();
+        if (!result.usable()) {
+            Trace.instance().event("walk", "nothing usable came back for the segment past "
+                    + whereTheSearchStarted() + ", so it is dropped");
+            return;
+        }
+        RouteTrace.describe(result.route());
+        ahead = result.route();
+        Trace.instance().event("walk", "the segment past " + whereTheSearchStarted() + " is ready, "
+                + ahead.length() + " steps toward " + target.describe() + whereAmI());
+    }
+
+    private String whereTheSearchStarted() {
+        int[] beyond = route.end();
+        return beyond == null ? "nowhere" : describe(beyond);
+    }
+
+    private boolean spliceOntoAhead() {
+        if (ahead.length() == 0 || !walker.cancellable()) {
+            return false;
+        }
+        int[] feet = feet();
+        if (feet == null || !Splice.ontoPlannedRoute(ahead, context, feet)) {
+            return false;
+        }
+        Trace.instance().event("walk", "jumping straight onto the segment searched for ahead, "
+                + ahead.length() + " steps, without finishing the current one" + whereAmI());
+        travel(ahead);
+        ahead = Route.empty();
+        return true;
+    }
+
+    private void considerSearchingAhead() {
+        if (destination == null || ahead.length() > 0 || pending != null) {
+            return;
+        }
+        double ticksLeft = walker.ticksRemainingInSegment(false);
+        if (!SegmentPlanner.dueFor(ticksLeft)) {
+            return;
+        }
+        int[] beyond = route.end();
+        if (beyond == null || reachesGoal(beyond)) {
+            return;
+        }
+        NavigatorAgent agent = NavigatorAgent.instance();
+        SearchJob job = SegmentPlanner.beyond(agent.navigator(), destination.goal(),
+                beyond[0], beyond[1], beyond[2], SegmentPlanner.favorOf(route));
+        if (job == null) {
+            return;
+        }
+        Trace.instance().event("goto", "this segment runs out in " + Math.round(ticksLeft)
+                + " ticks, so the search for what comes after it starts from "
+                + describe(beyond) + " toward " + destination.describe());
+        pending = job;
+        searchingAhead = true;
+    }
+
     private void finish(WalkOutcome outcome) {
-        halt();
         Destination target = destination;
-        Trace.instance().event("walk", "route " + (outcome == WalkOutcome.ABANDONED
-                ? "abandoned" : "finished") + " after all its steps, wanted "
+        Route walked = route;
+        Route planned = ahead;
+        stopWalking();
+        Trace.instance().event("walk", "segment " + (outcome == WalkOutcome.ABANDONED
+                ? "abandoned" : "finished") + " after " + walked.length() + " steps, wanted "
                 + (target == null ? "nothing" : target.describe()) + whereAmI());
         if (target == null) {
             Trace.instance().event("walk", "no goal recorded, so nothing more is searched");
@@ -204,15 +278,35 @@ public final class Pilot {
             ClientNotice.warn("Arrived at " + target.describe() + ".");
             return;
         }
+        if (planned.length() > 0) {
+            int[] end = feet();
+            if (end != null && planned.holds(end[0], end[1], end[2])) {
+                Trace.instance().event("walk", "carrying straight on to the segment searched for "
+                        + "ahead, " + planned.length() + " more steps toward " + target.describe());
+                travel(planned);
+                return;
+            }
+            Trace.instance().event("walk", "the segment searched for ahead does not cover where "
+                    + "the player ended up, so it is dropped");
+        }
+        if (pending != null) {
+            searchingAhead = true;
+            Trace.instance().event("walk", "the search already running will decide what comes "
+                    + "next, so nothing extra is started for " + target.describe());
+            return;
+        }
         Trace.instance().event("walk", "still short of " + target.describe()
                 + ", searching again from where the player actually is");
         replan(target);
     }
 
-    private String whereAmI() {
-        var player = Minecraft.getInstance().player;
-        return player == null ? ""
-                : ", player at " + dev.helm.diag.PlayerReport.everything(player);
+    private void stopWalking() {
+        this.active = false;
+        this.route = Route.empty();
+        this.tick = new MoveTick(MoveState.PREPPING);
+        controls.clear();
+        breaker.stop();
+        look.clear();
     }
 
     private void replan(Destination target) {
@@ -221,15 +315,14 @@ public final class Pilot {
             Trace.instance().event("walk", "navigator is not ready, cannot search again");
             return;
         }
-        var player = Minecraft.getInstance().player;
-        if (player == null) {
+        int[] from = feet();
+        if (from == null) {
             return;
         }
-        var feet = player.blockPosition();
         Trace.instance().event("goto", "searching again for " + target.describe()
-                + " from " + feet.getX() + " " + feet.getY() + " " + feet.getZ());
-        SearchJob job = agent.navigator()
-                .searchFor(target.goal(), feet.getX(), feet.getY(), feet.getZ());
+                + " from " + describe(from));
+        SearchJob job = SegmentPlanner.first(agent.navigator(), target.goal(),
+                from[0], from[1], from[2]);
         if (job == null) {
             Trace.instance().event("goto", "the search could not be started");
             return;
@@ -238,8 +331,34 @@ public final class Pilot {
         pendingAnnouncement = false;
     }
 
-    private boolean standingOn(Destination target) {
+    private int[] feet() {
         var player = Minecraft.getInstance().player;
-        return player != null && target.reachedBy(player.blockPosition());
+        if (player == null || context == null) {
+            return null;
+        }
+        return PathStart.whereTheWalkBegins(context);
+    }
+
+    private boolean standingOn(Destination target) {
+        int[] from = feet();
+        return from != null
+                && from[0] == target.x() && from[1] == target.y() && from[2] == target.z();
+    }
+
+    private boolean reachesGoal(int[] block) {
+        return destination != null
+                && block[0] == destination.x()
+                && block[1] == destination.y()
+                && block[2] == destination.z();
+    }
+
+    private static String describe(int[] block) {
+        return block == null ? "nowhere" : block[0] + " " + block[1] + " " + block[2];
+    }
+
+    private String whereAmI() {
+        var player = Minecraft.getInstance().player;
+        return player == null ? ""
+                : ", player at " + dev.helm.diag.PlayerReport.everything(player);
     }
 }

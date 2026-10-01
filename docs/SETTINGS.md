@@ -226,6 +226,10 @@ it if the server enforces a shorter reach than the client thinks it has.
 | `path.goalLineWidth` | `3.0` | Thickness of the goal line, in pixels |
 | `path.primaryTimeoutMillis` | `500` | Milliseconds the search may run before it has moved away from the start |
 | `path.failureTimeoutMillis` | `2000` | Milliseconds the search may run in total before it gives up |
+| `path.planningTickLookahead` | `150` | Ticks left in the current segment before the next one starts being searched for |
+| `path.planAheadPrimaryTimeoutMillis` | `4000` | Primary timeout for a segment searched ahead of the player |
+| `path.planAheadFailureTimeoutMillis` | `5000` | Failure timeout for a segment searched ahead of the player |
+| `path.backtrackCostFavoringCoefficient` | `0.5` | Cost multiplier for blocks on the segment being walked, so the next segment follows it. `1.0` disables |
 | `path.maxChunkBorderFetch` | `50` | How many moves into unloaded chunks the search may consider |
 | `path.repropagateImprovement` | `true` | Require a minimum cost improvement before a node is revisited |
 | `path.cutoffAtLoadBoundary` | `false` | Drop the tail of a route that runs into unloaded chunks |

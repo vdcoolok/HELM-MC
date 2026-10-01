@@ -76,7 +76,7 @@ public final class WalkTrace {
         Trace.instance().event("walk", where.toString());
     }
     public static void finished(Route route, int index, int[] feet) {
-        Trace.instance().event("walk", "route finished after " + index + " of "
+        Trace.instance().event("walk", "segment finished after " + index + " of "
                 + route.length() + " steps, player on " + describe(feet));
     }
 

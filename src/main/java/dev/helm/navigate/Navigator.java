@@ -7,10 +7,10 @@ import dev.helm.pathfinding.move.MoveEnvironment;
 import dev.helm.pathfinding.move.MoveExpander;
 import dev.helm.pathfinding.move.MoveKind;
 import dev.helm.pathfinding.move.expand.Expanders;
-import dev.helm.pathfinding.search.Search;
-import dev.helm.pathfinding.search.SearchBudget;
+import dev.helm.pathfinding.search.RouteFavor;
 import dev.helm.pathfinding.search.SearchCoordinator;
 import dev.helm.pathfinding.search.SearchJob;
+import dev.helm.pathfinding.search.SegmentBudget;
 import dev.helm.pathfinding.world.BlockView;
 import dev.helm.pathfinding.world.block.WalkRules;
 import dev.helm.pathfinding.world.block.WorkCosts;
@@ -128,18 +128,9 @@ public final class Navigator implements MoveEnvironment {
         return view.canPlaceAt(x, z);
     }
 
-    public Search searchTo(Goal goal, int fromX, int fromY, int fromZ) {
-        PathSettings path = Settings.holder().path();
-        double improvement = path.repropagateImprovement()
-                ? SearchBudget.MIN_IMPROVEMENT
-                : 0;
-        return new Search(fromX, fromY, fromZ, goal, view, expanders,
-                new SearchBudget(path.primaryTimeoutMillis(), path.failureTimeoutMillis(),
-                        path.maxChunkBorderFetch(), improvement));
-    }
-
-    public SearchJob searchFor(Goal goal, int fromX, int fromY, int fromZ) {
-        return searches.submit(goal, fromX, fromY, fromZ, doNotBreak);
+    public SearchJob searchFromHere(Goal goal, int x, int y, int z, SegmentBudget millis,
+                                    RouteFavor favor) {
+        return searches.submit(goal, x, y, z, doNotBreak, millis, favor);
     }
 
     public boolean cancelSearch() {

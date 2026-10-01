@@ -1,6 +1,5 @@
 package dev.helm.pathfinding.path;
 
-import java.util.List;
 import dev.helm.pathfinding.world.BlockView;
 
 public final class PathCutoff {
@@ -33,9 +32,9 @@ public final class PathCutoff {
     }
 
     private static int firstUnloadedPosition(NodePath path, BlockView world) {
-        List<int[]> positions = path.positions();
-        for (int index = 0; index < positions.size(); index++) {
-            int[] position = positions.get(index);
+        int[][] positions = path.positions();
+        for (int index = 0; index < positions.length; index++) {
+            int[] position = positions[index];
             if (!world.residentChunk(position[0], position[2])) {
                 return index;
             }

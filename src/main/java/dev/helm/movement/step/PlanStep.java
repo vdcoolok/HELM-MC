@@ -8,6 +8,7 @@ public record PlanStep(int fromX, int fromY, int fromZ,
                        int toX, int toY, int toZ,
                        StepKind kind,
                        MoveKind move,
+                       double cost,
                        StepFootprint footprint,
                        boolean plannedWhileLoaded,
                        List<int[]> blocksToBreak,
@@ -21,26 +22,22 @@ public record PlanStep(int fromX, int fromY, int fromZ,
 
     public static PlanStep of(int fromX, int fromY, int fromZ,
                               int toX, int toY, int toZ,
-                              StepKind kind, MoveKind move, boolean plannedWhileLoaded,
+                              StepKind kind, MoveKind move, double cost,
+                              boolean plannedWhileLoaded,
                               List<int[]> blocksToBreak, int[] placeAt,
                               List<int[]> blocksToWalkInto) {
-        PlanStep step = new PlanStep(fromX, fromY, fromZ, toX, toY, toZ, kind, move, null,
+        PlanStep step = new PlanStep(fromX, fromY, fromZ, toX, toY, toZ, kind, move, cost, null,
                 plannedWhileLoaded, blocksToBreak, placeAt, blocksToWalkInto);
         return step.withFootprint(StepFootprint.of(step));
     }
 
-    public static PlanStep to(int fromX, int fromY, int fromZ, int toX, int toY, int toZ) {
-        return of(fromX, fromY, fromZ, toX, toY, toZ, StepKind.STEP, MoveKind.STEP_EAST,
-                true, List.of(), null, List.of());
-    }
-
     public PlanStep startingFrom(PlanStep previous) {
         return of(previous.toX(), previous.toY(), previous.toZ(), toX, toY, toZ, kind, move,
-                plannedWhileLoaded, blocksToBreak, placeAt, blocksToWalkInto);
+                cost, plannedWhileLoaded, blocksToBreak, placeAt, blocksToWalkInto);
     }
 
     private PlanStep withFootprint(StepFootprint spots) {
-        return new PlanStep(fromX, fromY, fromZ, toX, toY, toZ, kind, move, spots,
+        return new PlanStep(fromX, fromY, fromZ, toX, toY, toZ, kind, move, cost, spots,
                 plannedWhileLoaded, blocksToBreak, placeAt, blocksToWalkInto);
     }
 }
