@@ -27,7 +27,7 @@ public final class BreakTargets {
                 at.add(block(toX, toY, toZ));
             }
             case FALL -> {
-                for (int level = fromY + 1; level >= toY - 1; level--) {
+                for (int level = fromY + 1; level >= toY; level--) {
                     at.add(block(toX, level, toZ));
                 }
             }

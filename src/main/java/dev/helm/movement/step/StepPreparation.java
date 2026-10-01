@@ -1,5 +1,7 @@
 package dev.helm.movement.step;
 
+import java.util.List;
+
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.item.FallingBlockEntity;
 import net.minecraft.world.phys.AABB;
@@ -23,6 +25,9 @@ public final class StepPreparation {
 
     public static boolean ready(StepContext context, MoveTick tick, PlanStep step) {
         if (tick.state() == MoveState.WAITING) {
+            return true;
+        }
+        if (step.kind() == StepKind.FALL && fallColumnClear(context, step)) {
             return true;
         }
         boolean obstructed = false;
@@ -89,6 +94,18 @@ public final class StepPreparation {
     private static boolean stillFalling(StepContext context, BlockPos pos) {
         return !context.player().level().getEntitiesOfClass(FallingBlockEntity.class,
                 new AABB(pos).inflate(0.1D)).isEmpty();
+    }
+
+    private static boolean fallColumnClear(StepContext context, PlanStep step) {
+        List<int[]> column = BreakTargets.of(StepKind.FALL, step.fromX(), step.fromY(), step.fromZ(),
+                step.toX(), step.toY(), step.toZ());
+        for (int i = 0; i < 4 && i < column.size(); i++) {
+            int[] at = column.get(i);
+            if (!context.walk().through(at[0], at[1], at[2])) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static MoveIntent intentOf(MoveTick tick) {

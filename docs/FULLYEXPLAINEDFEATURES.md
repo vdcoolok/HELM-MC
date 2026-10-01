@@ -547,7 +547,7 @@ the wrong order will face the player the wrong way while clearing them.
 | Step | The block above the destination, then the destination |
 | Step up | The destination, then the second block above the source, then the block above the destination |
 | Step down | Two above the destination, one above it, then the destination |
-| Fall | The whole column from just above the source down to one below the destination |
+| Fall | The whole column from just above the source down to the destination |
 | Diagonal | Nothing |
 | Pillar | The second block above the source, and nothing else |
 | Dig down | The destination |
@@ -556,6 +556,13 @@ the wrong order will face the player the wrong way while clearing them.
 A step down never names the block underneath the destination. That block is the
 floor being landed on, so breaking it would drop the player through the ground
 instead of onto it.
+
+A fall names that column only as far as the destination, for the same reason, and
+it does not mine anything at all unless one of the top four blocks of the column is
+actually blocked. The four-block window is checked fresh every tick, so a fall whose
+column is clear from the top just lets the player drop, rather than turning them
+around to swing at leaves and logs further down the column that they were never
+going to reach.
 
 A pillar breaks only the block two above the player, never the block at their
 own head height, and a parkour breaks nothing at all. Getting either of those
