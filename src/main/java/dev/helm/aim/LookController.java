@@ -88,6 +88,11 @@ public final class LookController {
         return new Aim(player.getYRot(), player.getXRot());
     }
 
+    public Aim effective() {
+        LocalPlayer player = Minecraft.getInstance().player;
+        return player == null ? null : playerRotation(player);
+    }
+
     public void afterPlayerUpdate() {
         if (previous == null) {
             target = null;

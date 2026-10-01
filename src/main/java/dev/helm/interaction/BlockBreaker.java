@@ -12,6 +12,7 @@ import net.minecraft.world.phys.HitResult;
 import dev.helm.access.GameModeControl;
 import dev.helm.aim.Aim;
 import dev.helm.aim.AimTrace;
+import dev.helm.aim.LookController;
 import dev.helm.diag.Trace;
 import dev.helm.setting.Settings;
 
@@ -68,8 +69,9 @@ public final class BlockBreaker {
                 GameModeControl.setDestroyDelay(mode, 0);
             }
         }
-        Trace.instance().repeat("mine", "mine", "working on " + pos + " holding "
-                + describe(player) + ", the game took it " + accepted);
+        Trace.instance().repeat("mine", "mine", "working on " + pos + " "
+                + client.level.getBlockState(pos).getBlock().getName().getString()
+                + " holding " + describe(player) + ", the game took it " + accepted);
         wasHitting = !GameModeControl.brokenBlock(mode);
         GameModeControl.setHitting(mode, false);
     }
@@ -81,7 +83,10 @@ public final class BlockBreaker {
     }
 
     private static BlockHitResult aimed(Player player) {
-        Aim aim = new Aim(player.getYRot(), player.getXRot());
+        Aim aim = LookController.instance().effective();
+        if (aim == null) {
+            return null;
+        }
         HitResult trace = AimTrace.towards(player, aim,
                 Settings.holder().look().blockReachDistance(), player.isCrouching());
         if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
