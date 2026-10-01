@@ -186,6 +186,18 @@ nowhere.
 
 A route that reached the goal is never shortened this way.
 
+### Short routes
+
+A route that does not reach the goal is only worth walking if it got more than
+five blocks from where the player started. A shorter one is discarded, so a
+player standing in a hole is not told to walk two steps nowhere.
+
+That rule is only ever applied to a route that fell short. A route that actually
+reached the goal is returned as found, however short it is, so a goal one block
+away or standing directly underfoot is walked to normally. The two are kept
+apart deliberately: the filter exists to avoid offering a hopeless walk, not to
+discard a walk that succeeded.
+
 ### Failure
 
 - The walk is abandoned if a step becomes impossible, for example because a block

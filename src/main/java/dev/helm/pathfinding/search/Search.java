@@ -26,6 +26,7 @@ public final class Search {
 
     private Node startNode;
     private Node furthestConsidered;
+    private Node reachedNode;
     private int visited;
     private SearchOutcome outcome = SearchOutcome.NO_PATH;
     private String stopReason = "not started";
@@ -70,6 +71,9 @@ public final class Search {
     }
 
     public NodePath partial() {
+        if (reachedNode != null) {
+            return NodePath.of(startNode, reachedNode);
+        }
         Node end = best.best(startX, startY, startZ);
         return end == null ? null : NodePath.of(startNode, end);
     }
@@ -82,6 +86,7 @@ public final class Search {
         best.reset();
         startNode = null;
         furthestConsidered = null;
+        reachedNode = null;
 
         startNode = store.at(startX, startY, startZ, goal);
         startNode.cost = 0;
@@ -108,6 +113,7 @@ public final class Search {
             visited++;
 
             if (goal.reached(current.x, current.y, current.z)) {
+                reachedNode = current;
                 outcome = SearchOutcome.REACHED_GOAL;
                 stopReason = "reached the goal";
                 return outcome;

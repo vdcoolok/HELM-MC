@@ -44,9 +44,17 @@ save.
 $goto 120 64 -35
 ```
 
-You get a line back saying either `Path found: N steps.` or
-`Partial path: N steps so far.` The second one means the goal was not reachable,
-so it will walk as far as it can and then stop.
+You get a line back saying one of:
+
+- `Path found: N steps.` the goal is reachable and will be walked to
+- `Partial path: N steps.` the goal was not reachable, so it walks as far as it
+  can and then stops
+- `Already at x y z.` you were standing on the goal, so there is nothing to walk
+- `No path to x y z.` there is nowhere to go at all
+
+The coordinates are block positions, so `goto -10 -60 15` means block -10 in x
+and block 15 in z. Anywhere inside those blocks counts, and HELM walks to the
+middle of the block rather than to a particular corner.
 
 The path is drawn in the world as you go. Blocks it will mine are outlined in
 red, and blocks it will place are outlined in blue.

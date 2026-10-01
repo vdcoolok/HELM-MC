@@ -66,6 +66,12 @@ public final class GoToCommand {
         Journey.Result result = Journey.collect(search, agent.navigator().blocks(),
                 agent.navigator().walk());
 
+        if (result.arrived()) {
+            Trace.instance().event("goto", "already standing on the goal");
+            agent.pilot().halt();
+            ClientNotice.warn("Already at " + x + " " + y + " " + z + ".");
+            return CommandResult.SUCCESS;
+        }
         if (!result.usable()) {
             Trace.instance().event("goto", "unusable result, nothing drawn");
             ClientNotice.warn("No path to " + x + " " + y + " " + z + ".");

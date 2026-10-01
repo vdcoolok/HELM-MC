@@ -19,6 +19,10 @@ public final class Journey {
             return outcome == SearchOutcome.REACHED_GOAL;
         }
 
+        public boolean arrived() {
+            return reached() && route.steps().isEmpty();
+        }
+
         public boolean usable() {
             return outcome.usable() && !route.steps().isEmpty();
         }
