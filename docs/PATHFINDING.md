@@ -329,7 +329,9 @@ leave them alone.
 - The walk is abandoned if the player ends up more than three blocks from the
   nearest point of the route, or stays more than two blocks away for 200 ticks
 - A single step that takes longer than its calculated cost plus
-  `movement.movementTimeoutTicks` abandons the walk
+  `movement.movementTimeoutTicks` abandons the walk. With the default that is 100
+  extra ticks, so a step that is going nowhere gives up after a little over five
+  seconds rather than looping forever
 - Abandoning clears every pressed key and stops mining, so the player is left
   standing still rather than holding a direction
 
@@ -463,6 +465,12 @@ be crossed in one jump.
 Looking for a gap costs something on ground that has none, since the only way to
 know a gap is not there is to check. That is the trade for never having to build
 a bridge over a gap that could simply be jumped.
+
+A jump is launched from the block one step along from where the player started,
+not from the far side, and backing up to line it up is also one step at a time.
+Those positions are about the player's own footing, so they stay the same however
+wide the gap is. What is one step along is always one block, never the whole
+distance being jumped.
 
 ### Corner cases the cost model covers
 

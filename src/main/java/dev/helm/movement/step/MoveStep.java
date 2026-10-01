@@ -23,7 +23,7 @@ public interface MoveStep {
     List<int[]> blocksToWalkInto();
 
     default int directionX() {
-        return toX() - fromX();
+        return Integer.signum(toX() - fromX());
     }
 
     default int directionY() {
@@ -31,6 +31,6 @@ public interface MoveStep {
     }
 
     default int directionZ() {
-        return toZ() - fromZ();
+        return Integer.signum(toZ() - fromZ());
     }
 }
