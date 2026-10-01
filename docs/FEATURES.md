@@ -26,7 +26,7 @@
 - In-chat macro editing with line add, remove, list and move
 - `wait` and `loop` macro statements
 - `goto`, `lookat`, `hold` and `release` macro statements
-- `gotohere` and `lookathere` macro shorthands that capture your aim once
+- `gotohere` and `lookathere` macro shorthands that capture your position once
 - `press` macro statement
 - `$exitEditMode` to close the editor, as `$exit`, `$stopEdit` or `$exitEdit`
 - Two column editing popup: macro syntaxes on the left, macro tools on the right

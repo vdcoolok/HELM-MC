@@ -88,8 +88,9 @@ $macro action list
   1  goto -2 88 -117
 ```
 
-`gotohere` and `lookathere` are shorthand. They read your aim and write the
-numbers into the line, so the macro goes to that spot however far you move
+`gotohere` records the block you are standing in and `lookathere` records the
+angle you are facing. Both write the numbers into the line as an ordinary `goto`
+or `lookat`, so the macro returns to that spot or angle however far you move
 afterwards.
 
 [MACROSYNTAX.md](MACROSYNTAX.md) has the full syntax.

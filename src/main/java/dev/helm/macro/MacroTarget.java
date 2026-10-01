@@ -3,8 +3,7 @@ package dev.helm.macro;
 import java.util.Locale;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.HitResult;
+import net.minecraft.client.player.LocalPlayer;
 
 public final class MacroTarget {
 
@@ -23,11 +22,21 @@ public final class MacroTarget {
         if (!tail(trimmed).isEmpty()) {
             return trimmed;
         }
-        String aimed = MacroSyntax.GOTO_HERE.equals(keyword) ? aimedBlock() : aimedAngles();
-        if (aimed == null) {
-            throw new MacroSyntaxException("'" + keyword + "' needs something under the crosshair");
+        LocalPlayer player = Minecraft.getInstance().player;
+        if (player == null) {
+            throw new MacroSyntaxException("'" + keyword + "' needs to be typed while playing");
         }
-        return GOTO + " " + aimed;
+        String captured = MacroSyntax.GOTO_HERE.equals(keyword) ? standingAt(player) : facing(player);
+        return GOTO + " " + captured;
+    }
+
+    private static String standingAt(LocalPlayer player) {
+        var feet = player.blockPosition();
+        return feet.getX() + " " + feet.getY() + " " + feet.getZ();
+    }
+
+    private static String facing(LocalPlayer player) {
+        return round(player.getXRot()) + "/" + round(player.getYRot());
     }
 
     private static String head(String line) {
@@ -38,35 +47,6 @@ public final class MacroTarget {
     private static String tail(String line) {
         int space = line.indexOf(' ');
         return space < 0 ? "" : line.substring(space + 1).trim();
-    }
-
-    private static String aimedBlock() {
-        BlockHitResult hit = aimed();
-        if (hit == null) {
-            return null;
-        }
-        var pos = hit.getBlockPos();
-        return pos.getX() + " " + pos.getY() + " " + pos.getZ();
-    }
-
-    private static String aimedAngles() {
-        var player = Minecraft.getInstance().player;
-        if (player == null) {
-            return null;
-        }
-        return round(player.getXRot()) + "/" + round(player.getYRot());
-    }
-
-    private static BlockHitResult aimed() {
-        Minecraft client = Minecraft.getInstance();
-        if (client.player == null || client.level == null) {
-            return null;
-        }
-        HitResult trace = client.hitResult;
-        if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
-            return null;
-        }
-        return (BlockHitResult) trace;
     }
 
     private static String round(float angle) {

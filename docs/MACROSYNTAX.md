@@ -72,25 +72,28 @@ All three coordinates are required and may be negative.
 
 ### gotohere
 
-Shorthand for walking to whatever the crosshair is on, without working out its
-coordinates.
+Shorthand for walking back to where you are standing, without typing your own
+coordinates. It is the short form of `goto ~ ~ ~`.
 
 ```text
 gotohere
 ```
 
-Aim at the target, type this, and the coordinates are written into the line:
+Type it where you want the macro to come back to, and the block you are standing
+in is written into the line:
 
 ```text
 1 line(s)
-  1  goto -2 88 -117
+  1  goto -5 87 -113
 ```
 
-The line is now an ordinary `goto`. The target is fixed at the moment you add
-it, so the macro keeps going to that spot however far you walk away afterwards.
-Aim somewhere else and add another line to capture a different spot.
+The line is now an ordinary `goto`. The position is fixed at the moment you add
+it, so the macro always returns to that spot. Stand somewhere else and add
+another line to capture a different spot.
 
-Aim at nothing and nothing is added, rather than a line that walks nowhere.
+It records the block your feet are in, not whatever the crosshair is resting on.
+Looking down at the ground at your own feet records your own block rather than
+the one underneath it.
 
 `gotohere` is only shorthand in the editor. A macro file never holds it, so a
 file containing one is rejected by name when it loads.
@@ -118,7 +121,8 @@ Yaw is wrapped into the range -180 to 180, so a yaw of 240 is treated as -120.
 
 ### lookathere
 
-Shorthand for turning to an angle without working it out yourself.
+Shorthand for recording the angle you are currently facing, so the macro can look
+back at it.
 
 ```text
 lookathere
@@ -131,8 +135,9 @@ Your current pitch and yaw are written into the line:
   1  lookat 12.4/-88.1
 ```
 
-The line is now an ordinary `lookat` and the angle is fixed at the moment you
-add it, exactly as `gotohere` fixes a position.
+The line is now an ordinary `lookat` and the angle is fixed at the moment you add
+it, exactly as `gotohere` fixes a position. Turn to where you want the macro to
+look before typing it.
 
 ### hold
 
