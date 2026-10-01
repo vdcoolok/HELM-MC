@@ -126,8 +126,7 @@ Attach `HELM/debuglogs.log` to a bug report.
 
 ## What runs today
 
-Walking, mining, placing, aiming and rendering run. In macros, `wait` and
-`loop` run; the rest are accepted and checked on load but report that they are
-not available yet if a macro reaches them.
+Everything runs. Walking, mining, placing, aiming, rendering, and every macro
+statement.
 
 [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) has the detail.

@@ -586,8 +586,8 @@ press M1
 
 ## Current availability
 
-`wait` and `loop` run. `goto`, `lookat`, `hold`, `release` and `press` are
-understood and validated when a macro is loaded, but running one of them stops
-the macro and reports that it is not available yet.
-Nothing is silently ignored, so a macro never appears to work while quietly
-doing nothing.
+Every statement runs. `goto` searches and walks, waiting for the walk to finish
+before the next line, and stops the macro with an error if there is no path.
+`hold` and `press` drive the game's own key bindings, so anything bound to a
+key can be held; a key that does nothing while playing is reported rather than
+silently ignored.

@@ -13,6 +13,12 @@ final class MacroRunner {
 
     private long remainingWait;
     private boolean finished;
+    private Ongoing ongoing;
+
+    interface Ongoing {
+
+        boolean done();
+    }
 
     MacroRunner(MacroDocument document) {
         this.name = document.name();
@@ -34,6 +40,13 @@ final class MacroRunner {
 
         if (remainingWait > 0L) {
             remainingWait--;
+            return;
+        }
+
+        if (ongoing != null) {
+            if (ongoing.done()) {
+                ongoing = null;
+            }
             return;
         }
 
@@ -61,7 +74,11 @@ final class MacroRunner {
         switch (statement) {
             case MacroStatement.Wait wait -> remainingWait = wait.duration().ticks();
             case MacroStatement.Loop loop -> frames.push(MacroFrame.loop(loop.body(), loop.repeats()));
-            default -> throw MacroFailure.unavailable(statement);
+            case MacroStatement.Move move -> ongoing = MacroActions.walk(move);
+            case MacroStatement.Look look -> MacroActions.look(look);
+            case MacroStatement.Hold hold -> MacroActions.press(hold.input(), true);
+            case MacroStatement.Release release -> MacroActions.press(release.input(), false);
+            case MacroStatement.Press press -> ongoing = MacroActions.tap(press.input());
         }
     }
 }

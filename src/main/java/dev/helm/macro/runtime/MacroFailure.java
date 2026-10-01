@@ -1,6 +1,6 @@
 package dev.helm.macro.runtime;
 
-import dev.helm.macro.MacroStatement;
+import dev.helm.input.InputBinding;
 
 public final class MacroFailure extends RuntimeException {
 
@@ -10,7 +10,15 @@ public final class MacroFailure extends RuntimeException {
         super(message);
     }
 
-    public static MacroFailure unavailable(MacroStatement statement) {
-        return new MacroFailure("'" + statement.keyword() + "' is not available yet");
+    public static MacroFailure noWorld() {
+        return new MacroFailure("Not in a world yet");
+    }
+
+    public static MacroFailure unreachable(int x, int y, int z) {
+        return new MacroFailure("No path to " + x + " " + y + " " + z);
+    }
+
+    public static MacroFailure unusable(InputBinding input) {
+        return new MacroFailure(input + " does nothing while playing, so it cannot be held");
     }
 }
