@@ -4,7 +4,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.BaseFireBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
@@ -34,7 +33,7 @@ public final class BlockReach {
         if (held != null) {
             return held;
         }
-        Aim atCentre = probe(viewer, pos, centre(pos), settings, sneaking);
+        Aim atCentre = probe(viewer, pos, shapeCentre(viewer, pos), settings, sneaking);
         if (atCentre != null) {
             return atCentre;
         }
@@ -72,8 +71,8 @@ public final class BlockReach {
 
     private static Aim probe(Entity viewer, BlockPos pos, Vec3 point,
                              LookSettings settings, boolean sneaking) {
-        Aim wanted = Aiming.lookFrom(viewer.getX(), viewer.getEyeY(), viewer.getZ(),
-                point.x, point.y, point.z);
+        Vec3 eyes = eyePosition(viewer, sneaking);
+        Aim wanted = Aiming.lookFrom(eyes.x, eyes.y, eyes.z, point.x, point.y, point.z);
         HitResult trace = trace(viewer, wanted, settings, sneaking);
         if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
             return null;
@@ -114,13 +113,19 @@ public final class BlockReach {
         return new Vec3(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D);
     }
 
+    private static Vec3 shapeCentre(Entity viewer, BlockPos pos) {
+        var level = viewer.level();
+        VoxelShape shape = level.getBlockState(pos).getCollisionShape(level, pos);
+        if (shape.isEmpty()) {
+            return centre(pos);
+        }
+        return new Vec3(pos.getX() + (float) (shape.min(Direction.Axis.X) + shape.max(Direction.Axis.X)) / 2,
+                pos.getY() + (float) (shape.min(Direction.Axis.Y) + shape.max(Direction.Axis.Y)) / 2,
+                pos.getZ() + (float) (shape.min(Direction.Axis.Z) + shape.max(Direction.Axis.Z)) / 2);
+    }
+
     public static HitResult trace(Entity viewer, Aim aim, LookSettings settings, boolean sneaking) {
-        Vec3 start = eyePosition(viewer, sneaking);
-        Vec3 end = start.add(directionOf(aim).scale(settings.blockReachDistance()));
-        return viewer.level().clip(new ClipContext(start, end,
-                ClipContext.Block.OUTLINE,
-                sneaking ? ClipContext.Fluid.NONE : ClipContext.Fluid.SOURCE_ONLY,
-                viewer));
+        return AimTrace.towards(viewer, aim, settings.blockReachDistance(), sneaking);
     }
 
     public static Vec3 directionOf(Aim aim) {
@@ -134,7 +139,6 @@ public final class BlockReach {
     }
 
     public static Vec3 eyePosition(Entity viewer, boolean sneaking) {
-        return sneaking ? new Vec3(viewer.getX(), viewer.getY() - 0.2D, viewer.getZ())
-                : viewer.getEyePosition(1.0F);
+        return sneaking ? AimTrace.crouchingEyes(viewer) : viewer.getEyePosition(1.0F);
     }
 }

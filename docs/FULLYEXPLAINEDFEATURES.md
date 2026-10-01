@@ -525,6 +525,16 @@ one block, turns to look at the face between where it came from and where it is
 going, and places against that instead. That is the case a route cannot see, so
 it is handled at execution time rather than during the search.
 
+A placement target is picked by testing the five sides that a block can be built
+against, in the order north, south, east, west, then down, and keeping the first
+one whose face the raycast actually lands on. That order is why placing a block
+underneath the player turns to look down at the top of the block below rather than
+at a side: the down face is tested last, so it only wins when no side is reachable
+from where the player is standing. Every one of those tests is done from a crouching
+eye position, because a placement below the player is made while sneaking, and the
+rotation and the raycast have to start from the same point or the two disagree
+about which face is being hit.
+
 To place, HELM needs something that is actually a block in hand. If the held slot
 holds a tool, an item, or nothing at all, a throwaway block is picked from the
 hotbar instead, preferring dirt, cobblestone, netherrack or stone. If the hotbar
