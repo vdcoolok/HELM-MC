@@ -23,11 +23,13 @@ public final class PopupPlacement {
     private final int visibleLines;
     private final int firstColumn;
     private final int totalColumns;
+    private final int detailX;
+    private final int detailWidth;
 
     private PopupPlacement(List<PopupRow> rows, List<Cell> cells, int x, int y, int width,
                            int height, int[] columnX, int[] columnWidths, int offset,
                            int totalLines, int visibleLines, int firstColumn,
-                           int totalColumns) {
+                           int totalColumns, int detailX, int detailWidth) {
         this.rows = rows;
         this.cells = cells;
         this.x = x;
@@ -41,13 +43,17 @@ public final class PopupPlacement {
         this.visibleLines = visibleLines;
         this.firstColumn = firstColumn;
         this.totalColumns = totalColumns;
+        this.detailX = detailX;
+        this.detailWidth = detailWidth;
     }
 
     public static PopupPlacement of(List<PopupRow> rows, Font font, int inputX, int inputY,
                                     int screenWidth, int wantedColumns, int wantedOffset,
-                                    int wantedColumnOffset) {
+                                    int wantedColumnOffset, boolean wantsDetail) {
         List<Integer> occupied = PopupRows.occupiedColumns(rows);
-        int perScreen = Math.max(1, PopupRows.columnsThatFit(rows, font, screenWidth, occupied.size()));
+        int perScreen = Math.max(1,
+                PopupRows.columnsThatFit(rows, font, screenWidth - detailRoom(screenWidth, wantsDetail),
+                        occupied.size()));
         int totalColumns = occupied.size();
         int firstColumn = Math.min(Math.max(wantedColumnOffset, 0), Math.max(totalColumns - 1, 0));
         int columns = Math.min(perScreen, totalColumns - firstColumn);
@@ -61,12 +67,15 @@ public final class PopupPlacement {
         int height = visible * rowHeight + PopupTheme.PAD_Y * 2;
 
         int[] widths = new int[columns];
-        int total = 0;
+        int listWidth = 0;
         for (int slot = 0; slot < columns; slot++) {
             widths[slot] = PopupRows.widthOf(rows, font, occupied.get(firstColumn + slot));
-            total += widths[slot];
+            listWidth += widths[slot];
         }
-        total += PopupTheme.GAP * (columns - 1);
+        listWidth += PopupTheme.GAP * (columns - 1);
+
+        int detail = wantsDetail ? detailWidth(screenWidth, listWidth) : 0;
+        int total = listWidth + (detail > 0 ? PopupTheme.GAP + detail : 0);
 
         int x = fitX(inputX, total, screenWidth);
         int y = Math.max(PopupTheme.PADDING, inputY - height - PopupTheme.PADDING);
@@ -77,6 +86,7 @@ public final class PopupPlacement {
             columnX[slot] = running;
             running += widths[slot] + PopupTheme.GAP;
         }
+        int detailX = x + listWidth + PopupTheme.GAP;
 
         List<Cell> cells = new ArrayList<>();
         int firstRow = y + PopupTheme.PAD_Y;
@@ -96,7 +106,17 @@ public final class PopupPlacement {
         }
 
         return new PopupPlacement(List.copyOf(rows), List.copyOf(cells), x, y, total, height,
-                columnX, widths, offset, totalLines, visible, firstColumn, totalColumns);
+                columnX, widths, offset, totalLines, visible, firstColumn, totalColumns,
+                detail > 0 ? detailX : 0, detail);
+    }
+
+    private static int detailWidth(int screenWidth, int listWidth) {
+        int room = screenWidth - PopupTheme.PADDING * 2 - listWidth - PopupTheme.GAP;
+        return Math.min(Math.max(room, PopupTheme.MIN_DETAIL), PopupTheme.MAX_DETAIL);
+    }
+
+    private static int detailRoom(int screenWidth, boolean wantsDetail) {
+        return wantsDetail ? PopupTheme.MIN_DETAIL + PopupTheme.GAP : 0;
     }
 
     private static int fitX(int inputX, int width, int screenWidth) {
@@ -173,6 +193,18 @@ public final class PopupPlacement {
 
     public int maxFirstColumn() {
         return Math.max(totalColumns - columns(), 0);
+    }
+
+    public boolean hasDetail() {
+        return detailWidth > 0;
+    }
+
+    public int detailX() {
+        return detailX;
+    }
+
+    public int detailWidth() {
+        return detailWidth;
     }
 
     public boolean atTop() {

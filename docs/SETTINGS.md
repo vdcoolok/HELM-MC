@@ -21,11 +21,11 @@ $set movement.allowBreak false
 $settings reset
 ```
 
-`$set` on its own opens a picker listing every setting beside its current value,
-packed into short columns so the box stays a sensible height. Arrow keys move,
-the mouse wheel scrolls, left and right page between columns, and tab or a click
-chooses. Typing filters the list, so `$set look.` leaves only the `look`
-settings. The full list below is the same set.
+`$set` on its own opens a picker listing every setting in one scrollable column,
+with the setting you are pointing at explained beside it. Arrow keys move, the
+mouse wheel scrolls, tab or a click chooses, and typing filters the list, so
+`$set look.` leaves only the `look` settings. The full list below is the same
+set.
 
 `$set <name>` prints one setting and its value. `$set <name> <value>` changes it,
 taking the value as one word: `true` or `false`, a whole number, a decimal, or

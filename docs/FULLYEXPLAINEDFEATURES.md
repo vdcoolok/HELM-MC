@@ -165,18 +165,23 @@ The picker opens as soon as `$set` is typed with a space after it, so it is neve
 something that has to be remembered to reach. Each setting is one row showing
 its name and current value.
 
-The rows are packed into columns of at most eighteen, and the box is capped at
-that height, so a long list is a short wide grid rather than a column that runs
-off the top of the screen. Columns are packed by position rather than by section,
-because one section on its own is far more than eighteen settings and would
-otherwise still be a full height column.
+The rows are a single column, capped at eighteen visible, with the mouse wheel
+scrolling the rest. One column rather than several because the list is easier to
+read top to bottom than across, and the height cap keeps it off the rest of the
+screen.
 
-Nothing is dropped when the columns are wider than the screen. The window pages
-sideways instead, so every setting stays reachable at any width.
+The horizontal space beside the list is spent on the setting under the cursor
+rather than on more settings. It shows the setting's readable label, its
+explanation, what it is set to now, and what its default is. A setting that has
+been changed says so, which is otherwise hard to spot in a list of eighty. The
+text is wrapped to the width available and clipped if it runs past the bottom.
 
-Arrow keys move within a column and between columns, the mouse wheel scrolls
-down and pages sideways, tab or a click puts the setting under the cursor into
-the chat box, and typing filters the list as you go.
+While the cursor is on a setting that is not the selected one, that one is
+described instead. Once the selection scrolls off screen, the top visible row is
+described, so the panel never explains something you cannot see.
+
+Arrow keys move through the list and scroll it to follow, tab or a click puts the
+setting under the cursor into the chat box, and typing filters the list as you go.
 
 Once a setting's name is complete the list becomes the values that setting
 accepts. A flag offers `true` and `false`, with the opposite of the current

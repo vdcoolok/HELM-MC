@@ -4,7 +4,7 @@
 - Command suggestions when typing `$` in chat
 - `help` command listing every available command
 - `version` command reporting the loaded HELM version
-- `set` command opening a picker of every setting beside its value
+- `set` command opening a scrollable picker that explains each setting as you point at it
 - `settings` command to reset every setting
 - `goto` command walking to a block position
 - `stop` command cancelling a walk and releasing all controls

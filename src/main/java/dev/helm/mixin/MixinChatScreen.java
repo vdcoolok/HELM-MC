@@ -160,10 +160,12 @@ public abstract class MixinChatScreen {
         helmRefresh();
     }
 
+    private boolean helmDetail;
+
     private PopupPlacement helmPlacement(List<PopupRow> rows, Font font) {
         PopupState state = PopupState.instance();
         return PopupPlacement.of(rows, font, input.getX(), input.getY(), PopupBounds.width(),
-                PopupRows.columnsUsed(rows), state.offset(), state.columnOffset());
+                PopupRows.columnsUsed(rows), state.offset(), state.columnOffset(), helmDetail);
     }
 
     private void helmRefresh() {
@@ -179,6 +181,7 @@ public abstract class MixinChatScreen {
             case SETTINGS, VALUES -> PopupGate.rows(value, cursor);
             default -> PopupRows.build();
         };
+        helmDetail = mode == Mode.SETTINGS;
         if (mode == Mode.NAMES) {
             offered = PopupRows.filter(offered, PopupGate.partial(value, cursor));
         }
@@ -199,6 +202,7 @@ public abstract class MixinChatScreen {
 
     private void helmClose() {
         helmPopup = false;
+        helmDetail = false;
         PopupState.instance().close();
     }
 }

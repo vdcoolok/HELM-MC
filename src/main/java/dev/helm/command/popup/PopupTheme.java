@@ -18,6 +18,9 @@ public final class PopupTheme {
     public static final int MIN_GAP = 8;
     public static final int PAD_Y = 3;
     public static final int MAX_ROWS = 18;
+    public static final int MIN_DETAIL = 120;
+    public static final int MAX_DETAIL = 280;
+    public static final int DETAIL_LINE = 11;
 
     private PopupTheme() {
     }

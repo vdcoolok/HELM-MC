@@ -53,9 +53,10 @@ $set movement.allowBreak false
 $settings reset
 ```
 
-Type `$set` and a space and the picker opens: every setting beside its value.
-Arrows move, tab or a click chooses, typing filters. The mouse wheel scrolls,
-left and right page between columns. A flag then offers `true` and `false`.
+Type `$set` and a space and the picker opens: every setting in one column, with
+the space beside it explaining whatever you are pointing at. Arrows move, tab or
+a click chooses, typing filters, the mouse wheel scrolls. A flag then offers
+`true` and `false`.
 
 You can also just type it. A flag accepts `true`, `false`, `yes`, `no`, `on`,
 `off`, `1` or `0`.
