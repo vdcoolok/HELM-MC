@@ -22,18 +22,17 @@ public final class NodePath {
         List<Leg> legs = new ArrayList<>();
         for (Node node = to; node != null && node.previous != null; node = node.previous) {
             legs.add(new Leg(node.previous.x, node.previous.y, node.previous.z,
-                    node.x, node.y, node.z, node.arrivedBy, node.reachCost));
+                    node.x, node.y, node.z, node.arrivedBy));
         }
         Collections.reverse(legs);
         return new NodePath(List.copyOf(legs));
     }
 
     public static NodePath ofNodes(List<Leg> legs) {
-        return new NodePath(legs);
+        return new NodePath(List.copyOf(legs));
     }
 
-    public record Leg(int fromX, int fromY, int fromZ, int toX, int toY, int toZ,
-                       MoveKind by, double cost) {
+    public record Leg(int fromX, int fromY, int fromZ, int toX, int toY, int toZ, MoveKind by) {
     }
 
     public List<Leg> legs() {
@@ -74,16 +73,15 @@ public final class NodePath {
         return new int[]{first.fromX(), first.fromY(), first.fromZ()};
     }
 
-    public int[][] positions() {
+    public List<int[]> positions() {
+        List<int[]> all = new ArrayList<>(legs.size() + 1);
         if (legs.isEmpty()) {
-            return new int[0][];
+            return all;
         }
-        int[][] all = new int[legs.size() + 1][];
         Leg first = legs.get(0);
-        all[0] = new int[]{first.fromX(), first.fromY(), first.fromZ()};
-        for (int index = 0; index < legs.size(); index++) {
-            Leg leg = legs.get(index);
-            all[index + 1] = new int[]{leg.toX(), leg.toY(), leg.toZ()};
+        all.add(new int[]{first.fromX(), first.fromY(), first.fromZ()});
+        for (Leg leg : legs) {
+            all.add(new int[]{leg.toX(), leg.toY(), leg.toZ()});
         }
         return all;
     }

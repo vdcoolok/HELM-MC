@@ -19,7 +19,6 @@ public final class Search {
     private final WorldView world;
     private final MoveExpander[] expanders;
     private final SearchBudget budget;
-    private final RouteFavor favor;
     private final NodeStore store = new NodeStore();
     private final Frontier frontier = new Frontier();
     private final BestSoFar best = new BestSoFar();
@@ -33,7 +32,7 @@ public final class Search {
     private String stopReason = "not started";
 
     public Search(int startX, int startY, int startZ, Goal goal, WorldView world,
-                  MoveExpander[] expanders, SearchBudget budget, RouteFavor favor) {
+                  MoveExpander[] expanders, SearchBudget budget) {
         this.startX = startX;
         this.startY = startY;
         this.startZ = startZ;
@@ -41,7 +40,6 @@ public final class Search {
         this.world = world;
         this.expanders = expanders;
         this.budget = budget;
-        this.favor = favor;
     }
 
     public WorldView world() {
@@ -143,9 +141,6 @@ public final class Search {
                 }
                 if (!landedAsDeclared(current, move)) {
                     continue;
-                }
-                if (favor.active()) {
-                    stepCost *= favor.multiplierFor(scratch.x, scratch.y, scratch.z);
                 }
 
                 Node neighbour = store.at(scratch.x, scratch.y, scratch.z, goal);

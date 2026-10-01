@@ -16,7 +16,6 @@ public final class Node {
 
     public double cost;
     public double combined;
-    public double reachCost;
     public Node previous;
     public int queuedAt;
     public MoveKind arrivedBy;
@@ -40,7 +39,6 @@ public final class Node {
     public void adopt(Node from, double reachCost, MoveKind by) {
         this.previous = from;
         this.arrivedBy = by;
-        this.reachCost = reachCost;
         this.cost = from.cost + reachCost;
         this.combined = this.cost + this.estimate;
     }

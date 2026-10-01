@@ -49,42 +49,6 @@ public final class Route {
         return blocks;
     }
 
-    public int[][] positions() {
-        int[][] blocks = new int[steps.size() + 1][];
-        if (steps.isEmpty()) {
-            return blocks;
-        }
-        PlanStep first = steps.get(0);
-        blocks[0] = new int[]{first.fromX(), first.fromY(), first.fromZ()};
-        for (int index = 0; index < steps.size(); index++) {
-            PlanStep step = steps.get(index);
-            blocks[index + 1] = new int[]{step.toX(), step.toY(), step.toZ()};
-        }
-        return blocks;
-    }
-
-    public int[] end() {
-        if (steps.isEmpty()) {
-            return destination;
-        }
-        PlanStep last = steps.get(steps.size() - 1);
-        return new int[]{last.toX(), last.toY(), last.toZ()};
-    }
-
-    public boolean endsAt(int x, int y, int z) {
-        int[] end = end();
-        return end != null && end[0] == x && end[1] == y && end[2] == z;
-    }
-
-    public boolean holds(int x, int y, int z) {
-        for (int[] block : positions()) {
-            if (block[0] == x && block[1] == y && block[2] == z) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public Set<int[]> blocksToPlace() {
         Set<int[]> blocks = new HashSet<>();
         for (PlanStep step : steps) {

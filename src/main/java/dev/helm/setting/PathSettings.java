@@ -16,10 +16,6 @@ public final class PathSettings extends SettingSection {
     public static final String PRIMARY_TIMEOUT = "path.primaryTimeoutMillis";
     public static final String FAILURE_TIMEOUT = "path.failureTimeoutMillis";
     public static final String CHUNK_BORDER_FETCH = "path.maxChunkBorderFetch";
-    public static final String PLANNING_LOOKAHEAD = "path.planningTickLookahead";
-    public static final String PLAN_AHEAD_PRIMARY_TIMEOUT = "path.planAheadPrimaryTimeoutMillis";
-    public static final String PLAN_AHEAD_FAILURE_TIMEOUT = "path.planAheadFailureTimeoutMillis";
-    public static final String BACKTRACK_FAVOR = "path.backtrackCostFavoringCoefficient";
     public static final String REPROPAGATE_IMPROVEMENT = "path.repropagateImprovement";
     public static final String CUTOFF_AT_LOAD_BOUNDARY = "path.cutoffAtLoadBoundary";
     public static final String CUTOFF_MINIMUM_LENGTH = "path.cutoffMinimumLength";
@@ -52,16 +48,6 @@ public final class PathSettings extends SettingSection {
                 "Milliseconds allowed before the search gives up entirely.", 2000, 0, 600000);
         count(CHUNK_BORDER_FETCH, "Chunk border fetch limit",
                 "How many moves into unloaded chunks the search may consider.", 50, 0, 10000);
-        count(PLANNING_LOOKAHEAD, "Planning lookahead",
-                "Ticks left in the current segment before the next one is searched for.", 150, 0, 10000);
-        count(PLAN_AHEAD_PRIMARY_TIMEOUT, "Plan ahead primary timeout",
-                "Milliseconds the next segment may spend before it has moved away from its start.",
-                4000, 0, 600000);
-        count(PLAN_AHEAD_FAILURE_TIMEOUT, "Plan ahead failure timeout",
-                "Milliseconds the next segment may spend before it gives up entirely.", 5000, 0, 600000);
-        amount(BACKTRACK_FAVOR, "Backtrack favouring",
-                "How much cheaper blocks on the segment being followed become, so the next one "
-                        + "keeps to the same route. 1 leaves no preference.", 0.5D, 0.0D, 1.0D);
         flag(REPROPAGATE_IMPROVEMENT, "Repropagate improvements",
                 "Require a minimum cost improvement before a node is revisited.", true);
         flag(CUTOFF_AT_LOAD_BOUNDARY, "Cut off at the loaded boundary",
@@ -126,22 +112,6 @@ public final class PathSettings extends SettingSection {
 
     public int maxChunkBorderFetch() {
         return level(CHUNK_BORDER_FETCH);
-    }
-
-    public int planningTickLookahead() {
-        return level(PLANNING_LOOKAHEAD);
-    }
-
-    public int planAheadPrimaryTimeoutMillis() {
-        return level(PLAN_AHEAD_PRIMARY_TIMEOUT);
-    }
-
-    public int planAheadFailureTimeoutMillis() {
-        return level(PLAN_AHEAD_FAILURE_TIMEOUT);
-    }
-
-    public double backtrackCostFavoringCoefficient() {
-        return rate(BACKTRACK_FAVOR);
     }
 
     public boolean repropagateImprovement() {
