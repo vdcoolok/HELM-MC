@@ -86,7 +86,6 @@ public final class FallSprint {
     }
 
     private static boolean breakingSomething(StepContext context, PlanStep fall) {
-        return !StepBlocks.toBreak(context.world(), context.walk(), fall.fromX(), fall.fromY(),
-                fall.fromZ(), fall.toX(), fall.toY(), fall.toZ()).isEmpty();
+        return !fall.blocksToBreak().isEmpty();
     }
 }

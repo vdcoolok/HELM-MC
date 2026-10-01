@@ -58,7 +58,7 @@ public final class RaiseStepExecutor implements StepExecutor {
             return MoveState.RUNNING;
         }
 
-        if (!ThrowawayChooser.selectFor(true, step.fromX(), step.fromY(), step.fromZ())) {
+        if (!ThrowawayChooser.selectFor(true)) {
             return MoveState.UNREACHABLE;
         }
         tick.press(Control.SNEAK);

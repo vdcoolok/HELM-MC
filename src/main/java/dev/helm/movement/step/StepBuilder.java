@@ -19,7 +19,7 @@ public final class StepBuilder {
         int toZ = leg.toZ();
         StepKind kind = kindFor(move, leg.fromY(), toY);
 
-        List<int[]> breaks = StepBlocks.toBreak(world, walk,
+        List<int[]> breaks = StepBlocks.toBreak(world, walk, kind,
                 leg.fromX(), leg.fromY(), leg.fromZ(), toX, toY, toZ);
         int[] placement = placementFor(world, walk, kind, leg.fromX(), leg.fromY(), leg.fromZ(),
                 toX, toY, toZ);

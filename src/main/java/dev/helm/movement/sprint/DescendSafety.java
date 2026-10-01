@@ -54,7 +54,6 @@ public final class DescendSafety {
     }
 
     public static boolean blocksAhead(StepContext context, PlanStep step) {
-        return !StepBlocks.toBreak(context.world(), context.walk(), step.fromX(), step.fromY(),
-                step.fromZ(), step.toX(), step.toY(), step.toZ()).isEmpty();
+        return !step.blocksToBreak().isEmpty();
     }
 }

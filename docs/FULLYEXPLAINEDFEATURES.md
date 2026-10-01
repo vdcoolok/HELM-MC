@@ -525,23 +525,42 @@ one block, turns to look at the face between where it came from and where it is
 going, and places against that instead. That is the case a route cannot see, so
 it is handled at execution time rather than during the search.
 
+To place, HELM needs something that is actually a block in hand. If the held slot
+holds a tool, an item, or nothing at all, a throwaway block is picked from the
+hotbar instead, preferring dirt, cobblestone, netherrack or stone. If the hotbar
+holds no placeable block at all, the step reports that it cannot be done rather
+than waiting forever for something to appear.
+
 `movement.assumeSafeWalk` takes the edge safety out of the equation: HELM places
 without insisting on crouching first. It is faster and it will drop the player
 off an edge if the assumption is ever wrong.
 
 ### What a step breaks
 
-A step names the blocks it needs gone before it can be walked. The list is short
-and deliberate.
+Each kind of step names the blocks it needs gone before it can be walked, in the
+order it wants them gone. That order matters, because the first one still in the
+way is the one the player looks at and mines, so a step that names its blocks in
+the wrong order will face the player the wrong way while clearing them.
 
-- the block being stepped into
-- the block above that one, so there is headroom
-- for a step up, the second block above where the player is standing, because
-  that is where they have to fit while they jump
+| Step | Blocks it breaks, in order |
+| --- | --- |
+| Step | The block above the destination, then the destination |
+| Step up | The destination, then the second block above the source, then the block above the destination |
+| Step down | Two above the destination, one above it, then the destination |
+| Fall | The whole column from just above the source down to one below the destination |
+| Diagonal | Each of the two blocks beside the player and the one above each, then the destination and the one above it |
+| Pillar | The second block above the source, and nothing else |
+| Dig down | The destination |
+| Parkour | Nothing |
 
 A step down never names the block underneath the destination. That block is the
 floor being landed on, so breaking it would drop the player through the ground
 instead of onto it.
+
+A pillar breaks only the block two above the player, never the block at their
+own head height, and a parkour breaks nothing at all. Getting either of those
+wrong means the player turns to face, and mines, a block that was never in the
+way.
 
 Blocks named by `mining.avoidBreaking` are treated as solid by the search rather
 than as something to break, so the route goes around them instead of through

@@ -13,40 +13,41 @@ public final class ThrowawayChooser {
             Blocks.DIRT,
             Blocks.COBBLESTONE,
             Blocks.NETHERRACK,
-            Blocks.GRAVEL,
-            Blocks.OAK_PLANKS,
             Blocks.STONE
     };
 
     private ThrowawayChooser() {
     }
 
-    public static boolean selectFor(boolean acceptSelected, int x, int y, int z) {
-        var client = net.minecraft.client.Minecraft.getInstance();
-        if (client.player == null) {
-            return false;
-        }
-        PlayerInventory inventory = new PlayerInventory(client.player);
-        if (acceptSelected && !inventory.slot(inventory.selectedSlot()).isEmpty()) {
-            return true;
-        }
+    public static boolean selectFor(boolean select) {
+        PlayerInventory inventory = inventory();
         int slot = bestSlot(inventory);
         if (slot < 0) {
             return false;
         }
-        inventory.selectSlot(slot);
+        if (select && inventory.selectedSlot() != slot) {
+            inventory.selectSlot(slot);
+        }
         return true;
     }
 
+    private static PlayerInventory inventory() {
+        var client = net.minecraft.client.Minecraft.getInstance();
+        if (client.player == null) {
+            throw new IllegalStateException("no player");
+        }
+        return new PlayerInventory(client.player);
+    }
+
     private static int bestSlot(PlayerInventory inventory) {
-        int fallback = -1;
+        int anyBlock = -1;
         for (int slot = 0; slot < 9; slot++) {
             Block block = placeableFrom(inventory.slot(slot));
             if (block == null) {
                 continue;
             }
-            if (fallback < 0) {
-                fallback = slot;
+            if (anyBlock < 0) {
+                anyBlock = slot;
             }
             for (Block wanted : PREFERRED) {
                 if (block == wanted) {
@@ -54,7 +55,7 @@ public final class ThrowawayChooser {
                 }
             }
         }
-        return fallback;
+        return anyBlock;
     }
 
     public static Block placeableFrom(ItemStack stack) {

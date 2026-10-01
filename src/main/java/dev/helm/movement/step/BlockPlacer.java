@@ -39,7 +39,7 @@ public final class BlockPlacer {
                     against.getX(), against.getY(), against.getZ()))) {
                 continue;
             }
-            if (!ThrowawayChooser.selectFor(false, x, y, z)) {
+            if (!ThrowawayChooser.selectFor(false)) {
                 tick.state(MoveState.UNREACHABLE);
                 return Placement.NO_OPTION;
             }
@@ -70,7 +70,7 @@ public final class BlockPlacer {
                 if (wouldSneak) {
                     tick.press(Control.SNEAK);
                 }
-                ThrowawayChooser.selectFor(true, x, y, z);
+                ThrowawayChooser.selectFor(true);
                 return Placement.READY;
             }
         }
@@ -79,7 +79,7 @@ public final class BlockPlacer {
             if (wouldSneak) {
                 tick.press(Control.SNEAK);
             }
-            ThrowawayChooser.selectFor(true, x, y, z);
+            ThrowawayChooser.selectFor(true);
             return Placement.ATTEMPTING;
         }
         return Placement.NO_OPTION;
