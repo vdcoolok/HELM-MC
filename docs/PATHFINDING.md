@@ -43,6 +43,12 @@ chunks underneath it. The chunks themselves are shared rather than copied, so a
 block that changes mid search can still be seen, which is the same trade the
 rest of the search makes when the world changes under it.
 
+That view is taken by looking up the loaded chunk array by name, because the
+client keeps it in a type that is not visible from outside its own package. If a
+future version of the game renames it, the search says so once in the log and
+carries on using the stored chunk cache instead, which is slower but still
+correct. Nothing about it stops the game from starting.
+
 Settings are read at the moment the work is handed over, so changing a setting
 while a search runs cannot change what that search is comparing against.
 

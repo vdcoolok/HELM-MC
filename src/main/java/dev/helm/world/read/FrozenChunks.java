@@ -2,12 +2,10 @@ package dev.helm.world.read;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReferenceArray;
 
 import net.minecraft.client.multiplayer.ClientChunkCache;
 import net.minecraft.world.level.chunk.LevelChunk;
-
-import dev.helm.mixin.accessor.ChunkStorageAccess;
-import dev.helm.mixin.accessor.ChunkStorageAccesses;
 
 public final class FrozenChunks implements ChunkSource {
 
@@ -20,11 +18,10 @@ public final class FrozenChunks implements ChunkSource {
     }
 
     public static FrozenChunks capture(ClientChunkCache cache) {
-        ChunkStorageAccess storage = ChunkStorageAccesses.storageOf(cache);
-        if (storage == null) {
-            return new FrozenChunks(Map.of(), 0);
+        AtomicReferenceArray<LevelChunk> array = ChunkStorage.loadedChunks(cache);
+        if (array == null) {
+            return empty();
         }
-        var array = storage.helmChunks();
         Map<Long, LevelChunk> found = new HashMap<>(Math.max(16, array.length() * 2));
         int resident = 0;
         for (int slot = 0; slot < array.length(); slot++) {

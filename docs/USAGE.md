@@ -139,6 +139,11 @@ All plain text and all safe to read, edit or delete while the game is closed.
 
 Attach `HELM/debuglogs.log` to a bug report.
 
+If the log says `no storage field on the chunk cache` or similar, this version of
+the game moved its chunk data somewhere else. Searching still works, but only
+over terrain HELM has already stored, so it will not see chunks the game is
+holding right now.
+
 ## What runs today
 
 Everything runs. Walking, mining, placing, aiming, rendering, and every macro
