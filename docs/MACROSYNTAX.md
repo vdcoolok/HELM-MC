@@ -152,6 +152,79 @@ The line is now an ordinary `lookat` and the angle is fixed at the moment you ad
 it, exactly as `gotohere` fixes a position. Turn to where you want the macro to
 look before typing it.
 
+### autogoto
+
+Walks to a position and then holds it.
+
+```text
+autogoto <x> <y> <z>
+```
+
+It is `goto` with one difference. Once the macro has arrived, HELM keeps checking
+every tick that the player is still standing on that block. If another player, a
+bomb or anything else moves you off it, it searches again and walks back. The
+check is not instant, so being nudged once does not start a search on every tick.
+
+The position is held after the macro finishes, until `$stop`. Use `$stop` rather
+than expecting the macro to give it back. A later `goto` in the same macro
+releases it, so the two never fight over where the player should be.
+
+### autogotohere
+
+Shorthand for anchoring on the block you are standing in. It is the short form
+of `autogoto ~ ~ ~`.
+
+```text
+autogotohere
+```
+
+Type it where you want the macro to hold, and the block you are standing in is
+written into the line:
+
+```text
+1 line(s)
+  1  autogoto -5 87 -113
+```
+
+Like `gotohere`, this only works in the editor. A macro file never holds it.
+
+### autolookat
+
+Turns the player to an angle and locks it there.
+
+```text
+autolookat <pitch> / <yaw>
+```
+
+The angle is written exactly as `lookat` takes it: pitch first, then a slash,
+then yaw.
+
+The difference from `lookat` is what happens afterwards. `lookat` turns you once
+and gives the camera back. `autolookat` keeps holding that angle, reapplying it
+before the player moves and again after, so your mouse cannot turn the camera
+until you type `$stop`. Mining and placing still work, because the lock applies
+to the camera and not to the rotation HELM sends.
+
+This holds past the end of the macro. `$stop` releases it.
+
+### autolookathere
+
+Shorthand for locking the angle you are currently facing.
+
+```text
+autolookathere
+```
+
+Your current pitch and yaw are written into the line:
+
+```text
+1 line(s)
+  1  autolookat 12.4/-88.1
+```
+
+Like `lookathere`, this only works in the editor, and the angle is fixed at the
+moment you add it.
+
 ### hold
 
 Presses and keeps an input held down.
@@ -195,7 +268,7 @@ loop <count>
 endloop
 ```
 
-With no count the loop repeats forever until the macro is stopped. With a
+With no count the loop repeats forever until `$stop` is typed. With a
 count the loop repeats exactly that many times and then continues after the
 `endloop`.
 
@@ -523,13 +596,17 @@ macro load test
 
 Starting a macro while another is running replaces it.
 
-### stop
-
-Stops the running macro.
+There is no `macro stop`. `$stop` is the only thing that stops anything, and it
+stops everything at once: the walk, the macro, an anchored position and a locked
+angle. That is deliberate, so there is one way to stop and no way to leave half
+of it running.
 
 ```text
-macro stop
+$stop
 ```
+
+Anything a macro was holding down is let go of when it stops, so a `hold` left
+in a macro cannot leave a key stuck after the macro ends.
 
 ### list
 

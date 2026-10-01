@@ -1,8 +1,11 @@
 package dev.helm.macro.runtime;
 
+import dev.helm.aim.Aim;
+import dev.helm.aim.LookController;
 import dev.helm.input.InputBinding;
 import dev.helm.input.InputKind;
 import dev.helm.macro.MacroStatement;
+import dev.helm.navigate.Destination;
 import dev.helm.navigate.Journey;
 import dev.helm.navigate.NavigatorAgent;
 import dev.helm.pathfinding.goal.BlockGoal;
@@ -24,11 +27,29 @@ final class MacroActions {
         int x = (int) Math.floor(move.x());
         int y = (int) Math.floor(move.y());
         int z = (int) Math.floor(move.z());
+        NavigatorAgent.instance().pilot().forgetDestination();
         var feet = client.player.blockPosition();
         if (feet.getX() == x && feet.getY() == y && feet.getZ() == z) {
             return null;
         }
         return MacroJourney.towards(NavigatorAgent.instance(), move);
+    }
+
+    static MacroRunner.Ongoing anchor(MacroStatement.Anchor anchor) {
+        var client = Minecraft.getInstance();
+        if (client.player == null) {
+            throw MacroFailure.noWorld();
+        }
+        int x = (int) Math.floor(anchor.x());
+        int y = (int) Math.floor(anchor.y());
+        int z = (int) Math.floor(anchor.z());
+        var agent = NavigatorAgent.instance();
+        agent.pilot().anchorAt(new Destination(x, y, z));
+        var feet = client.player.blockPosition();
+        if (feet.getX() == x && feet.getY() == y && feet.getZ() == z) {
+            return null;
+        }
+        return MacroJourney.holding(agent, new Destination(x, y, z));
     }
 
     private static final class MacroWalker implements MacroRunner.Ongoing {
@@ -78,6 +99,10 @@ final class MacroActions {
         }
         client.player.setYRot((float) look.rotation().yaw());
         client.player.setXRot((float) look.rotation().pitch());
+    }
+
+    static void gaze(MacroStatement.Gaze gaze) {
+        LookController.instance().hold(new Aim(gaze.rotation().yaw(), gaze.rotation().pitch()));
     }
 
     static void press(InputBinding input, boolean down) {

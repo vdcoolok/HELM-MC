@@ -24,6 +24,10 @@ final class MacroJourney implements MacroRunner.Ongoing {
         return new MacroJourney(agent, new Destination(x, y, z));
     }
 
+    static MacroJourney holding(NavigatorAgent agent, Destination target) {
+        return new MacroJourney(agent, target);
+    }
+
     @Override
     public boolean done() {
         var player = Minecraft.getInstance().player;

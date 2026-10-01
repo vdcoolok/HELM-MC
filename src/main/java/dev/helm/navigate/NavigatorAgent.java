@@ -1,5 +1,6 @@
 package dev.helm.navigate;
 
+import dev.helm.aim.LookController;
 import dev.helm.movement.RouteWalker;
 import dev.helm.movement.StepPricer;
 import dev.helm.movement.step.StepContext;
@@ -52,6 +53,8 @@ public final class NavigatorAgent {
 
     public void onDisconnect() {
         pilot.halt();
+        pilot.forgetDestination();
+        LookController.instance().release();
         navigator.shutdown();
     }
 

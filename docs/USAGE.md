@@ -10,6 +10,10 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `$help` | `h`, `?` | none |
 | `$version` | `ver` | none |
 | `$goto <x> <y> <z>` | `g`, `go`, `to` | three whole numbers |
+| `$autogoto <x> <y> <z>` | `agoto` | three whole numbers |
+| `$autogotohere` | `agotohere` | none |
+| `$autolookat <pitch>/<yaw>` | `alookat` | one angle |
+| `$autolookathere` | `alookathere` | none |
 | `$stop` | `cancel`, `abort`, `halt` | none |
 | `$set` | `setting` | none, opens the picker |
 | `$set <name>` | `setting` | one setting name |
@@ -20,7 +24,6 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `$macro create <name>` | | one name |
 | `$macro edit [<name>]` | | one name, or none to close |
 | `$macro load <name>` | | one name |
-| `$macro stop` | | none |
 | `$macro list` | | none |
 | `$macro action <subcommand>` | `a` | see below |
 | `$macro action add [<syntax>]` | `a` | one line to add |
@@ -41,9 +44,15 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `Already at x y z.` | Your feet are already on the goal |
 | `Arrived at x y z.` | The walk brought you onto the goal |
 | `No path to x y z.` | Nothing walkable connects you to that block |
-| `Stopped searching.` | `$stop` caught an unfinished search |
+| `Holding x y z.` | An anchored walk was started, or you were already on it |
+| `Holding p/y.` | Your facing was locked |
+| `Walking stopped. Look released.` | `$stop` caught a walk and a held facing |
+| `Walking stopped. Macro stopped.` | `$stop` caught a walk and a running macro |
+| `Look released.` | `$stop` caught a held facing |
+| `Macro stopped.` | `$stop` caught a running macro |
 | `Stopped.` | `$stop` caught a walk |
-| `Nothing to stop.` | You were neither walking nor searching |
+| `Stopped searching.` | `$stop` caught an unfinished search |
+| `Nothing to stop.` | Nothing was walking, held or running |
 | `Unknown command: name` | No such command |
 | `Unknown setting: name` | No such setting |
 | `No macro named name` | No such macro |
@@ -78,9 +87,40 @@ $macro edit farm
 $macro action add gotohere
 $macro action list
 $macro load farm
-$macro stop
+$stop
 $macro list
 $macro edit
+```
+
+## Anchoring and locking
+
+Four commands hold on to something instead of doing it once. All of them are
+released by `$stop`.
+
+| Command | What it holds |
+| --- | --- |
+| `$autogoto <x> <y> <z>` | A block position |
+| `$autogotohere` | The block your feet are in |
+| `$autolookat <pitch>/<yaw>` | An angle |
+| `$autolookathere` | The angle you are facing |
+
+An anchored position is not just a walk. Once you arrive, HELM checks every tick
+that you are still standing on it, and if anything moves you off, by another
+player or a bomb, it searches again and walks back. A short delay is applied
+before it reacts, so being nudged does not start a search on every tick.
+
+A locked angle is enforced twice a tick, once before the player moves and once
+after, so your mouse cannot move the camera. Mining and placing still work while
+it is held, because the lock is applied to the camera rather than to the
+rotation HELM sends.
+
+A plain `$goto` releases an anchored position, so the two never fight over where
+the player should be.
+
+```
+$autogotohere
+$autolookathere
+$stop
 ```
 
 ## Editing keys

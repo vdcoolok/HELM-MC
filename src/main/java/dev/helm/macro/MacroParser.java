@@ -3,13 +3,17 @@ package dev.helm.macro;
 import java.util.ArrayList;
 import java.util.List;
 
+import dev.helm.rotation.Rotation;
+
 public final class MacroParser {
 
     private static final String WAIT = "wait";
     private static final String LOOP = "loop";
     private static final String END_LOOP = "endloop";
     private static final String GOTO = "goto";
+    private static final String AUTO_GOTO = "autogoto";
     private static final String LOOKAT = "lookat";
+    private static final String AUTO_LOOKAT = "autolookat";
     private static final String PRESS = "press";
     private static final String HOLD = "hold";
     private static final String RELEASE = "release";
@@ -52,7 +56,9 @@ public final class MacroParser {
             case WAIT -> new MacroStatement.Wait(MacroDuration.parse(single(line, "duration")));
             case LOOP -> loop(line, lines);
             case GOTO -> move(line);
+            case AUTO_GOTO -> anchor(line);
             case LOOKAT -> look(line);
+            case AUTO_LOOKAT -> gaze(line);
             case HOLD -> new MacroStatement.Hold(input(line));
             case RELEASE -> new MacroStatement.Release(input(line));
             case PRESS -> new MacroStatement.Press(input(line));
@@ -79,11 +85,26 @@ public final class MacroParser {
         return new MacroStatement.Move(number(line, 0, "x"), number(line, 1, "y"), number(line, 2, "z"));
     }
 
+    private static MacroStatement anchor(MacroLine line) {
+        requireArgumentCount(line, 3);
+        return new MacroStatement.Anchor(number(line, 0, "x"), number(line, 1, "y"),
+                number(line, 2, "z"));
+    }
+
     private static MacroStatement look(MacroLine line) {
+        return new MacroStatement.Look(angles(line, LOOKAT));
+    }
+
+    private static MacroStatement gaze(MacroLine line) {
+        return new MacroStatement.Gaze(angles(line, AUTO_LOOKAT));
+    }
+
+    private static Rotation angles(MacroLine line, String keyword) {
         if (!line.hasArguments()) {
-            throw new MacroSyntaxException("Missing angles on line " + line.number() + ". Use: lookat <pitch> / <yaw>");
+            throw new MacroSyntaxException("Missing angles on line " + line.number()
+                    + ". Use: " + keyword + " <pitch> / <yaw>");
         }
-        return new MacroStatement.Look(MacroAngles.parse(line.joinArguments(), line.number()));
+        return MacroAngles.parse(line.joinArguments(), line.number());
     }
 
     private static dev.helm.input.InputBinding input(MacroLine line) {

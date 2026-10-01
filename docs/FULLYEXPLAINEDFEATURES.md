@@ -779,19 +779,65 @@ journey.
 says `Nothing to stop.` when there was no walk or search in progress, and
 `Stopped searching.` when it caught a search that had not finished yet.
 
-Leaving the world also ends the journey and clears the controls.
+Leaving the world also ends the journey, clears the controls, and releases an
+anchored position and a locked angle.
 
 ## stop
 
-Ends a journey at once and releases every held key. Available as `$stop`, with
-the aliases `cancel`, `abort` and `halt`.
+Ends everything at once. Available as `$stop`, with the aliases `cancel`,
+`abort` and `halt`.
+
+It stops all four things HELM can be doing: a walk, a search, a running macro, an
+anchored position and a locked angle. The reply names what it actually caught, so
+`Walking stopped. Look released.` means both of those were live, and
+`Nothing to stop.` means none of them were.
 
 It also ends the goal itself, so HELM does not search again for a destination
-that was just cancelled. It reports `Stopped searching.` when it caught a search
-that had not finished yet, `Stopped.` when it caught a walk, and
-`Nothing to stop.` when there was neither.
+that was just cancelled.
 
-Leaving the world does the same thing without a message.
+Leaving the world does the same thing without a message, and releases the anchor
+and the locked angle, so rejoining does not leave the camera pinned.
+
+## autogoto
+
+Walks to a block position and then holds it. Available as `$autogoto`, with the
+alias `agoto`.
+
+It is `$goto` with one difference. Once the player arrives, HELM checks every
+tick that they are still standing on the anchored block. If another player, a
+bomb, or anything else moves them off it, it searches again from wherever they
+ended up and walks back. The check is not instantaneous: a short delay is applied
+before it reacts, so being nudged once does not start a fresh search on every
+tick.
+
+`$autogotohere`, alias `agotohere`, anchors on the block the player's feet are
+in, which is the position-less form of the same thing.
+
+Like `$goto`, a partial route is re-planned from the player's real position
+rather than treated as arrival. Unlike `$goto`, arriving is not the end of it.
+
+## autolookat
+
+Locks the camera to an angle. Available as `$autolookat`, with the alias
+`alookat`. The angle is written as pitch, a slash, then yaw, the same order
+`lookat` uses.
+
+`$autolookathere`, alias `alookathere`, locks the angle the player is facing at
+the moment it is typed.
+
+The lock is applied twice a tick: once before the player moves, and once after
+the entities have ticked. The first application makes the player move as though
+already facing that way, and the second one undoes any mouse movement that
+happened in between, so the camera cannot be turned.
+
+Mining and placing still work while the angle is held. The lock is applied to
+the camera, not to the rotation HELM sends, so the block being looked at is the
+block that gets mined.
+
+A locked angle overrides the aim a walk would otherwise set, so a lock and a
+walk at the same time fight each other. `$stop` resolves it.
+
+Both are released by `$stop` and by leaving the world.
 
 ## set
 
@@ -895,8 +941,10 @@ alias `macros`.
 | `action list` | show the open macro's lines as a numbered list |
 | `action move <from> <to>` | move a line, shifting the rest |
 | `load <name>` | parse and start the named macro |
-| `stop` | stop the running macro |
 | `list` | list the macros in the macro folder |
+
+There is no `stop` here on purpose. `$stop` is the only way to stop anything, so
+there is one thing to remember rather than two that behave differently.
 
 ### Where macros come from
 
@@ -1046,7 +1094,7 @@ Starting a macro while another is running replaces the running one.
 | A line that is not valid syntax | the line is refused and the available commands are listed |
 | An unclosed loop | `'loop' is missing 'endloop'` |
 | The macro reaches an unavailable statement | the macro stops and reports it |
-| `stop` with nothing running | error, nothing changes |
+| `$stop` with nothing running | error, nothing changes |
 
 Unavailable statements are reported rather than skipped, so a macro never
 appears to run while quietly doing nothing. A refused line is never written, so a
@@ -1059,7 +1107,19 @@ leaving it to be guessed.
 
 ### Cancellation
 
-A macro can be stopped with `$macro stop`. Leaving the world also ends it.
+`$stop` is the only way to stop anything, and it stops all of it: the walk, the
+running macro, an anchored position and a locked angle. There is deliberately no
+`$macro stop`, so there is one way to stop and no way to leave half of it
+running. The reply says what was actually caught, so `$stop` with nothing running
+is reported rather than silently accepted.
+
+Leaving the world ends a macro too, and releases an anchor and a locked angle, so
+rejoining does not leave the camera pinned.
+
+When a macro stops for any reason, anything it was holding down is let go of. A
+`hold` left at the end of a macro therefore cannot leave a key stuck after the
+macro finishes.
+
 There is no way to interrupt a macro from inside its own text at present.
 
 ### Settings

@@ -37,11 +37,27 @@ public sealed interface MacroStatement {
         }
     }
 
+    record Anchor(double x, double y, double z) implements MacroStatement {
+
+        @Override
+        public String keyword() {
+            return "autogoto";
+        }
+    }
+
     record Look(Rotation rotation) implements MacroStatement {
 
         @Override
         public String keyword() {
             return "lookat";
+        }
+    }
+
+    record Gaze(Rotation rotation) implements MacroStatement {
+
+        @Override
+        public String keyword() {
+            return "autolookat";
         }
     }
 

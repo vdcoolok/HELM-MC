@@ -8,9 +8,13 @@ public final class MacroSyntax {
     public static final String LOOP = "loop";
     public static final String END_LOOP = "endloop";
     public static final String GOTO = "goto";
+    public static final String AUTO_GOTO = "autogoto";
+    public static final String AUTO_GOTO_HERE = "autogotohere";
     public static final String LOOKAT = "lookat";
     public static final String LOOKAT_HERE = "lookathere";
     public static final String GOTO_HERE = "gotohere";
+    public static final String AUTO_LOOKAT = "autolookat";
+    public static final String AUTO_LOOKAT_HERE = "autolookathere";
     public static final String HOLD = "hold";
     public static final String RELEASE = "release";
     public static final String PRESS = "press";
@@ -28,8 +32,16 @@ public final class MacroSyntax {
             new Entry(WAIT, "wait <duration>", "wait 1s", "pause for a time"),
             new Entry(GOTO, "goto <x> <y> <z>", "goto -50 -50 -50", "walk to a position"),
             new Entry(GOTO_HERE, "gotohere", "gotohere", "walk to where you are aiming"),
+            new Entry(AUTO_GOTO, "autogoto <x> <y> <z>", "autogoto -50 -50 -50",
+                    "walk to a position and keep going back if pushed off it"),
+            new Entry(AUTO_GOTO_HERE, "autogotohere", "autogotohere",
+                    "hold the block you are standing in"),
             new Entry(LOOKAT, "lookat <pitch> / <yaw>", "lookat 14/240", "turn to an angle"),
             new Entry(LOOKAT_HERE, "lookathere", "lookathere", "turn to where you are aiming"),
+            new Entry(AUTO_LOOKAT, "autolookat <pitch> / <yaw>", "autolookat 14/240",
+                    "lock an angle, ignoring the mouse until $stop"),
+            new Entry(AUTO_LOOKAT_HERE, "autolookathere", "autolookathere",
+                    "lock the angle you are facing now"),
             new Entry(HOLD, "hold <input>", "hold M1", "press and keep an input down"),
             new Entry(RELEASE, "release <input>", "release M1", "let an input go"),
             new Entry(PRESS, "press <input>", "press M1", "tap an input once"),
@@ -50,7 +62,8 @@ public final class MacroSyntax {
 
     public static boolean needsResolving(String token) {
         String name = token == null ? "" : token.toLowerCase(java.util.Locale.ROOT);
-        return GOTO_HERE.equals(name) || LOOKAT_HERE.equals(name);
+        return GOTO_HERE.equals(name) || LOOKAT_HERE.equals(name)
+                || AUTO_GOTO_HERE.equals(name) || AUTO_LOOKAT_HERE.equals(name);
     }
 
     public static boolean isStored(String keyword) {

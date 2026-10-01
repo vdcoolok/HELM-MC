@@ -1,8 +1,11 @@
 package dev.helm.macro.runtime;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
+import dev.helm.input.InputBinding;
 import dev.helm.macro.MacroDocument;
 import dev.helm.macro.MacroStatement;
 
@@ -10,6 +13,8 @@ final class MacroRunner {
 
     private final String name;
     private final Deque<MacroFrame> frames = new ArrayDeque<>();
+
+    private final List<InputBinding> held = new ArrayList<>();
 
     private long remainingWait;
     private boolean finished;
@@ -31,6 +36,17 @@ final class MacroRunner {
 
     boolean finished() {
         return finished;
+    }
+
+    void letGoOfHeldInputs() {
+        for (InputBinding input : held) {
+            try {
+                MacroActions.press(input, false);
+            } catch (RuntimeException gone) {
+                continue;
+            }
+        }
+        held.clear();
     }
 
     void tick() {
@@ -75,9 +91,19 @@ final class MacroRunner {
             case MacroStatement.Wait wait -> remainingWait = wait.duration().ticks();
             case MacroStatement.Loop loop -> frames.push(MacroFrame.loop(loop.body(), loop.repeats()));
             case MacroStatement.Move move -> ongoing = MacroActions.walk(move);
+            case MacroStatement.Anchor anchor -> ongoing = MacroActions.anchor(anchor);
             case MacroStatement.Look look -> MacroActions.look(look);
-            case MacroStatement.Hold hold -> MacroActions.press(hold.input(), true);
-            case MacroStatement.Release release -> MacroActions.press(release.input(), false);
+            case MacroStatement.Gaze gaze -> MacroActions.gaze(gaze);
+            case MacroStatement.Hold hold -> {
+                MacroActions.press(hold.input(), true);
+                if (!held.contains(hold.input())) {
+                    held.add(hold.input());
+                }
+            }
+            case MacroStatement.Release release -> {
+                MacroActions.press(release.input(), false);
+                held.remove(release.input());
+            }
             case MacroStatement.Press press -> ongoing = MacroActions.tap(press.input());
         }
     }

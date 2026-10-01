@@ -64,6 +64,7 @@ sent to the server, and every command is typed in your own chat box.
 | Area | What you get |
 | --- | --- |
 | **Navigation** | `goto` any block, and keep going: the route is re-planned from wherever you actually end up |
+| **Holding** | Anchor a position and walk back if you are knocked off it, or lock the camera to a direction, until you stop |
 | **Movement** | Continuous walking with no gap at a step boundary, real sprinting, jumps, gaps, diagonals and drops |
 | **World** | Breaks what is in the way, places what is missing, picks the right tool, all without a keypress |
 | **Aiming** | Free look, so mining and placing never drag the camera around |
@@ -102,11 +103,15 @@ $help
 | `$help` | List every command |
 | `$version` | Show the HELM version |
 | `$goto <x> <y> <z>` | Walk to a block position |
-| `$stop` | Stop walking |
+| `$autogoto <x> <y> <z>` | Walk there and keep going back if moved off it |
+| `$autogotohere` | Hold the block you are standing in |
+| `$autolookat <pitch>/<yaw>` | Lock the camera to an angle |
+| `$autolookathere` | Lock the angle you are facing now |
+| `$stop` | Stop walking, macros, anchors and locked angles |
 | `$set` | Open the settings picker |
 | `$set <name> [<value>]` | Show or change one setting |
 | `$settings reset` | Restore every setting to its default |
-| `$macro <create\|edit\|load\|stop\|list>` | Work with macros |
+| `$macro <create\|edit\|load\|list>` | Work with macros |
 
 [USAGE.md](docs/USAGE.md) has the full list, every alias, and the exact reply
 each command gives.

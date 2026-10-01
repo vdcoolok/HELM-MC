@@ -7,7 +7,9 @@
 - `set` command opening a scrollable picker that explains each setting as you point at it
 - `settings` command to reset every setting
 - `goto` command walking to a block position
-- `stop` command cancelling a walk or a running search, and releasing all controls
+- `autogoto` and `autogotohere` commands anchoring a position and walking back if moved off it
+- `autolookat` and `autolookathere` commands locking the camera to an angle until stopped
+- `stop` command cancelling a walk, a search, a macro, an anchor and a locked angle at once
 - Walking to a goal as a journey, searching again from wherever a route ran out
 - Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps
 - Automatic tool switching for every block mined
@@ -23,11 +25,12 @@
 - Session log at `.minecraft/HELM/debuglogs.log` recording what HELM did and why
 - Chunk cache at `.minecraft/HELM/cache/` so routes can cross terrain that is no longer loaded
 - Macro system with a readable script syntax
-- `macro` command to create, edit, load, stop and list macros
+- `macro` command to create, edit, load and list macros
 - In-chat macro editing with line add, remove, list and move
 - `wait` and `loop` macro statements
 - `goto`, `lookat`, `hold` and `release` macro statements
-- `gotohere` and `lookathere` macro shorthands that capture your position once
+- `autogoto` and `autolookat` macro statements, holding a position and an angle
+- `gotohere`, `lookathere`, `autogotohere` and `autolookathere` macro shorthands that capture your position or angle once
 - `press` macro statement
 - `$exitEditMode` to close the editor, as `$exit`, `$stopEdit` or `$exitEdit`
 - Two column editing popup: macro syntaxes on the left, macro tools on the right

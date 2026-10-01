@@ -5,6 +5,7 @@ import java.util.Optional;
 import dev.helm.command.CommandFeedback;
 import dev.helm.command.CommandOutput;
 import dev.helm.macro.MacroDocument;
+import dev.helm.navigate.NavigatorAgent;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 
 public final class MacroController {
@@ -36,14 +37,8 @@ public final class MacroController {
         output.feedback(CommandFeedback.success("Started macro: " + document.name()));
     }
 
-    public void stop(CommandOutput output) {
-        if (runner == null) {
-            output.error(CommandFeedback.error("No macro is running"));
-            return;
-        }
-        String name = runner.name();
+    public void halt() {
         clear();
-        output.feedback(CommandFeedback.success("Stopped macro: " + name));
     }
 
     public Optional<String> active() {
@@ -70,6 +65,7 @@ public final class MacroController {
     private void fail(String message) {
         CommandOutput target = output;
         clear();
+        stopWalking();
         if (target != null) {
             target.error(CommandFeedback.error(message));
         }
@@ -78,12 +74,23 @@ public final class MacroController {
     private void succeed(String message) {
         CommandOutput target = output;
         clear();
+        stopWalking();
         if (target != null) {
             target.feedback(CommandFeedback.success(message));
         }
     }
 
+    private void stopWalking() {
+        NavigatorAgent agent = NavigatorAgent.instance();
+        agent.pilot().halt();
+        agent.pilot().forgetDestination();
+        agent.navigator().cancelSearch();
+    }
+
     private void clear() {
+        if (runner != null) {
+            runner.letGoOfHeldInputs();
+        }
         runner = null;
         output = null;
     }

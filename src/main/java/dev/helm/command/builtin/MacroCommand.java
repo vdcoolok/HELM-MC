@@ -24,7 +24,7 @@ public final class MacroCommand {
     public static Command build() {
         return Command.group("macro")
                 .also("macros")
-                .describedAs("Creates, edits, loads, stops and lists macros.")
+                .describedAs("Creates, edits, loads and lists macros.")
                 .containing(
                         Command.leaf("create", MacroCommand::create)
                                 .taking(ArgumentDefinition.required(
@@ -42,10 +42,6 @@ public final class MacroCommand {
                                         "name", ArgumentType.STRING, "macro name")
                                         .offering(MacroCommand::macroNames))
                                 .describedAs("Starts a macro."),
-                        Command.leaf("stop", call -> {
-                            MacroController.instance().stop(call.output());
-                            return CommandResult.SUCCESS;
-                        }).describedAs("Stops the running macro."),
                         Command.leaf("list", MacroCommand::list).describedAs("Lists available macros."));
     }
 

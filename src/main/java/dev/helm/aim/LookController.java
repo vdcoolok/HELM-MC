@@ -18,6 +18,7 @@ public final class LookController {
     private Aim sentToServer;
     private Aim previous;
     private Aim jumping;
+    private Aim lock;
     private AimProcessor processor;
     private final Deque<Double> yawTrail = new ArrayDeque<>();
     private final Deque<Double> pitchTrail = new ArrayDeque<>();
@@ -53,6 +54,23 @@ public final class LookController {
         mode = LookMode.NONE;
     }
 
+    public void hold(Aim wanted) {
+        this.lock = wanted;
+        if (wanted != null) {
+            this.target = null;
+            this.jumping = null;
+            this.mode = LookMode.NONE;
+        }
+    }
+
+    public void release() {
+        this.lock = null;
+    }
+
+    public boolean holding() {
+        return lock != null;
+    }
+
     public void onServerRotation(float yaw, float pitch) {
         sentToServer = new Aim(yaw, pitch);
     }
@@ -66,11 +84,16 @@ public final class LookController {
     }
 
     public Aim beforePlayerUpdate() {
-        if (target == null || mode == LookMode.NONE || processor == null) {
-            return null;
-        }
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
+            return null;
+        }
+        if (lock != null) {
+            player.setYRot((float) lock.yaw());
+            player.setXRot((float) lock.pitch());
+            return lock;
+        }
+        if (target == null || mode == LookMode.NONE || processor == null) {
             return null;
         }
         previous = new Aim(player.getYRot(), player.getXRot());
@@ -94,6 +117,16 @@ public final class LookController {
     }
 
     public void afterPlayerUpdate() {
+        if (lock != null) {
+            LocalPlayer player = Minecraft.getInstance().player;
+            if (player != null) {
+                player.setYRot((float) lock.yaw());
+                player.setXRot((float) lock.pitch());
+            }
+            previous = null;
+            target = null;
+            return;
+        }
         if (previous == null) {
             target = null;
             return;

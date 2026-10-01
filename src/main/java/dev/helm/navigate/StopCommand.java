@@ -1,7 +1,9 @@
 package dev.helm.navigate;
 
+import dev.helm.aim.LookController;
 import dev.helm.command.Command;
 import dev.helm.command.CommandResult;
+import dev.helm.macro.runtime.MacroController;
 import dev.helm.setting.ClientNotice;
 
 public final class StopCommand {
@@ -14,19 +16,39 @@ public final class StopCommand {
             NavigatorAgent agent = NavigatorAgent.instance();
             boolean searching = agent.pilot().searching();
             boolean walking = agent.pilot().isWalking();
+            boolean anchored = agent.pilot().anchored();
+            boolean holding = LookController.instance().holding();
+            boolean macro = MacroController.instance().active().isPresent();
+
             agent.pilot().halt();
             agent.pilot().forgetDestination();
             agent.navigator().cancelSearch();
-            if (searching) {
-                ClientNotice.warn("Stopped searching.");
-                return CommandResult.SUCCESS;
+            LookController.instance().release();
+            if (macro) {
+                MacroController.instance().halt();
             }
-            if (!walking) {
+
+            StringBuilder what = new StringBuilder();
+            append(what, searching || walking || anchored, "Walking stopped");
+            append(what, holding, "Look released");
+            append(what, macro, "Macro stopped");
+            if (what.isEmpty()) {
                 ClientNotice.warn("Nothing to stop.");
                 return CommandResult.FAILURE;
             }
-            ClientNotice.warn("Stopped.");
+            ClientNotice.warn(what + ".");
             return CommandResult.SUCCESS;
-        }).also("cancel", "abort", "halt").describedAs("Stops walking and releases all controls.");
+        }).also("cancel", "abort", "halt")
+                .describedAs("Stops walking, macros and any held position or facing.");
+    }
+
+    private static void append(StringBuilder what, boolean condition, String text) {
+        if (!condition) {
+            return;
+        }
+        if (!what.isEmpty()) {
+            what.append(". ");
+        }
+        what.append(text);
     }
 }

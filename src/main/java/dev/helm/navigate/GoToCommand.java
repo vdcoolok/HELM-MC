@@ -57,10 +57,12 @@ public final class GoToCommand {
         if (position.getX() == x && position.getY() == y && position.getZ() == z) {
             Trace.instance().event("goto", "already standing on the goal");
             agent.pilot().halt();
+            agent.pilot().forgetDestination();
             ClientNotice.warn("Already at " + x + " " + y + " " + z + ".");
             return CommandResult.SUCCESS;
         }
 
+        agent.pilot().forgetDestination();
         SearchJob job = agent.navigator().searchFor(new BlockGoal(x, y, z),
                 position.getX(), position.getY(), position.getZ());
         if (job == null) {

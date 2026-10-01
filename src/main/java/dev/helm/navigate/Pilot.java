@@ -20,6 +20,8 @@ import dev.helm.setting.ClientNotice;
 
 public final class Pilot {
 
+    private static final int ANCHOR_COOLDOWN = 10;
+
     private final ControlState controls = new ControlState();
     private final BlockBreaker breaker = new BlockBreaker();
     private final BlockPlacer placer = new BlockPlacer();
@@ -33,6 +35,8 @@ public final class Pilot {
     private Destination destination;
     private boolean pendingAnnouncement;
     private boolean active;
+    private Destination anchor;
+    private int anchorCooldown;
 
     public Pilot(RouteWalker walker) {
         this.walker = walker;
@@ -92,6 +96,17 @@ public final class Pilot {
 
     public void forgetDestination() {
         this.destination = null;
+        this.anchor = null;
+        this.anchorCooldown = 0;
+    }
+
+    public void anchorAt(Destination where) {
+        this.anchor = where;
+        this.anchorCooldown = 0;
+    }
+
+    public boolean anchored() {
+        return anchor != null;
     }
 
     public void tick() {
@@ -109,6 +124,7 @@ public final class Pilot {
         look.tick();
 
         if (!active) {
+            holdAnchor();
             return;
         }
         tick.reset();
@@ -123,6 +139,27 @@ public final class Pilot {
         if (outcome == WalkOutcome.DONE || walker.failed()) {
             finish(outcome);
         }
+    }
+
+    private void holdAnchor() {
+        Destination where = anchor;
+        if (where == null || pending != null || context == null) {
+            return;
+        }
+        if (anchorCooldown > 0) {
+            anchorCooldown--;
+            return;
+        }
+        var player = Minecraft.getInstance().player;
+        if (player == null || where.reachedBy(player.blockPosition())) {
+            return;
+        }
+        var feet = player.blockPosition();
+        Trace.instance().event("goto", "anchored on " + where.describe()
+                + " but the player is at " + feet.getX() + " " + feet.getY() + " "
+                + feet.getZ() + ", going back");
+        anchorCooldown = ANCHOR_COOLDOWN;
+        replan(where);
     }
 
     private void release() {
