@@ -1,5 +1,6 @@
 package dev.helm.movement;
 
+import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
 
@@ -31,6 +32,10 @@ public final class MoveInputs {
 
     public boolean isSet(Control control) {
         return states.getOrDefault(control, Boolean.FALSE);
+    }
+
+    public Map<Control, Boolean> view() {
+        return Collections.unmodifiableMap(states);
     }
 
     public void clear() {

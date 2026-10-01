@@ -174,6 +174,9 @@ public final class Pilot {
     private void finish(WalkOutcome outcome) {
         halt();
         Destination target = destination;
+        Trace.instance().event("walk", "route " + (outcome == WalkOutcome.ABANDONED
+                ? "abandoned" : "finished") + " with goal "
+                + (target == null ? "none" : target.describe()));
         if (target == null) {
             return;
         }
@@ -182,9 +185,7 @@ public final class Pilot {
             ClientNotice.warn("Arrived at " + target.describe() + ".");
             return;
         }
-        Trace.instance().event("walk", "route " + (outcome == WalkOutcome.ABANDONED
-                ? "abandoned" : "finished") + " short of " + target.describe()
-                + ", searching again from here");
+        Trace.instance().event("walk", "short of the goal, searching again from here");
         replan(target);
     }
 

@@ -165,13 +165,14 @@ public final class RouteWalker {
             return WalkOutcome.ABANDONED;
         }
 
+        WalkTrace.step(route, index, ticksOnStep, budget.original(), budget.live(),
+                stepContext, state);
         if (outcome == MoveState.SUCCESS) {
             index++;
             restart(state);
             moved = true;
             return WalkOutcome.CONTINUE;
         }
-        WalkTrace.step(route, index, ticksOnStep, budget.original(), budget.live());
         aimWith(state);
         overrideAbilities(stepContext, state, step);
 
