@@ -12,6 +12,7 @@ import com.mojang.brigadier.suggestion.Suggestions;
 import dev.helm.command.chat.LineTokenizer;
 import dev.helm.command.chat.TokenArguments;
 import dev.helm.command.help.CommandHelp;
+import dev.helm.diag.CommandTrace;
 import dev.helm.macro.edit.MacroEditor;
 
 public final class CommandTree {
@@ -40,19 +41,25 @@ public final class CommandTree {
     }
 
     public CommandResult dispatch(String body, CommandOutput output) {
+        CommandTrace.received(body);
         String trimmed = body == null ? "" : body.trim();
         if (trimmed.isEmpty()) {
             help(output);
+            CommandTrace.recorded(CommandResult.SUCCESS);
             return CommandResult.SUCCESS;
         }
 
         if (resolve(LineTokenizer.tokenize(trimmed)).isEmpty() && MacroEditing.isActive()) {
             String shortcut = EditorShortcuts.expand(trimmed);
             if (shortcut != null) {
-                return execute(shortcut, output);
+                CommandResult expanded = execute(shortcut, output);
+                CommandTrace.recorded(expanded);
+                return expanded;
             }
         }
-        return execute(trimmed, output);
+        CommandResult result = execute(trimmed, output);
+        CommandTrace.recorded(result);
+        return result;
     }
 
     private CommandResult execute(String trimmed, CommandOutput output) {
@@ -63,11 +70,13 @@ public final class CommandTree {
             if (MacroEditor.instance().isEditing()) {
                 return MacroEditing.append(trimmed, output);
             }
+            CommandTrace.matched(null, tokens);
             output.error(CommandFeedback.unknownCommand(tokens.get(0)));
             return CommandResult.FAILURE;
         }
 
         Command command = match.get().command();
+        CommandTrace.matched(command, match.get().arguments());
         if (command.isGroup()) {
             CommandHelp.sendGroup(command, output);
             return CommandResult.SUCCESS;

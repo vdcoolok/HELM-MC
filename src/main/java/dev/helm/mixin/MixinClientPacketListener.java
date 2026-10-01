@@ -21,6 +21,7 @@ public abstract class MixinClientPacketListener {
     @Inject(method = "sendChat", at = @At("HEAD"), cancellable = true)
     private void helmInterceptCommandLine(String message, CallbackInfo callback) {
         if (!CommandSystem.isCommandLine(message)) {
+            dev.helm.diag.CommandTrace.sent(message);
             return;
         }
         CommandSystem.dispatch(Minecraft.getInstance(), message);

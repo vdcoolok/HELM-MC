@@ -100,7 +100,7 @@ public final class RouteWalker {
 
     private WalkOutcome attempt(Route route, MoveTick state, StepContext stepContext) {
         if (index >= route.length()) {
-            WalkTrace.finished(route, index);
+            WalkTrace.finished(route, index, stepContext.feet());
             return WalkOutcome.DONE;
         }
         PlanStep step = route.at(index);
@@ -128,7 +128,8 @@ public final class RouteWalker {
                 return WalkOutcome.CONTINUE;
             }
         }
-        if (leftBehind(route, step, stepContext, feet)) {
+        double offRoute = RouteProximity.distanceFrom(route, stepContext);
+        if (leftBehind(route, offRoute, step, stepContext, feet)) {
             return WalkOutcome.ABANDONED;
         }
         if (index < route.length() - 1) {
@@ -149,24 +150,24 @@ public final class RouteWalker {
         MoveState outcome = runners.advance(stepContext, state, step);
         boolean cancellable = runners.safeToCancel(stepContext, step, state);
         if (outcome == MoveState.UNREACHABLE || outcome == MoveState.FAILED) {
-            abandon(route, feet, "step executor returned " + outcome);
+            abandon(route, step, feet, "step executor returned " + outcome);
             return WalkOutcome.ABANDONED;
         }
         if (cancellable && budget.impossible()) {
-            abandon(route, feet, "this step is no longer possible");
+            abandon(route, step, feet, "this step is no longer possible");
             return WalkOutcome.ABANDONED;
         }
         if (cancellable && budget.roseTooFar()) {
-            abandon(route, feet, "cost rose past the allowed increase");
+            abandon(route, step, feet, "cost rose past the allowed increase");
             return WalkOutcome.ABANDONED;
         }
         if (cancellable && budget.anyAheadImpossible(route)) {
-            abandon(route, feet, "a following step is no longer possible");
+            abandon(route, step, feet, "a following step is no longer possible");
             return WalkOutcome.ABANDONED;
         }
 
         WalkTrace.step(route, index, ticksOnStep, budget.original(), budget.live(),
-                stepContext, state);
+                stepContext, state, offRoute, toTarget(stepContext, step));
         if (outcome == MoveState.SUCCESS) {
             index++;
             restart(state);
@@ -202,29 +203,37 @@ public final class RouteWalker {
         }
         ticksOnStep++;
         if (ticksOnStep > budget.original() + settings.movementTimeoutTicks()) {
-            abandon(route, feet, "ran out of ticks on this step");
+            abandon(route, step, feet, "ran out of ticks on this step");
             return WalkOutcome.ABANDONED;
         }
         return WalkOutcome.CONTINUE;
     }
 
-    private boolean leftBehind(Route route, PlanStep step, StepContext stepContext, int[] feet) {
-        double nearest = RouteProximity.distanceFrom(route, stepContext);
-        if (beyond(nearest, step, stepContext, OFF_PATH_DISTANCE)) {
+    private boolean leftBehind(Route route, double offRoute, PlanStep step,
+                              StepContext stepContext, int[] feet) {
+        if (beyond(offRoute, step, stepContext, OFF_PATH_DISTANCE)) {
             ticksAway++;
             if (ticksAway > MAX_TICKS_OFF_PATH) {
-                abandon(route, feet, "strayed from the route for " + ticksAway + " ticks");
+                abandon(route, step, feet, "strayed from the route for " + ticksAway + " ticks");
                 return true;
             }
         } else {
             ticksAway = 0;
         }
-        if (beyond(nearest, step, stepContext, WAY_OFF_DISTANCE)) {
-            abandon(route, feet, "strayed " + Math.round(nearest * 100.0D) / 100.0D
+        if (beyond(offRoute, step, stepContext, WAY_OFF_DISTANCE)) {
+            abandon(route, step, feet, "strayed " + Math.round(offRoute * 100.0D) / 100.0D
                     + " blocks from the route");
             return true;
         }
         return false;
+    }
+
+    private double toTarget(StepContext stepContext, PlanStep step) {
+        if (stepContext.player() == null) {
+            return Double.MAX_VALUE;
+        }
+        return step.footprint().nearestTo(stepContext.player().getX(),
+                stepContext.player().getY(), stepContext.player().getZ());
     }
 
     private boolean beyond(double nearest, PlanStep step, StepContext stepContext, double leniency) {
@@ -237,9 +246,9 @@ public final class RouteWalker {
         return true;
     }
 
-    private void abandon(Route route, int[] feet, String reason) {
+    private void abandon(Route route, PlanStep step, int[] feet, String reason) {
         if (!failed) {
-            WalkTrace.abandon(route, index, reason, feet);
+            WalkTrace.abandon(index, route.length(), step, reason, feet);
         }
         failed = true;
         index = Integer.MAX_VALUE;

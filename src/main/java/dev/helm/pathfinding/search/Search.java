@@ -58,6 +58,10 @@ public final class Search {
         return store.size();
     }
 
+    public int waiting() {
+        return frontier.size();
+    }
+
     public Node furthestConsidered() {
         return furthestConsidered;
     }

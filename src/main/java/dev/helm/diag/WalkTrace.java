@@ -14,17 +14,36 @@ public final class WalkTrace {
     }
 
     public static void step(Route route, int index, int ticksOnStep, double recordedCost,
-                            double liveCost, StepContext context, MoveTick tick) {
+                            double liveCost, StepContext context, MoveTick tick,
+                            double offRoute, double toTarget) {
         PlanStep step = route.at(index);
-        Trace.instance().repeat("walk", "walk", "step " + index + "/" + route.length()
-                + " " + step.kind() + " -> " + step.toX() + "," + step.toY() + "," + step.toZ()
-                + " ticks " + ticksOnStep
-                + " cost " + Math.round(recordedCost) + "->" + Math.round(liveCost)
-                + " break " + step.blocksToBreak().size()
-                + " place " + (step.placeAt() == null ? "no" : "yes")
-                + " aim " + step.move()
-                + " at " + body(context)
-                + " keys " + keys(tick));
+        var player = context.player();
+        StringBuilder out = new StringBuilder();
+        out.append("step ").append(index).append('/').append(route.length())
+                .append(' ').append(step.kind())
+                .append(" want ").append(step.fromX()).append(',').append(step.fromY())
+                .append(',').append(step.fromZ())
+                .append(" -> ").append(step.toX()).append(',').append(step.toY())
+                .append(',').append(step.toZ())
+                .append(" ticks ").append(ticksOnStep)
+                .append(" cost ").append(Math.round(recordedCost))
+                .append("->").append(Math.round(liveCost))
+                .append(" break ").append(step.blocksToBreak().size())
+                .append(" place ").append(step.placeAt() == null ? "no" : "yes")
+                .append(" aim ").append(step.move());
+        if (player != null) {
+            out.append(" am ").append(PlayerReport.at(player))
+                    .append(" at ").append(PlayerReport.feet(player))
+                    .append(' ').append(PlayerReport.footing(player))
+                    .append(' ').append(PlayerReport.motion(player))
+                    .append(' ').append(PlayerReport.facing(player))
+                    .append(" sprint ").append(PlayerReport.sprinting(player))
+                    .append(' ').append(PlayerReport.food(player))
+                    .append(" toTarget ").append(round(toTarget))
+                    .append(" offRoute ").append(round(offRoute));
+        }
+        out.append(" keys ").append(keys(tick));
+        Trace.instance().event("walk", out.toString());
     }
 
     public static void rewind(Route route, int from, int to, int[] feet) {
@@ -43,44 +62,30 @@ public final class WalkTrace {
                 + (unloaded[0] >> 4) + "," + (unloaded[2] >> 4));
     }
 
-    public static void abandon(Route route, int index, String reason, int[] feet) {
+    public static void abandon(int index, int total, PlanStep step, String reason, int[] feet) {
         StringBuilder where = new StringBuilder(reason);
-        where.append(" at step ").append(index).append('/').append(route.length());
-        if (index >= 0 && index < route.length()) {
-            PlanStep step = route.at(index);
-            where.append(" ").append(step.kind())
-                    .append(" -> ").append(step.toX()).append(',').append(step.toY())
-                    .append(',').append(step.toZ());
+        where.append(" at step ").append(index).append('/').append(total);
+        if (step != null) {
+            where.append(' ').append(step.kind())
+                    .append(" want ").append(step.toX()).append(',').append(step.toY())
+                    .append(',').append(step.toZ())
+                    .append(" from ").append(step.fromX()).append(',').append(step.fromY())
+                    .append(',').append(step.fromZ());
         }
         where.append(" player on ").append(describe(feet));
         Trace.instance().event("walk", where.toString());
     }
-
-    public static void finished(Route route, int index) {
+    public static void finished(Route route, int index, int[] feet) {
         Trace.instance().event("walk", "route finished after " + index + " of "
-                + route.length() + " steps");
+                + route.length() + " steps, player on " + describe(feet));
     }
 
     public static void sprinting(boolean sprinting) {
         Trace.instance().repeat("sprint", "walk", "sprinting " + sprinting);
     }
 
-    private static String body(StepContext context) {
-        var player = context.player();
-        if (player == null) {
-            return "none";
-        }
-        return String.format("%.2f/%.2f/%.2f yaw %.1f pitch %.1f %s",
-                player.getX(), player.getY(), player.getZ(),
-                player.getYRot(), player.getXRot(),
-                player.onGround() ? "ground" : "air");
-    }
-
     private static String keys(MoveTick tick) {
         Map<Control, Boolean> pressed = tick.inputs().view();
-        if (pressed.isEmpty()) {
-            return "-";
-        }
         StringBuilder out = new StringBuilder();
         for (Map.Entry<Control, Boolean> entry : pressed.entrySet()) {
             if (!Boolean.TRUE.equals(entry.getValue())) {
@@ -91,7 +96,7 @@ public final class WalkTrace {
             }
             out.append(shortName(entry.getKey()));
         }
-        return out.length() == 0 ? "-" : out.toString();
+        return out.length() == 0 ? "none" : out.toString();
     }
 
     private static String shortName(Control control) {
@@ -106,6 +111,10 @@ public final class WalkTrace {
             case ATTACK -> "break";
             case USE -> "place";
         };
+    }
+
+    private static String round(double value) {
+        return String.format("%.2f", value);
     }
 
     private static String describe(int[] position) {

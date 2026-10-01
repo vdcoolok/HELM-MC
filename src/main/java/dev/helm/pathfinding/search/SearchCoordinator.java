@@ -31,6 +31,10 @@ public final class SearchCoordinator {
         return inProgress != null;
     }
 
+    public SearchJob inProgress() {
+        return inProgress;
+    }
+
     public SearchJob submit(Goal goal, int fromX, int fromY, int fromZ,
                             Set<Block> doNotBreak) {
         cancel();

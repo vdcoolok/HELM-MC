@@ -10,8 +10,8 @@ import java.util.List;
 
 public final class TraceFile {
 
-    private static final long SOFT_CAP_BYTES = 512L * 1024L;
-    private static final int TRIM_TO_LINES = 4000;
+    private static final long SOFT_CAP_BYTES = 4L * 1024L * 1024L;
+    private static final int TRIM_TO_LINES = 20000;
 
     private final Path file;
     private long written;
