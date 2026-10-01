@@ -75,8 +75,8 @@ public final class MacroCommand {
                             }
                             call.output().feedback(CommandFeedback.info(lines.size() + " line(s)"));
                             for (int index = 0; index < lines.size(); index++) {
-                                call.output().feedback(CommandFeedback
-                                        .info("  " + (index + 1) + "  " + lines.get(index)));
+                                call.output().feedback(CommandFeedback.info("  " + (index + 1) + "  "
+                                        + dev.helm.macro.MacroTarget.describe(lines.get(index))));
                             }
                             return CommandResult.SUCCESS;
                         }).describedAs("Shows the open macro as a numbered list."),

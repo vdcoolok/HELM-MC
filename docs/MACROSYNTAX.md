@@ -83,6 +83,18 @@ Takes no arguments. The target is the block under the crosshair, or the entity
 under the crosshair if there is no block. Aim at the target first, then run it.
 Aim at nothing and the macro stops with an error rather than walking nowhere.
 
+Because the target is read when the macro runs rather than when it is written,
+the line stores no coordinates. `$macro action list` shows what it currently
+points at so the target is visible without running it:
+
+```text
+1 line(s)
+  1  gotohere -> -10 -60 15
+```
+
+The numbers follow your aim, so aim somewhere else and list it again to check a
+different target.
+
 ### lookat
 
 Turns the player to a given angle.
@@ -114,6 +126,16 @@ lookathere
 ```
 
 Takes no arguments. The target is resolved the same way as `gotohere`.
+
+`$macro action list` shows the current pitch and yaw rather than a block, since
+that is what the line will do:
+
+```text
+1 line(s)
+  1  lookathere -> 12.4 / -88.1
+```
+
+That is pitch first, then yaw, matching how `lookat` is written.
 
 ### hold
 
@@ -446,6 +468,18 @@ macro action list
 [HELM]   2  loop
 [HELM]   3  endloop
 ```
+
+A statement that carries its own numbers is shown as written. The two that do
+not are shown with what they currently point at, after an arrow:
+
+```text
+[HELM] 2 line(s)
+[HELM]   1  gotohere -> -10 -60 15
+[HELM]   2  lookathere -> 12.4 / -88.1
+```
+
+A dash after the arrow means there is nothing to point at, because no world is
+loaded or the crosshair is not on a block.
 
 ### action move
 

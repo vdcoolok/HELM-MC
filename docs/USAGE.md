@@ -11,7 +11,7 @@ by HELM. Anything else is normal chat.
 | `$version` | Show the HELM version |
 | `$goto <x> <y> <z>` | Walk to a block position |
 | `$stop` | Stop walking |
-| `$set` | Open the list of settings to change |
+| `$set` | Open the settings picker |
 | `$set <name>` | Show one setting |
 | `$set <name> <value>` | Change one setting |
 | `$settings reset` | Restore every setting to its default |
@@ -27,82 +27,24 @@ by HELM. Anything else is normal chat.
 | `$macro stop` | Stop the running macro |
 | `$macro list` | List your macros |
 
-Short forms: `goto` is also `g`, `go` or `to`. `stop` is also `cancel`, `abort`
-or `halt`. `set` is also `setting`. `macro` is also `macros`, `action` is also
-`a`, `remove` is also `rm` or `delete`, and `exitEditMode` is also `exit`,
-`stopEdit` or `exitEdit`.
-
-## Change a setting
-
-Type `$set` and press space. A list of every setting opens, with each setting's
-current value beside its name, arranged one section per column:
-
-```
-$set movement.allowBreak
-```
-
-- arrow keys move between settings, and between columns
-- tab or a click puts the setting you are on into the chat box
-- for a flag the next list is `true` and `false`, so you pick rather than type
-- for a number the next list is its current value, so you can type over it
-- typing filters the list as you go, so `$set look.` shows only the `look`
-  settings
-
-Press enter once the line reads `$set movement.allowBreak false`.
-
-You can also just type it: `$set look.smoothLookTicks 8`. A flag accepts
-`true`, `false`, `yes`, `no`, `on`, `off` and `1` or `0`. Naming a setting with
-no value just prints it.
-
-`$settings reset` puts every setting back to its default in one go.
+`goto` is also `g`, `go` or `to`. `stop` is also `cancel`, `abort` or `halt`.
+`set` is also `setting`. `macro` is also `macros`. `action` is also `a`.
+`remove` is also `rm` or `delete`. `exitEditMode` is also `exit`.
 
 ## Walk somewhere
 
 ```
 $goto 120 64 -35
-```
-
-You get a line back saying one of:
-
-- `Path found: N steps.` the goal is reachable and will be walked to
-- `Partial path: N steps.` the goal was not reachable, so it walks as far as it
-  can and then stops
-- `Already at x y z.` you were standing on the goal, so there is nothing to walk
-- `No path to x y z.` there is nowhere to go at all
-
-The coordinates are block positions, so `goto -10 -60 15` means block -10 in x
-and block 15 in z. Anywhere inside those blocks counts, and HELM walks to the
-middle of the block rather than to a particular corner.
-
-The path is drawn in the world as you go. Blocks it will mine are outlined in
-red, and blocks it will place are outlined in blue.
-
-To stop at any time:
-
-```
 $stop
 ```
 
-`$stop` says `Nothing to stop.` if you were not walking.
+Coordinates are block positions. You get back `Path found: N steps.`,
+`Partial path: N steps.`, `Already at x y z.` or `No path to x y z.`
 
-## Where walking happens
+The path is drawn in the world. Blocks to mine are outlined in red, blocks to
+place in blue.
 
-The whole walk is calculated before the first step. That means a path that goes
-around a wall, over a step, down a drop, across a gap or diagonally is decided up
-front, and then followed exactly.
-
-While walking, HELM will:
-
-- mine any block in the way, and pick the best tool for it first
-- place a block to bridge a gap, or to step up, when that is cheaper than mining
-- pillar up by placing a block under itself and jumping
-- turn toward a block before mining or placing it
-- jump, sneak and sprint at the right moments
-
-If the world changes and a step becomes impossible, the walk is abandoned rather
-than walking into a wall.
-
-## Settings
+## Change a setting
 
 ```
 $set
@@ -111,105 +53,44 @@ $set movement.allowBreak false
 $settings reset
 ```
 
-`$set` on its own opens the picker described above. `$set <name>` shows one
-setting and its value. `$set <name> <value>` changes it, taking the value as one
-word: `true` or `false`, a whole number, a decimal, or free text for block lists.
-Changes are saved straight away.
+Type `$set` and a space and the picker opens: every setting beside its value,
+one section per column. Arrows move, tab or a click chooses, typing filters. A
+flag then offers `true` and `false`.
 
-The ones you are most likely to want:
+You can also just type it. A flag accepts `true`, `false`, `yes`, `no`, `on`,
+`off`, `1` or `0`.
 
-| Name | Default | What it does |
-| --- | --- | --- |
-| `movement.allowBreak` | `true` | Mine blocks in the way |
-| `movement.allowPlace` | `true` | Place blocks to bridge or step up |
-| `movement.allowParkour` | `true` | Jump across gaps |
-| `movement.allowSprint` | `true` | Sprint while walking |
-| `movement.assumeStep` | `false` | Never jump while stepping up |
-| `movement.movementTimeoutTicks` | `100` | Ticks one step may take before giving up |
-| `mining.autoTool` | `true` | Switch to the best tool for each block |
-| `mining.preferSilkTouch` | `false` | Prefer a silk touch tool when no slower |
-| `mining.itemSaver` | `false` | Stop using a tool that is nearly broken |
-| `mining.avoidBreaking` | *(empty)* | Block names treated as air, comma separated |
-| `look.freeLook` | `true` | Send aiming to the server, not the camera |
-| `look.randomLooking` | `0.01` | Degrees of random aim added each tick |
-| `path.renderPath` | `true` | Draw the path |
-| `path.renderPathAsLine` | `false` | Draw a plain line instead of a ribbon |
-| `path.renderBlocksToBreak` | `true` | Outline blocks to mine |
-| `path.renderBlocksToPlace` | `true` | Outline blocks to place |
-| `path.lineWidth` | `5.0` | Thickness of the path line |
-| `path.renderPathAsLine` | `false` | Draw a bare centre line instead of a ribbon |
-| `path.ignoreDepth` | `true` | Draw the path through terrain |
-| `path.primaryTimeoutMillis` | `500` | Search time allowed before moving off the start |
-| `path.failureTimeoutMillis` | `2000` | Total search time before giving up |
-| `path.maxChunkBorderFetch` | `50` | Moves into unloaded chunks the search may consider |
-| `cache.enabled` | `true` | Remember chunks so routes can cross terrain that is no longer loaded |
-| `cache.expirySeconds` | `-1` | Forget cached chunks older than this |
-
-Searching further or giving up sooner:
-
-```
-$settings set path.failureTimeoutMillis 5000
-$settings set path.maxChunkBorderFetch 200
-```
-
-Caching a lot of terrain, or letting it go:
-
-```
-$settings set cache.expirySeconds 604800
-$settings set cache.enabled false
-```
-
-`cache.enabled` and `cache.preferLoadedChunks` apply the next time you join a
-world. The rest apply straight away. See
-[PATHFINDING.md](PATHFINDING.md) for what the cache holds.
+[SETTINGS.md](SETTINGS.md) lists every setting.
 
 ## Make a macro
 
 ```
 $macro create farm
-```
-
-## Open it
-
-```
 $macro edit farm
+$macro load farm
+$macro stop
+$macro list
 ```
 
-## Add lines
-
-While a macro is open, any `$` line that is not a real command is added to it as
-a macro line. You also get a popup listing the syntaxes you can add, on the left,
-and the editing tools on the right.
-
-The grey hint goes away as soon as you start typing the argument yourself.
-
-`hold`, `release` and `press` want an input, so instead of a grey hint you get a
-list of every key and button you can use, each with what it is:
+While a macro is open, any `$` line that is not a real command is added to it.
+A popup lists the syntaxes you can add on the left and the editing tools on the
+right. `hold`, `release` and `press` show a list of every key and button.
+Arrows move, tab or a click fills in, typing narrows the list.
 
 ```
-$hold      ->  SPACE   - space bar          M1         - left mouse button
-              A       - letter a            M2         - right mouse button
-              SHIFT   - left shift          M3         - middle mouse button
-              RSHIFT  - right shift         SCROLLUP   - scroll wheel up
-              ESCAPE  - esc                 SCROLLDOWN - scroll wheel down
+$macro action add gotohere
+$macro action list
 ```
 
-All 26 letters, all 10 numbers, F1 to F25, space, shift, ctrl, alt, enter, tab
-and esc are in there too. It narrows as you type, and tab or a click fills in the
-one you want. The list is long, so it scrolls with the mouse wheel.
+```
+1 line(s)
+  1  gotohere -> -10 -60 15
+```
 
-Filling in a row keeps the `$`, so the line is ready to send straight away.
+`gotohere` and `lookathere` carry no numbers, so the list shows what they
+currently point at. Aim elsewhere and list it again to check a new target.
 
-Enter always sends the line as typed. It never fills in the popup, so you never
-have to press enter twice. Escape is never taken by the popup either, so it
-closes the chat box the way it always does.
-
-The syntax and what each tool inserts are listed in
-[MACROSYNTAX.md](MACROSYNTAX.md).
-
-## See every command
-
-Type `$` on its own, or `$help`.
+[MACROSYNTAX.md](MACROSYNTAX.md) has the full syntax.
 
 ## Where your data lives
 
@@ -217,56 +98,34 @@ Type `$` on its own, or `$help`.
 <game directory>/HELM/
 ```
 
-That is `.minecraft/HELM` on Linux and macOS, and
-`%APPDATA%\.minecraft\HELM` on Windows. The folder is made for you the first time
-you join a world.
+`.minecraft/HELM` on Linux and macOS, `%APPDATA%\.minecraft\HELM` on Windows.
 
 | Path | What it holds |
 | --- | --- |
-| `HELM/macros/` | Your macro files. You can add your own |
-| `HELM/settings.conf` | Every setting, one per line, as `name = value` |
+| `HELM/macros/` | Your macro files |
+| `HELM/settings.conf` | Every setting, as `name = value` |
 | `HELM/debuglogs.log` | A record of what HELM did this session |
 | `HELM/cache/` | Remembered chunks, one folder per dimension |
 
-`settings.conf` is plain text. You can read it, edit it by hand, and back it up.
-If it is missing or unreadable, HELM starts from the defaults.
-
-`debuglogs.log` is plain text, one line per event, rewritten from scratch every
-time the game starts. It records the goal you asked for, where the player was,
-what the search decided and why it stopped, and what happened to each step of the
-walk. It stays under half a megabyte by dropping the oldest lines. It is there so
-that a problem can be described accurately rather than guessed at, so attaching
-it to a bug report is welcome. Nothing is written to it except HELM's own
-events, and it is never sent anywhere.
-
-If the file is missing after a session, the game directory was not writable; the
-rest of HELM carries on regardless.
-
-`cache/` is written on a background thread and is safe to delete while the game
-is closed. Deleting it costs you remembered terrain, nothing else. Set
-`cache.expirySeconds` to a positive number if you would rather it shrank on its
-own.
+All plain text and all safe to read, edit or delete while the game is closed.
 
 ## If something goes wrong
 
 | Message | What to do |
 | --- | --- |
-| `Unknown command: fly` | That command does not exist, or a macro is open and it was read as syntax |
+| `Unknown command: fly` | No such command, or a macro is open and read it as syntax |
 | `No path to 10 64 10` | Nothing walkable connects you to that block |
 | `Nothing to stop.` | You were not walking |
-| `Unknown setting: movement.fast` | Check `$settings list` for the exact name |
-| `No macro named farm` | Check `$macro list` for the exact name |
-| `A macro named farm already exists` | Pick another name, or open the existing one |
-| `There is no line 9 (the macro has 5)` | The macro has fewer lines than that |
-| `Unknown command 'wut'` | Not valid syntax; run `$macro action add` with no line to see the list |
+| `Unknown setting: movement.fast` | Check [SETTINGS.md](SETTINGS.md) for the exact name |
+| `No macro named farm` | Check `$macro list` |
 | `'loop' is missing 'endloop'` | Close the loop |
-| `No macro is open for editing` | `$exitEditMode` was used with nothing open |
+
+Attach `HELM/debuglogs.log` to a bug report.
 
 ## What runs today
 
-Walking, mining, placing, aiming and rendering all run. On the macro side,
-`wait` and `loop` work. The rest are accepted and checked when a macro loads,
-but report that they are not available yet if a macro reaches them.
+Walking, mining, placing, aiming and rendering run. In macros, `wait` and
+`loop` run; the rest are accepted and checked on load but report that they are
+not available yet if a macro reaches them.
 
-See [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for how any of this
-behaves, and [FEATURES.md](FEATURES.md) for the list.
+[FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) has the detail.
