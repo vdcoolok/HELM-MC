@@ -78,10 +78,6 @@ public final class Setting<T> {
         this.value = initial;
     }
 
-    public String describe() {
-        return label + " = " + value + "  (" + detail + ")";
-    }
-
     @SuppressWarnings("unchecked")
     private T clamp(T candidate) {
         if (minimum instanceof Double low && candidate instanceof Double value) {

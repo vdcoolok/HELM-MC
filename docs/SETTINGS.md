@@ -15,22 +15,23 @@ inside it.
 ## Reading and changing
 
 ```
-$settings list
-$settings get movement.allowBreak
-$settings set movement.allowBreak false
+$set
+$set movement.allowBreak
 $set movement.allowBreak false
 $settings reset
 ```
 
-`$settings list` prints every setting, its current value, and a one line
-explanation. `$settings get` prints one. `$settings set` takes the value as one
-word: `true` or `false`, a whole number, a decimal, or free text.
+`$set` on its own opens a picker listing every setting beside its current value,
+arranged one section per column. Arrow keys move, tab or a click chooses, and a
+flag then offers `true` and `false`. Typing filters the list, so `$set look.`
+leaves only the `look` settings. The full list below is the same set.
 
-`$set` is a top level command that changes a single setting, which is the same
-thing `$settings set` does. Use whichever is shorter to type.
+`$set <name>` prints one setting and its value. `$set <name> <value>` changes it,
+taking the value as one word: `true` or `false`, a whole number, a decimal, or
+free text. A flag also accepts `yes`, `no`, `on`, `off` and `1` or `0`.
 
-`$settings` is also `setting` or `option`. `$settings reset` is also
-`$settings defaults`.
+`$settings reset` puts every setting back to its default, and is also
+`$settings defaults`. `set` is also `setting`.
 
 Values are clamped to the range a setting allows, so a value outside the range
 is corrected rather than rejected. A value that is not a number where a number

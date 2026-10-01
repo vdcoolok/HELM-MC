@@ -18,6 +18,10 @@ public interface ArgumentAccess {
         return string(name).orElseThrow(() -> new CommandException(CommandFeedback.missingArgument(name)));
     }
 
+    default String optionalString(String name) {
+        return string(name).orElse("");
+    }
+
     default int requireInteger(String name) {
         return integer(name).orElseThrow(() -> new CommandException(CommandFeedback.missingArgument(name)));
     }

@@ -151,22 +151,35 @@ Ends a walk at once and releases every held key. Available as `$stop`, with the
 aliases `cancel`, `abort` and `halt`. It reports `Nothing to stop.` when there
 was no walk in progress.
 
-## settings
+## set
 
-Reads and changes settings. Available as `$settings`, with the aliases `setting`
-and `option`, and four subcommands:
+Changes a setting. Also available as `$setting`.
 
-| Subcommand | What it does |
+| Form | What it does |
 | --- | --- |
-| `$settings list` | Every setting, its value and a description |
-| `$settings get <name>` | One setting |
-| `$settings set <name> <value>` | Change one setting |
-| `$settings reset` | Restore every setting to its default |
+| `$set` | Opens a picker listing every setting beside its value |
+| `$set <name>` | Prints one setting |
+| `$set <name> <value>` | Changes one setting |
 
-`$settings reset` is also `$settings defaults`.
+The picker opens as soon as `$set` is typed with a space after it, so it is never
+something that has to be remembered to reach. Each setting is one row showing
+its name and current value, arranged so each section is its own column, which
+means the sections read side by side rather than one after another. Arrow keys
+move within the list and between columns, tab or a click puts the setting under
+the cursor into the chat box, and typing filters the list as you go.
+
+Once a setting's name is complete the list becomes the values that setting
+accepts. A flag offers `true` and `false`, with the opposite of the current
+value first, so it can be flipped with two presses. Anything else offers its
+current value, so it can be typed over rather than guessed at.
+
+`$settings` remains only to reset everything, as `$settings reset`, which is also
+`$settings defaults`.
 
 A value outside a setting's allowed range is clamped rather than rejected. A
-value of the wrong kind is an error and nothing changes. Changing a setting takes
+value of the wrong kind is an error and nothing changes; a word where a number
+belongs is an error rather than being read as zero, and a word where a flag
+belongs is an error rather than quietly turning it off. Changing a setting takes
 effect immediately, and re-prices a walk that is already in progress.
 
 Settings are stored in `settings.conf` inside the game directory, as plain text,

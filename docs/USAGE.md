@@ -11,11 +11,10 @@ by HELM. Anything else is normal chat.
 | `$version` | Show the HELM version |
 | `$goto <x> <y> <z>` | Walk to a block position |
 | `$stop` | Stop walking |
-| `$settings list` | List every setting and its value |
-| `$settings get <name>` | Show one setting |
-| `$settings set <name> <value>` | Change one setting |
+| `$set` | Open the list of settings to change |
+| `$set <name>` | Show one setting |
+| `$set <name> <value>` | Change one setting |
 | `$settings reset` | Restore every setting to its default |
-| `$set <name> <value>` | Change one setting, same as `$settings set` |
 | `$macro create <name>` | Make a new empty macro |
 | `$macro edit <name>` | Open a macro for editing |
 | `$macro edit` | Close the open macro |
@@ -29,14 +28,33 @@ by HELM. Anything else is normal chat.
 | `$macro list` | List your macros |
 
 Short forms: `goto` is also `g`, `go` or `to`. `stop` is also `cancel`, `abort`
-or `halt`. `settings` is also `setting` or `option`. `macro` is also `macros`,
-`action` is also `a`, `remove` is also `rm` or `delete`, and `exitEditMode` is
-also `exit`, `stopEdit` or `exitEdit`.
+or `halt`. `set` is also `setting`. `macro` is also `macros`, `action` is also
+`a`, `remove` is also `rm` or `delete`, and `exitEditMode` is also `exit`,
+`stopEdit` or `exitEdit`.
 
-`$set` is a top level command rather than a subcommand of `$settings`, because
-changing a setting is the thing you type most often. It is the same code, so it
-behaves identically, down to the confirmation line it prints and the immediate
-save.
+## Change a setting
+
+Type `$set` and press space. A list of every setting opens, with each setting's
+current value beside its name, arranged one section per column:
+
+```
+$set movement.allowBreak
+```
+
+- arrow keys move between settings, and between columns
+- tab or a click puts the setting you are on into the chat box
+- for a flag the next list is `true` and `false`, so you pick rather than type
+- for a number the next list is its current value, so you can type over it
+- typing filters the list as you go, so `$set look.` shows only the `look`
+  settings
+
+Press enter once the line reads `$set movement.allowBreak false`.
+
+You can also just type it: `$set look.smoothLookTicks 8`. A flag accepts
+`true`, `false`, `yes`, `no`, `on`, `off` and `1` or `0`. Naming a setting with
+no value just prints it.
+
+`$settings reset` puts every setting back to its default in one go.
 
 ## Walk somewhere
 
@@ -87,18 +105,18 @@ than walking into a wall.
 ## Settings
 
 ```
-$settings list
-$settings get movement.allowBreak
-$settings set movement.allowBreak false
+$set
+$set movement.allowBreak
 $set movement.allowBreak false
 $settings reset
 ```
 
-`$settings get` shows the value and a one line description. `$settings set` and
-`$set` both take the value as one word: `true` or `false`, a whole number, a
-decimal, or free text for block lists. Changes are saved straight away.
+`$set` on its own opens the picker described above. `$set <name>` shows one
+setting and its value. `$set <name> <value>` changes it, taking the value as one
+word: `true` or `false`, a whole number, a decimal, or free text for block lists.
+Changes are saved straight away.
 
-The names are listed by `$settings list`. The ones you are most likely to want:
+The ones you are most likely to want:
 
 | Name | Default | What it does |
 | --- | --- | --- |

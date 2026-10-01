@@ -11,6 +11,9 @@ public final class PopupCommands {
         if (row == null) {
             return "";
         }
+        if (!row.insert().isEmpty()) {
+            return row.insert();
+        }
         if (row.column() == PopupRow.SYNTAX_COLUMN) {
             return row.label();
         }

@@ -10,6 +10,7 @@ import dev.helm.command.CommandFeedback;
 import dev.helm.command.CommandResult;
 import dev.helm.storage.HelmStorage;
 import dev.helm.tools.BlockAvoidList;
+import net.minecraft.network.chat.Component;
 
 public final class SettingsCommand {
 
@@ -17,89 +18,85 @@ public final class SettingsCommand {
     }
 
     public static Command build() {
-        return Command.group("settings").also("setting", "option").describedAs("Reads and changes settings.")
-                .containing(get(), set(), list(), reset());
-    }
-
-    private static Command get() {
-        return Command.leaf("get", call -> {
-            String name = call.arguments().requireString("name");
-            Setting<?> setting = find(name);
-            if (setting == null) {
-                call.output().error(CommandFeedback.unknownSetting(name));
-                return CommandResult.FAILURE;
-            }
-            call.output().feedback(net.minecraft.network.chat.Component.literal(setting.describe()));
-            return CommandResult.SUCCESS;
-        }).describedAs("Shows one setting and its current value.")
-                .taking(ArgumentDefinition.required("name", ArgumentType.STRING, "setting name"));
-    }
-
-    private static Command set() {
-        return changeCommand();
-    }
-
-    private static CommandResult change(CommandCall call) {
-        ArgumentAccess arguments = call.arguments();
-        String name = arguments.requireString("name");
-        Setting<?> setting = find(name);
-        if (setting == null) {
-            call.output().error(CommandFeedback.unknownSetting(name));
-            return CommandResult.FAILURE;
-        }
-        String value = arguments.requireString("value");
-        setting.accept(parse(setting, value.trim()));
-        call.output().feedback(net.minecraft.network.chat.Component.literal(setting.describe()));
-        BlockAvoidList.refresh(Settings.holder().mining());
-        SettingsFile.save(HelmStorage.root().resolve(SettingsFile.fileName()));
-        return CommandResult.SUCCESS;
+        return Command.group("settings").describedAs("Restores settings.")
+                .containing(reset());
     }
 
     public static Command changeCommand() {
         return Command.leaf("set", SettingsCommand::change)
-                .describedAs("Changes one setting.")
+                .also("setting")
+                .describedAs("Changes one setting, or opens the picker.")
                 .taking(
-                        ArgumentDefinition.required("name", ArgumentType.STRING, "setting name"),
-                        ArgumentDefinition.required("value", ArgumentType.STRING, "new value"));
-    }
-
-    private static Command list() {
-        return Command.leaf("list", call -> {
-            call.output().feedback(net.minecraft.network.chat.Component.literal(SettingsFile.describe()));
-            return CommandResult.SUCCESS;
-        }).describedAs("Lists every setting and its current value.");
+                        ArgumentDefinition.optional("name", ArgumentType.STRING, "setting name"),
+                        ArgumentDefinition.optional("value", ArgumentType.STRING, "new value"));
     }
 
     private static Command reset() {
         return Command.leaf("reset", call -> {
             Settings.holder().restoreDefaults();
             BlockAvoidList.refresh(Settings.holder().mining());
-            call.output().feedback(net.minecraft.network.chat.Component.literal(
-                    "Settings restored to defaults."));
+            save();
+            call.output().feedback(Component.literal("Settings restored to defaults."));
             return CommandResult.SUCCESS;
         }).also("defaults").describedAs("Restores every setting to its default value.");
     }
 
-    private static Setting<?> find(String name) {
-        for (SettingSection section : Settings.holder().sections()) {
-            Setting<?> setting = section.find(name);
-            if (setting != null) {
-                return setting;
-            }
+    private static CommandResult change(CommandCall call) {
+        ArgumentAccess arguments = call.arguments();
+        if (!arguments.has("name")) {
+            return SettingPickerScreen.open();
         }
-        return null;
+        String name = arguments.optionalString("name");
+        SettingCatalogue.Entry entry = SettingCatalogue.find(name);
+        if (entry == null) {
+            call.output().error(CommandFeedback.unknownSetting(name));
+            return CommandResult.FAILURE;
+        }
+        if (!arguments.has("value")) {
+            call.output().feedback(Component.literal(entry.summary()));
+            return CommandResult.SUCCESS;
+        }
+        apply(call, entry, arguments.optionalString("value"));
+        return CommandResult.SUCCESS;
     }
 
-    private static Object parse(Setting<?> setting, String value) {
+    public static CommandResult apply(CommandCall call, SettingCatalogue.Entry entry, String value) {
+        String trimmed = value == null ? "" : value.trim();
+        Object parsed = parse(entry, trimmed);
+        entry.setting().accept(parsed);
+        applySideEffects();
+        save();
+        call.output().feedback(Component.literal(entry.summary()));
+        return CommandResult.SUCCESS;
+    }
+
+    public static void applySideEffects() {
+        BlockAvoidList.refresh(Settings.holder().mining());
+    }
+
+    public static void save() {
+        SettingsFile.save(HelmStorage.root().resolve(SettingsFile.fileName()));
+    }
+
+    private static Object parse(SettingCatalogue.Entry entry, String value) {
         try {
-            return switch (setting.kind()) {
-                case BOOLEAN -> Boolean.valueOf(value);
+            return switch (entry.kind()) {
+                case BOOLEAN -> parseBoolean(entry, value);
                 case WHOLE -> Integer.valueOf(value);
                 case DECIMAL -> Double.valueOf(value);
                 case TEXT -> value;
             };
         } catch (NumberFormatException invalid) {
-            throw new CommandException(CommandFeedback.invalidArgument(setting.key(), value));
+            throw new CommandException(CommandFeedback.invalidArgument(entry.key(), value));
         }
+    }
+
+    private static Boolean parseBoolean(SettingCatalogue.Entry entry, String value) {
+        return switch (value.toLowerCase(java.util.Locale.ROOT)) {
+            case "true", "yes", "on", "1" -> Boolean.TRUE;
+            case "false", "no", "off", "0" -> Boolean.FALSE;
+            default -> throw new CommandException(
+                    CommandFeedback.invalidArgument(entry.key(), value));
+        };
     }
 }

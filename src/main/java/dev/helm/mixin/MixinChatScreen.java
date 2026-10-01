@@ -161,24 +161,28 @@ public abstract class MixinChatScreen {
 
     private void helmRefresh() {
         String value = inputValue();
-        Mode mode = PopupGate.mode(value, input == null ? 0 : input.getCursorPosition());
+        int cursor = input == null ? 0 : input.getCursorPosition();
+        Mode mode = PopupGate.mode(value, cursor);
         if (mode == Mode.NONE) {
             helmClose();
             return;
         }
-        List<PopupRow> offered = mode == Mode.INPUTS
-                ? PopupRows.inputs()
-                : PopupRows.build();
-        String partial = PopupGate.partial(value, input.getCursorPosition() - 1);
-        List<PopupRow> filtered = PopupRows.filter(offered, partial);
-        if (filtered.isEmpty()) {
+        List<PopupRow> offered = switch (mode) {
+            case INPUTS -> PopupRows.inputs();
+            case SETTINGS, VALUES -> PopupGate.rows(value, cursor);
+            default -> PopupRows.build();
+        };
+        if (mode == Mode.NAMES) {
+            offered = PopupRows.filter(offered, PopupGate.partial(value, cursor));
+        }
+        if (offered.isEmpty()) {
             helmClose();
             return;
         }
         helmPopup = true;
         PopupState state = PopupState.instance();
-        if (!state.rows().equals(filtered)) {
-            state.open(filtered);
+        if (!state.rows().equals(offered)) {
+            state.open(offered);
         }
     }
 

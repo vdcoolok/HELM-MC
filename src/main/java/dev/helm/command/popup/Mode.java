@@ -4,5 +4,7 @@ public enum Mode {
 
     NONE,
     NAMES,
-    INPUTS
+    INPUTS,
+    SETTINGS,
+    VALUES
 }

@@ -69,21 +69,11 @@ public final class SettingsFile {
         }
     }
 
-    public static String describe() {
-        List<String> lines = new ArrayList<>();
-        for (SettingSection section : Settings.holder().sections()) {
-            for (Setting<?> setting : section.declared()) {
-                lines.add(setting.describe());
-            }
-        }
-        return String.join(System.lineSeparator(), lines);
-    }
-
     public static String fileName() {
         return "settings" + SUFFIX;
     }
 
-    static String normalise(String key) {
+    public static String normalise(String key) {
         return key.toLowerCase(Locale.ROOT);
     }
 }

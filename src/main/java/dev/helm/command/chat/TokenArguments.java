@@ -22,16 +22,16 @@ public final class TokenArguments implements ArgumentAccess {
     public static TokenArguments resolve(List<ArgumentDefinition> definitions, List<String> tokens) {
         Map<String, Object> values = new HashMap<>();
         int cursor = 0;
-        int lastRequired = definitions.size();
+        int firstOptional = definitions.size();
 
         for (int index = 0; index < definitions.size(); index++) {
             if (!definitions.get(index).required()) {
-                lastRequired = index;
+                firstOptional = index;
                 break;
             }
         }
 
-        for (int index = 0; index < lastRequired; index++) {
+        for (int index = 0; index < firstOptional; index++) {
             ArgumentDefinition definition = definitions.get(index);
             if (cursor >= tokens.size()) {
                 throw new CommandException(CommandFeedback.missingArgument(definition.name()));
@@ -40,19 +40,32 @@ public final class TokenArguments implements ArgumentAccess {
             cursor++;
         }
 
-        if (lastRequired < definitions.size()) {
-            ArgumentDefinition optional = definitions.get(lastRequired);
-            StringBuilder remaining = new StringBuilder();
-            while (cursor < tokens.size()) {
-                if (remaining.length() > 0) {
-                    remaining.append(' ');
+        for (int index = firstOptional; index < definitions.size(); index++) {
+            ArgumentDefinition definition = definitions.get(index);
+            boolean last = index == definitions.size() - 1;
+            if (last) {
+                StringBuilder remaining = new StringBuilder();
+                while (cursor < tokens.size()) {
+                    if (remaining.length() > 0) {
+                        remaining.append(' ');
+                    }
+                    remaining.append(tokens.get(cursor));
+                    cursor++;
                 }
-                remaining.append(tokens.get(cursor));
-                cursor++;
+                if (remaining.length() > 0 && definition.type() == ArgumentType.STRING) {
+                    values.put(definition.name(), remaining.toString());
+                }
+                continue;
             }
-            if (remaining.length() > 0 && optional.type() == ArgumentType.STRING) {
-                values.put(optional.name(), remaining.toString());
+            if (cursor >= tokens.size()) {
+                continue;
             }
+            if (definition.type() == ArgumentType.STRING) {
+                values.put(definition.name(), tokens.get(cursor));
+            } else {
+                values.put(definition.name(), coerce(definition, tokens.get(cursor)));
+            }
+            cursor++;
         }
 
         return new TokenArguments(values);
