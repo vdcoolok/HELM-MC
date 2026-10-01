@@ -45,7 +45,7 @@ public final class RaiseStepExecutor implements StepExecutor {
                 : new BlockPos(step.placeAt()[0], step.placeAt()[1], step.placeAt()[2]);
         Aim aim = StepPreparation.centeredOn(context, toPlace);
         if (!climbing) {
-            tick.intent().aimedAt(aim.withPitch(context.player().getXRot()), true);
+            tick.intent().aimedAt(aim.withYaw(context.player().getYRot()), true);
         }
 
         boolean groundThere = context.walk().onTop(step.fromX(), step.fromY(), step.fromZ());
