@@ -17,13 +17,31 @@ public final class Silhouette {
         double x = owner.getX();
         double y = owner.getY();
         double z = owner.getZ();
-        List<double[]> placed = new ArrayList<>(points.size());
+        List<double[]> at = new ArrayList<>(points.size());
         for (double[] point : points) {
-            double px = x + point[0] * cos + point[2] * sin;
-            double py = y + point[1];
-            double pz = z - point[0] * sin + point[2] * cos;
-            placed.add(new double[]{view.applyX(px), view.applyY(py), view.applyZ(pz)});
+            at.add(new double[]{
+                    x + point[0] * cos + point[2] * sin,
+                    y + point[1],
+                    z - point[0] * sin + point[2] * cos});
         }
-        return placed;
+        return toView(at, view);
+    }
+
+    public static List<double[]> at(int x, int y, int z, List<double[]> points,
+                                    ViewOffset view) {
+        List<double[]> world = new ArrayList<>(points.size());
+        for (double[] point : points) {
+            world.add(new double[]{point[0] + x, point[1] + y, point[2] + z});
+        }
+        return toView(world, view);
+    }
+
+    private static List<double[]> toView(List<double[]> points, ViewOffset view) {
+        List<double[]> moved = new ArrayList<>(points.size());
+        for (double[] point : points) {
+            moved.add(new double[]{view.applyX(point[0]), view.applyY(point[1]),
+                    view.applyZ(point[2])});
+        }
+        return moved;
     }
 }

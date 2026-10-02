@@ -1160,13 +1160,11 @@ off on its own with `farm.renderTargets` and `farm.renderDrops`. They use the
 same line width and depth handling as the path, so `path.blocksIgnoreDepth`
 applies to them too.
 
-The outline follows the shape of the block rather than filling the whole cube, so
-a crop is drawn around the plant itself, which is a thin column that gets taller
-as it grows, and a slab or stair is drawn around its own steps. A dropped item is
-drawn around its model: the outline is taken from the corners of the geometry the
-item is actually rendered from, joined along the edges between them, so a flat
-item is drawn as a flat shape and a block item is drawn as a block rather than
-both being drawn as the item's hitbox.
+The outline is drawn from the geometry that is actually rendered, not from the
+shape the block is selected or collided with. A crop is drawn as the crossed
+planes it is drawn as in the world rather than as a box around the block, and a
+dropped item is drawn from the corners of its own model, so a flat item comes out
+flat and a block item comes out as a block.
 
 ### When it gives up
 

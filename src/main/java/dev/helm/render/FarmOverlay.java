@@ -11,7 +11,6 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.phys.AABB;
 
 import dev.helm.farm.FarmTask;
 import dev.helm.setting.Settings;
@@ -20,7 +19,6 @@ public final class FarmOverlay {
 
     private static final StagedVertexBuffer BUFFER = new StagedVertexBuffer(() -> "HELM Farm", 128);
     private static final float ALPHA = 0.55F;
-    private static final double BOX_EXPAND = 0.006D;
 
     private FarmOverlay() {
     }
@@ -57,10 +55,11 @@ public final class FarmOverlay {
             return;
         }
         LineBatch batch = batch(pose, width, type, LineColour.GOAL);
+        ClientLevel level = Minecraft.getInstance().level;
         for (BlockPos crop : crops) {
-            for (AABB part : BlockOutlines.boxesAt(new int[]{crop.getX(), crop.getY(), crop.getZ()})) {
-                batch.box(shifted(part, view).inflate(BOX_EXPAND));
-            }
+            List<double[]> corners = BlockSilhouette.quads(level.getBlockState(crop));
+            BlockSilhouette.outline(batch,
+                    Silhouette.at(crop.getX(), crop.getY(), crop.getZ(), corners, view));
         }
         batch.flush();
     }
@@ -103,9 +102,4 @@ public final class FarmOverlay {
                 .width(width);
     }
 
-    private static AABB shifted(AABB bounds, ViewOffset view) {
-        return new AABB(view.applyX(bounds.minX), view.applyY(bounds.minY),
-                view.applyZ(bounds.minZ), view.applyX(bounds.maxX),
-                view.applyY(bounds.maxY), view.applyZ(bounds.maxZ));
-    }
 }
