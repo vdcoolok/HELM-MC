@@ -505,9 +505,10 @@ search starts again from where the player stands.
 
 A step is walked by moving towards a block, not by standing on an exact square.
 If the player ends up a block above or below the level the step was heading for,
-the step does not give up the route. A step below the player's level is left to
-be walked back down; one above is climbed towards, which presses jump when the
-player is under it.
+the step does not give up the route. The player keeps walking towards the block
+the step was heading for either way, and presses jump when they are underneath
+it. Walking towards it as well as jumping is what lets a player who has dropped
+a block climb back onto the ledge instead of rising and falling on the same spot.
 
 This matters more than it sounds. A route that ends a step early and is searched
 for again from wherever the player actually stands will usually begin by getting

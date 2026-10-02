@@ -23,7 +23,7 @@ public final class LeanStepExecutor implements StepExecutor {
             return MoveState.SUCCESS;
         }
         if (!onRoute(step, feet)) {
-            return wrongHeight(tick, step, feet);
+            return wrongHeight(context, tick, step, feet);
         }
         if (step.toY() > step.fromY()
                 && context.player().getY() < step.fromY() + 0.1D
@@ -53,7 +53,8 @@ public final class LeanStepExecutor implements StepExecutor {
         return step.footprint().contains(feet[0], feet[1], feet[2]);
     }
 
-    private MoveState wrongHeight(MoveTick tick, PlanStep step, int[] feet) {
+    private MoveState wrongHeight(StepContext context, MoveTick tick, PlanStep step, int[] feet) {
+        StepPreparation.walkTowards(context, tick, step.toX(), step.toY(), step.toZ());
         if (feet[1] < step.toY()) {
             tick.press(Control.JUMP);
         }
