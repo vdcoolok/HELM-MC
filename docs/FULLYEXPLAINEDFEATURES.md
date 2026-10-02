@@ -822,8 +822,8 @@ Ends everything at once. Available as `$stop`, with the aliases `cancel`,
 `abort` and `halt`.
 
 It stops all four things HELM can be doing: a walk, a search, a running macro, an
-anchored position and a locked angle. The reply names what it actually caught, so
-`Walking stopped. Look released.` means both of those were live, and
+anchored position, a locked angle and a farm. The reply names what it actually
+caught, so `Walking stopped. Look released.` means both of those were live, and
 `Nothing to stop.` means none of them were.
 
 It also ends the goal itself, so HELM does not search again for a destination
@@ -872,6 +872,200 @@ A locked angle overrides the aim a walk would otherwise set, so a lock and a
 walk at the same time fight each other. `$stop` resolves it.
 
 Both are released by `$stop` and by leaving the world.
+
+## farm
+
+Harvests nearby crops and puts them back in the ground. Available as `$farm`,
+with the aliases `farming` and `harvest`.
+
+```
+$farm
+$farm 32
+```
+
+With no argument it works everywhere it can see. With a range it works only
+within that many blocks of where the player was standing when it was typed. A
+range of `0` means everywhere, the same as leaving it off.
+
+Farming runs until `$stop`, until there is nothing left inside the range, or
+until nothing it wants can be reached. It is not a route with an end point, so it
+does not announce arrival; it either keeps finding work or gives up.
+
+Farming is the only thing driving HELM while it runs. `$goto`, `$autogoto`,
+`$autolookat` and starting a macro each end the farm first, because they need
+control of where the player goes and which way they face, and farming has both
+for as long as it lasts.
+
+### Looking around
+
+The world is scanned outwards from the player in widening rings of chunks, and
+inside each chunk the sections are visited nearest the player's own level
+first. The scan looks for every crop that can be harvested, plus farmland and
+jungle logs when `farm.replantAfterHarvest` is on, plus soul sand when
+`farm.replantNetherWart` is also on.
+
+The scan stops in one of three ways:
+
+| Why it stopped | What that means |
+| --- | --- |
+| A whole ring was unloaded | Everything it can see is done |
+| The target cap was reached and it left the player's level band | The cap is what stopped it |
+| The target cap was reached and it is still finding crops at the player's level | It keeps going until it stops finding them near you |
+
+That last rule is what stops a huge flat farm at the cap while still letting a
+player standing in a tall column of crops sweep all of it.
+
+The scan is the expensive part, and it is the only part that is spaced out.
+`farm.rescanEveryTicks` controls how often, and `farm.maxTargets` controls the
+cap. Everything else is re-checked against the live world every tick, so a crop
+that is harvested leaves the work list immediately rather than waiting for the
+next scan.
+
+Only loaded chunks are read. Chunks the player has never been near are not
+scanned, fetched or remembered, so `$farm` never causes the client to load the
+world around you.
+
+### Sorting what it found
+
+Every position the scan returned is sorted into one of five lists, in this
+order. The first rule that matches wins, and a position is only ever in one
+list.
+
+| Order | The position is | Because |
+| --- | --- | --- |
+| 1 | Empty farmland | It is farmland and the block above it is air |
+| 2 | Bare soul sand | It is soul sand and the block above it is air |
+| 3 | A bare jungle log | It is a jungle log with air beside it |
+| 4 | Ready to harvest | The crop is grown |
+| 5 | Worth bone meal | It can grow from bone meal and would actually grow |
+
+Positions outside the range are dropped first, before any of this.
+
+The two soil rules mean HELM knows the difference between farmland that wants
+something planted in it and farmland a crop is already standing in. The same
+applies to soul sand and nether wart.
+
+A jungle log needs an open side to plant cocoa onto. Without one there is
+nowhere to put the beans, so it is not a target at all.
+
+Bone meal is the last resort because it works on anything growable, which
+includes a lot of blocks that were never meant to be farmed. The check asks
+whether the block would actually grow from bone meal here, not merely whether it
+can be fed.
+
+### What counts as ripe
+
+| Crop | Ready when |
+| --- | --- |
+| Wheat, carrots, potatoes, beetroot | Fully grown |
+| Pumpkin, melon | Always, they have no age |
+| Nether wart | Fully grown |
+| Cocoa | Two stages grown |
+| Sugar cane, bamboo, cactus | Only the top block of a stalk, when replanting is on |
+
+Sugar cane, bamboo and cactus are the interesting case. When
+`farm.replantAfterHarvest` is on, HELM harvests them the way a player would: it
+takes the top block and leaves the stalk standing to grow back. So a block of
+cane is only a target if the block below it is cane. With replanting off, every
+block of the stalk is a target and the whole thing is taken.
+
+### Getting to the work
+
+Anything not within reach is a goal to walk to, and the goals are built in the
+same order the work is preferred:
+
+| Order | Goal |
+| --- | --- |
+| 1 | Next to a ripe crop, but never on top of it |
+| 2 | On the block above empty farmland, where the seed goes |
+| 3 | On the block above bare soul sand |
+| 4 | Beside a bare jungle log, on the open side |
+| 5 | On a block that would grow from bone meal |
+| 6 | On a dropped crop worth picking up |
+
+A ripe crop is never approached from above. Standing on top of the block you are
+about to break means standing on nothing, so the goal accepts any of the other
+five sides, including below, and refuses only the one above.
+
+Each goal type keeps the same shape as the equivalent walking goal, so farming
+routes cost and search exactly the way `$goto` does. A farm with a hundred
+targets is one goal that is satisfied by any of the hundred, priced as the
+cheapest of them, which is what makes the search walk to the nearest job rather
+than committing to one from across the field.
+
+Only the categories the player can actually do are added. Empty farmland is only
+a goal while a seed is in the hotbar, soul sand only with nether wart, bare logs
+only with cocoa beans, and bone meal only with bone meal. Without the item
+there is nothing to do at the position, so HELM does not walk over to it and
+stand there.
+
+Dropped crops are picked up simply by walking over them, which is why they are
+goals at all. Only crops and their seeds count. A dropped dirt block or a sword
+is not something farming is for.
+
+### Working on one thing
+
+Once a target is close enough to touch, farming stops walking and works on it.
+Walking is resumed after, from wherever the player ended up.
+
+It always prefers to work on the first thing it can reach in its own order, so a
+ripe crop within reach is taken before a bare field ten blocks away is planted.
+The first reachable candidate in that order is the one that is worked on.
+
+| Work | What it does |
+| --- | --- |
+| Harvest | Aims at the crop, switches to the right tool, then mines |
+| Plant on soil | Aims at the top face, so the seed lands on the farmland not beside it |
+| Plant on a log | Aims at the middle of the open side, so the beans stick to the face |
+| Bone meal | Aims at the plant and uses it |
+
+Aiming is not assumed to have worked. Before using anything, HELM checks that the
+line from the player's eyes would actually strike the face it needs: upward for
+soil, and the chosen open side for a log. If it would miss, that candidate is
+skipped and the next one is tried.
+
+Mining and using go through the same aiming and control path a walk uses, so
+free look, smoothing and the reach setting all apply to farming exactly as they
+do to mining.
+
+Items are taken from the hotbar, or from the off hand. The off hand only gets
+used when the wanted item is nowhere in the hotbar, and then the main hand is
+moved onto something harmless, because the main hand would otherwise place or
+eat whatever the off hand is holding instead. Items further back in the inventory
+are not used at all, so putting seeds straight into the hotbar is what makes
+planting work.
+
+### When it gives up
+
+| Reason | Reply |
+| --- | --- |
+| Nothing was found and nothing was dropped | `Farm failed.` |
+| Nothing it wants could be reached | `Farm failed.` |
+
+Both end the farm and clear the goal, so HELM does not keep searching for work
+that is not there.
+
+Leaving the world ends a farm the same way `$stop` does, without a message.
+
+### Settings
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `farm.replantAfterHarvest` | `true` | Plant again whatever is harvested |
+| `farm.replantNetherWart` | `false` | Plant nether wart again |
+| `farm.rescanEveryTicks` | `5` | Ticks between scans |
+| `farm.maxTargets` | `256` | Cap on blocks found by one scan |
+
+See [SETTINGS.md](SETTINGS.md) for what each one changes.
+
+### Known limitations
+
+- Items must already be in the hotbar or off hand. Farming will not rearrange the
+  inventory to fetch them.
+- Only farmland, soul sand and jungle logs are replanted. A harvested crop on any
+  other block is left bare.
+- Drops that leave the loaded area stop being seen, because only loaded chunks
+  are read.
 
 ## set
 

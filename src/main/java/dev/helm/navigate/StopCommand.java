@@ -3,6 +3,7 @@ package dev.helm.navigate;
 import dev.helm.aim.LookController;
 import dev.helm.command.Command;
 import dev.helm.command.CommandResult;
+import dev.helm.farm.FarmTask;
 import dev.helm.macro.runtime.MacroController;
 import dev.helm.setting.ClientNotice;
 
@@ -19,19 +20,24 @@ public final class StopCommand {
             boolean anchored = agent.pilot().anchored();
             boolean holding = LookController.instance().holding();
             boolean macro = MacroController.instance().active().isPresent();
+            boolean farm = FarmTask.instance().running();
 
             agent.pilot().halt();
-            agent.pilot().forgetDestination();
+            agent.pilot().forgetObjective();
             agent.navigator().cancelSearch();
             LookController.instance().release();
             if (macro) {
                 MacroController.instance().halt();
+            }
+            if (farm) {
+                FarmTask.instance().stop();
             }
 
             StringBuilder what = new StringBuilder();
             append(what, searching || walking || anchored, "Walking stopped");
             append(what, holding, "Look released");
             append(what, macro, "Macro stopped");
+            append(what, farm, "Farming stopped");
             if (what.isEmpty()) {
                 ClientNotice.warn("Nothing to stop.");
                 return CommandResult.FAILURE;
@@ -39,7 +45,7 @@ public final class StopCommand {
             ClientNotice.warn(what + ".");
             return CommandResult.SUCCESS;
         }).also("cancel", "abort", "halt")
-                .describedAs("Stops walking, macros and any held position or facing.");
+                .describedAs("Stops walking, farming, macros and any held position or facing.");
     }
 
     private static void append(StringBuilder what, boolean condition, String text) {

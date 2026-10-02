@@ -4,6 +4,7 @@ import java.util.Optional;
 
 import dev.helm.command.CommandFeedback;
 import dev.helm.command.CommandOutput;
+import dev.helm.farm.FarmTask;
 import dev.helm.macro.MacroDocument;
 import dev.helm.navigate.NavigatorAgent;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -32,6 +33,7 @@ public final class MacroController {
     }
 
     public void start(MacroDocument document, CommandOutput output) {
+        FarmTask.instance().stop();
         runner = new MacroRunner(document);
         this.output = output;
         output.feedback(CommandFeedback.success("Started macro: " + document.name()));
@@ -83,7 +85,7 @@ public final class MacroController {
     private void stopWalking() {
         NavigatorAgent agent = NavigatorAgent.instance();
         agent.pilot().halt();
-        agent.pilot().forgetDestination();
+        agent.pilot().forgetObjective();
         agent.navigator().cancelSearch();
     }
 

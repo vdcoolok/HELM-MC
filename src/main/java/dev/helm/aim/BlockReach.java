@@ -33,15 +33,34 @@ public final class BlockReach {
         if (held != null) {
             return held;
         }
-        Aim atCentre = probe(viewer, pos, shapeCentre(viewer, pos), settings, sneaking);
+        Aim atCentre = towardsPoint(viewer, pos, shapeCentre(viewer, pos), settings, sneaking);
         if (atCentre != null) {
             return atCentre;
         }
         for (double[] corner : FACE_CORNERS) {
-            Aim atCorner = probe(viewer, pos, cornerOf(pos, corner), settings, sneaking);
+            Aim atCorner = towardsPoint(viewer, pos, cornerOf(pos, corner), settings, sneaking);
             if (atCorner != null) {
                 return atCorner;
             }
+        }
+        return null;
+    }
+
+    public static Aim towardsPoint(Entity viewer, BlockPos pos, Vec3 point,
+                                    LookSettings settings, boolean sneaking) {
+        Vec3 eyes = eyePosition(viewer, sneaking);
+        Aim wanted = Aiming.lookFrom(eyes.x, eyes.y, eyes.z, point.x, point.y, point.z);
+        HitResult trace = trace(viewer, wanted, settings, sneaking);
+        if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
+            return null;
+        }
+        BlockPos hit = ((BlockHitResult) trace).getBlockPos();
+        if (hit.equals(pos)) {
+            return wanted;
+        }
+        if (hit.equals(pos.below())
+                && viewer.level().getBlockState(pos).getBlock() instanceof BaseFireBlock) {
+            return wanted;
         }
         return null;
     }
@@ -67,25 +86,6 @@ public final class BlockReach {
     private static boolean hits(HitResult trace, BlockPos pos) {
         return trace != null && trace.getType() == HitResult.Type.BLOCK
                 && ((BlockHitResult) trace).getBlockPos().equals(pos);
-    }
-
-    private static Aim probe(Entity viewer, BlockPos pos, Vec3 point,
-                             LookSettings settings, boolean sneaking) {
-        Vec3 eyes = eyePosition(viewer, sneaking);
-        Aim wanted = Aiming.lookFrom(eyes.x, eyes.y, eyes.z, point.x, point.y, point.z);
-        HitResult trace = trace(viewer, wanted, settings, sneaking);
-        if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
-            return null;
-        }
-        BlockPos hit = ((BlockHitResult) trace).getBlockPos();
-        if (hit.equals(pos)) {
-            return wanted;
-        }
-        if (hit.equals(pos.below())
-                && viewer.level().getBlockState(pos).getBlock() instanceof BaseFireBlock) {
-            return wanted;
-        }
-        return null;
     }
 
     private static Vec3 cornerOf(BlockPos pos, double[] corner) {

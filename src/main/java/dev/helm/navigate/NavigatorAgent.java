@@ -53,7 +53,7 @@ public final class NavigatorAgent {
 
     public void onDisconnect() {
         pilot.halt();
-        pilot.forgetDestination();
+        pilot.forgetObjective();
         LookController.instance().release();
         navigator.shutdown();
     }

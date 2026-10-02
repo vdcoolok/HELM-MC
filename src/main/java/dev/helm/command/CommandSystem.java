@@ -9,6 +9,8 @@ import dev.helm.command.builtin.HelpCommand;
 import dev.helm.command.builtin.MacroCommand;
 import dev.helm.command.builtin.VersionCommand;
 import dev.helm.command.chat.DollarPrefix;
+import dev.helm.farm.FarmCommand;
+import dev.helm.farm.FarmTask;
 import dev.helm.navigate.AutoCommands;
 import dev.helm.navigate.GoToCommand;
 import dev.helm.navigate.StopCommand;
@@ -31,10 +33,12 @@ public final class CommandSystem {
         commands.add(ExitEditModeCommand.build());
         commands.add(GoToCommand.build());
         commands.addAll(Arrays.asList(AutoCommands.all()));
+        commands.add(FarmCommand.build());
         commands.add(StopCommand.build());
         commands.add(SettingsCommand.build());
         commands.add(SettingsCommand.changeCommand());
         CommandTree.instance().install(commands.toArray(new Command[0]));
+        FarmTask.instance().install();
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HelmStorage.prepare()
                 .ifPresent(problem -> new SystemMessageOutput(client)
                         .error(CommandFeedback.error(problem))));

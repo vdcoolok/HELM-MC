@@ -5,7 +5,7 @@ import dev.helm.aim.LookController;
 import dev.helm.input.InputBinding;
 import dev.helm.input.InputKind;
 import dev.helm.macro.MacroStatement;
-import dev.helm.navigate.Destination;
+import dev.helm.navigate.Objective;
 import dev.helm.navigate.Journey;
 import dev.helm.navigate.NavigatorAgent;
 import dev.helm.pathfinding.goal.BlockGoal;
@@ -27,7 +27,7 @@ final class MacroActions {
         int x = (int) Math.floor(move.x());
         int y = (int) Math.floor(move.y());
         int z = (int) Math.floor(move.z());
-        NavigatorAgent.instance().pilot().forgetDestination();
+        NavigatorAgent.instance().pilot().forgetObjective();
         var feet = client.player.blockPosition();
         if (feet.getX() == x && feet.getY() == y && feet.getZ() == z) {
             return null;
@@ -44,12 +44,12 @@ final class MacroActions {
         int y = (int) Math.floor(anchor.y());
         int z = (int) Math.floor(anchor.z());
         var agent = NavigatorAgent.instance();
-        agent.pilot().anchorAt(new Destination(x, y, z));
+        agent.pilot().anchorAt(Objective.at(x, y, z));
         var feet = client.player.blockPosition();
         if (feet.getX() == x && feet.getY() == y && feet.getZ() == z) {
             return null;
         }
-        return MacroJourney.holding(agent, new Destination(x, y, z));
+        return MacroJourney.holding(agent, Objective.at(x, y, z));
     }
 
     private static final class MacroWalker implements MacroRunner.Ongoing {
@@ -85,7 +85,7 @@ final class MacroActions {
                 return true;
             }
             if (!result.usable()) {
-                throw MacroFailure.unreachable(x, y, z);
+                throw MacroFailure.unreachable(x + " " + y + " " + z);
             }
             agent.pilot().travel(result.route());
             return !agent.pilot().isWalking();

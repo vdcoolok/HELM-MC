@@ -3,16 +3,16 @@ package dev.helm.macro.runtime;
 import net.minecraft.client.Minecraft;
 
 import dev.helm.macro.MacroStatement;
-import dev.helm.navigate.Destination;
+import dev.helm.navigate.Objective;
 import dev.helm.navigate.NavigatorAgent;
 
 final class MacroJourney implements MacroRunner.Ongoing {
 
     private final NavigatorAgent agent;
-    private final Destination target;
+    private final Objective target;
     private boolean started;
 
-    MacroJourney(NavigatorAgent agent, Destination target) {
+    MacroJourney(NavigatorAgent agent, Objective target) {
         this.agent = agent;
         this.target = target;
     }
@@ -21,10 +21,10 @@ final class MacroJourney implements MacroRunner.Ongoing {
         int x = (int) Math.floor(move.x());
         int y = (int) Math.floor(move.y());
         int z = (int) Math.floor(move.z());
-        return new MacroJourney(agent, new Destination(x, y, z));
+        return new MacroJourney(agent, Objective.at(x, y, z));
     }
 
-    static MacroJourney holding(NavigatorAgent agent, Destination target) {
+    static MacroJourney holding(NavigatorAgent agent, Objective target) {
         return new MacroJourney(agent, target);
     }
 
@@ -34,7 +34,8 @@ final class MacroJourney implements MacroRunner.Ongoing {
         if (player == null) {
             throw MacroFailure.noWorld();
         }
-        if (target.reachedBy(player.blockPosition())) {
+        var feet = player.blockPosition();
+        if (target.satisfiedBy(feet.getX(), feet.getY(), feet.getZ())) {
             return true;
         }
         var pilot = agent.pilot();
@@ -42,7 +43,7 @@ final class MacroJourney implements MacroRunner.Ongoing {
             return false;
         }
         if (started) {
-            throw MacroFailure.unreachable(target.x(), target.y(), target.z());
+            throw MacroFailure.unreachable(target.label());
         }
         start();
         return false;

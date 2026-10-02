@@ -14,6 +14,7 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `$autogotohere` | `agotohere` | none |
 | `$autolookat <pitch>/<yaw>` | `alookat` | one angle |
 | `$autolookathere` | `alookathere` | none |
+| `$farm [<range>]` | `farming`, `harvest` | optional whole number of blocks |
 | `$stop` | `cancel`, `abort`, `halt` | none |
 | `$set` | `setting` | none, opens the picker |
 | `$set <name>` | `setting` | one setting name |
@@ -46,10 +47,14 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `No path to x y z.` | Nothing walkable connects you to that block |
 | `Holding x y z.` | An anchored walk was started, or you were already on it |
 | `Holding p/y.` | Your facing was locked |
+| `Farming everywhere.` | `$farm` started with no range |
+| `Farming N blocks.` | `$farm N` started and will work within `N` blocks |
+| `Farm failed.` | There was nothing to do, or nothing could be reached |
 | `Walking stopped. Look released.` | `$stop` caught a walk and a held facing |
 | `Walking stopped. Macro stopped.` | `$stop` caught a walk and a running macro |
 | `Look released.` | `$stop` caught a held facing |
 | `Macro stopped.` | `$stop` caught a running macro |
+| `Farming stopped.` | `$stop` caught a running farm |
 | `Stopped.` | `$stop` caught a walk |
 | `Stopped searching.` | `$stop` caught an unfinished search |
 | `Nothing to stop.` | Nothing was walking, held or running |
@@ -88,6 +93,57 @@ $settings reset
 ```
 
 A flag value is one of `true`, `false`, `yes`, `no`, `on`, `off`, `1`, `0`.
+
+```
+$farm
+$farm 32
+$stop
+```
+
+## Farming
+
+`$farm` looks around for ripe crops and works through what it finds, one thing at
+a time. It keeps going until `$stop`, until there is nothing left within range,
+or until nothing it wants can be reached.
+
+```
+$farm
+```
+
+Without a range it works everywhere it can see. A range limits it to that many
+blocks from where you stood when you typed it:
+
+```
+$farm 32
+```
+
+What it does, in the order it prefers:
+
+| Order | What |
+| --- | --- |
+| 1 | Break ripe crops, switching to the right tool first |
+| 2 | Plant seeds on empty farmland, and nether wart on bare soul sand |
+| 3 | Plant cocoa beans on bare jungle logs |
+| 4 | Use bone meal on anything that would grow from it |
+| 5 | Walk over and pick up dropped crops |
+
+Ripe means fully grown wheat, carrots, potatoes and beetroot, any pumpkin or
+melon, nether wart at full age, and cocoa at full age. Sugar cane, bamboo and
+cactus are only harvested from the top of a stalk while
+`farm.replantAfterHarvest` is on, so the rest is left to grow.
+
+Seeds, nether wart, cocoa beans and bone meal are taken from the hotbar, or from
+the off hand. Seeds are only planted while one is actually held, so HELM does
+not walk across a field to stand on bare dirt it cannot plant.
+
+`$farm` drives HELM for as long as it lasts. `$goto`, `$autogoto`, `$autolookat`
+and starting a macro each end the farm first, because they need control of where
+you walk and which way you face.
+
+```
+$set farm.replantAfterHarvest false
+$set farm.replantAfterHarvest true
+```
 
 ```
 $macro create farm

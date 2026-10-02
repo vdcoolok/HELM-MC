@@ -14,8 +14,8 @@ public final class MacroFailure extends RuntimeException {
         return new MacroFailure("Not in a world yet");
     }
 
-    public static MacroFailure unreachable(int x, int y, int z) {
-        return new MacroFailure("No path to " + x + " " + y + " " + z);
+    public static MacroFailure unreachable(String label) {
+        return new MacroFailure("No path to " + label);
     }
 
     public static MacroFailure unusable(InputBinding input) {

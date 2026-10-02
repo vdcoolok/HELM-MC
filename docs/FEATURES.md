@@ -9,7 +9,8 @@
 - `goto` command walking to a block position
 - `autogoto` and `autogotohere` commands anchoring a position and walking back if moved off it
 - `autolookat` and `autolookathere` commands locking the camera to an angle until stopped
-- `stop` command cancelling a walk, a search, a macro, an anchor and a locked angle at once
+- `farm` command harvesting ripe crops, replanting the empty ground and picking up the drops
+- `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle and a farm at once
 - Walking to a goal as a journey, searching again from wherever a route ran out
 - Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps
 - Automatic tool switching for every block mined

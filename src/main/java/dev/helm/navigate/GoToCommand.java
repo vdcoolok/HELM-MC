@@ -4,6 +4,7 @@ import dev.helm.command.Command;
 import dev.helm.command.CommandResult;
 import dev.helm.diag.RouteTrace;
 import dev.helm.diag.Trace;
+import dev.helm.farm.FarmTask;
 import dev.helm.pathfinding.goal.BlockGoal;
 import dev.helm.pathfinding.search.SearchJob;
 import dev.helm.setting.ClientNotice;
@@ -44,6 +45,7 @@ public final class GoToCommand {
 
         var position = player.blockPosition();
         Trace.instance().barrier("goto");
+        FarmTask.instance().stop();
         Trace.instance().event("goto", "requested " + x + " " + y + " " + z
                 + " from " + position.getX() + " " + position.getY() + " " + position.getZ()
                 + " facing " + String.format("%.1f/%.1f", player.getYRot(), player.getXRot()));
@@ -57,19 +59,19 @@ public final class GoToCommand {
         if (position.getX() == x && position.getY() == y && position.getZ() == z) {
             Trace.instance().event("goto", "already standing on the goal");
             agent.pilot().halt();
-            agent.pilot().forgetDestination();
+            agent.pilot().forgetObjective();
             ClientNotice.warn("Already at " + x + " " + y + " " + z + ".");
             return CommandResult.SUCCESS;
         }
 
-        agent.pilot().forgetDestination();
+        agent.pilot().forgetObjective();
         SearchJob job = agent.navigator().searchFor(new BlockGoal(x, y, z),
                 position.getX(), position.getY(), position.getZ());
         if (job == null) {
             ClientNotice.warn("Not in a world yet.");
             return CommandResult.FAILURE;
         }
-        agent.pilot().await(job, new Destination(x, y, z));
+        agent.pilot().await(job, Objective.at(x, y, z));
         ClientNotice.warn("Searching for a way to " + x + " " + y + " " + z + ".");
         return CommandResult.SUCCESS;
     }

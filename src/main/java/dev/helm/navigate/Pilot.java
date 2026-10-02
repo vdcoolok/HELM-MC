@@ -1,6 +1,7 @@
 package dev.helm.navigate;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 
 import dev.helm.aim.LookController;
 import dev.helm.control.Control;
@@ -32,10 +33,11 @@ public final class Pilot {
     private MoveTick tick = new MoveTick(MoveState.PREPPING);
     private StepContext context;
     private SearchJob pending;
-    private Destination destination;
+    private Objective objective;
     private boolean pendingAnnouncement;
     private boolean active;
-    private Destination anchor;
+    private boolean outOfReach;
+    private Objective anchor;
     private int anchorCooldown;
 
     public Pilot(RouteWalker walker) {
@@ -74,14 +76,19 @@ public final class Pilot {
         walker.begin(next.length());
     }
 
-    public void await(SearchJob job, Destination where) {
+    public void await(SearchJob job, Objective what) {
         this.pending = job;
-        this.destination = where;
+        this.objective = what;
+        this.outOfReach = false;
         this.pendingAnnouncement = true;
     }
 
     public boolean searching() {
         return pending != null;
+    }
+
+    public boolean unreachable() {
+        return outOfReach;
     }
 
     public void halt() {
@@ -94,14 +101,14 @@ public final class Pilot {
         look.clear();
     }
 
-    public void forgetDestination() {
-        this.destination = null;
+    public void forgetObjective() {
+        this.objective = null;
         this.anchor = null;
         this.anchorCooldown = 0;
     }
 
-    public void anchorAt(Destination where) {
-        this.anchor = where;
+    public void anchorAt(Objective what) {
+        this.anchor = what;
         this.anchorCooldown = 0;
     }
 
@@ -142,8 +149,8 @@ public final class Pilot {
     }
 
     private void holdAnchor() {
-        Destination where = anchor;
-        if (where == null || pending != null || context == null) {
+        Objective what = anchor;
+        if (what == null || pending != null || context == null) {
             return;
         }
         if (anchorCooldown > 0) {
@@ -151,15 +158,15 @@ public final class Pilot {
             return;
         }
         var player = Minecraft.getInstance().player;
-        if (player == null || where.reachedBy(player.blockPosition())) {
+        if (player == null || satisfiedBy(what, player)) {
             return;
         }
         var feet = player.blockPosition();
-        Trace.instance().event("goto", "anchored on " + where.describe()
+        Trace.instance().event("goto", "anchored on " + what.label()
                 + " but the player is at " + feet.getX() + " " + feet.getY() + " "
                 + feet.getZ() + ", going back");
         anchorCooldown = ANCHOR_COOLDOWN;
-        replan(where);
+        replan(what);
     }
 
     private void release() {
@@ -193,33 +200,34 @@ public final class Pilot {
         pending = null;
         boolean announce = pendingAnnouncement;
         pendingAnnouncement = false;
-        Destination target = destination;
+        Objective target = objective;
         if (target == null) {
             return;
         }
         NavigatorAgent agent = NavigatorAgent.instance();
         Journey.Result result = Journey.collect(job.search(), agent.navigator().blocks(),
                 agent.navigator().walk());
-        Trace.instance().event("goto", "search for " + target.describe() + " finished after "
+        Trace.instance().event("goto", "search for " + target.label() + " finished after "
                 + job.millis() + "ms, outcome " + result.outcome() + ", "
                 + result.visited() + " nodes seen, " + result.route().length() + " steps usable"
                 + whereAmI());
         if (result.arrived()) {
-            Trace.instance().event("goto", "already standing on the goal " + target.describe());
+            Trace.instance().event("goto", "already standing on the goal " + target.label());
             halt();
-            ClientNotice.warn("Already at " + target.describe() + ".");
+            ClientNotice.warn("Already at " + target.label() + ".");
             return;
         }
         if (!result.usable()) {
+            outOfReach = true;
             Trace.instance().event("goto", "nothing usable came back, giving up on "
-                    + target.describe());
-            ClientNotice.warn("No path to " + target.describe() + ".");
+                    + target.label());
+            ClientNotice.warn("No path to " + target.label() + ".");
             return;
         }
         RouteTrace.describe(result.route());
         travel(result.route());
         Trace.instance().event("walk", "walking " + result.route().length() + " steps to "
-                + target.describe() + whereAmI());
+                + target.label() + whereAmI());
         if (announce) {
             ClientNotice.warn((result.reached() ? "Path found: " : "Partial path: ")
                     + result.route().length() + " steps.");
@@ -228,20 +236,20 @@ public final class Pilot {
 
     private void finish(WalkOutcome outcome) {
         halt();
-        Destination target = destination;
+        Objective target = objective;
         Trace.instance().event("walk", "route " + (outcome == WalkOutcome.ABANDONED
                 ? "abandoned" : "finished") + " after all its steps, wanted "
-                + (target == null ? "nothing" : target.describe()) + whereAmI());
+                + (target == null ? "nothing" : target.label()) + whereAmI());
         if (target == null) {
             Trace.instance().event("walk", "no goal recorded, so nothing more is searched");
             return;
         }
-        if (standingOn(target)) {
-            Trace.instance().event("walk", "arrived at " + target.describe());
-            ClientNotice.warn("Arrived at " + target.describe() + ".");
+        if (satisfiedBy(target, Minecraft.getInstance().player)) {
+            Trace.instance().event("walk", "arrived at " + target.label());
+            ClientNotice.warn("Arrived at " + target.label() + ".");
             return;
         }
-        Trace.instance().event("walk", "still short of " + target.describe()
+        Trace.instance().event("walk", "still short of " + target.label()
                 + ", searching again from where the player actually is");
         replan(target);
     }
@@ -252,7 +260,7 @@ public final class Pilot {
                 : ", player at " + dev.helm.diag.PlayerReport.everything(player);
     }
 
-    private void replan(Destination target) {
+    private void replan(Objective target) {
         NavigatorAgent agent = NavigatorAgent.instance();
         if (!agent.navigator().ready()) {
             Trace.instance().event("walk", "navigator is not ready, cannot search again");
@@ -263,7 +271,7 @@ public final class Pilot {
             return;
         }
         var feet = player.blockPosition();
-        Trace.instance().event("goto", "searching again for " + target.describe()
+        Trace.instance().event("goto", "searching again for " + target.label()
                 + " from " + feet.getX() + " " + feet.getY() + " " + feet.getZ());
         SearchJob job = agent.navigator()
                 .searchFor(target.goal(), feet.getX(), feet.getY(), feet.getZ());
@@ -275,8 +283,11 @@ public final class Pilot {
         pendingAnnouncement = false;
     }
 
-    private boolean standingOn(Destination target) {
-        var player = Minecraft.getInstance().player;
-        return player != null && target.reachedBy(player.blockPosition());
+    private static boolean satisfiedBy(Objective what, LocalPlayer player) {
+        if (player == null) {
+            return false;
+        }
+        var feet = player.blockPosition();
+        return what.satisfiedBy(feet.getX(), feet.getY(), feet.getZ());
     }
 }

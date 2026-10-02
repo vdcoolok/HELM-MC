@@ -9,6 +9,7 @@ import dev.helm.command.CommandCall;
 import dev.helm.command.CommandException;
 import dev.helm.command.CommandResult;
 import dev.helm.diag.Trace;
+import dev.helm.farm.FarmTask;
 import dev.helm.pathfinding.goal.BlockGoal;
 import dev.helm.pathfinding.search.SearchJob;
 import dev.helm.setting.ClientNotice;
@@ -94,8 +95,9 @@ public final class AutoCommands {
         Trace.instance().barrier("autogoto");
         Trace.instance().event("goto", "anchoring on " + x + " " + y + " " + z
                 + " from " + feet.getX() + " " + feet.getY() + " " + feet.getZ());
+        FarmTask.instance().stop();
 
-        Destination target = new Destination(x, y, z);
+        Objective target = Objective.at(x, y, z);
         agent.pilot().anchorAt(target);
         if (feet.getX() == x && feet.getY() == y && feet.getZ() == z) {
             Trace.instance().event("goto", "already standing on the anchored spot");
@@ -116,6 +118,7 @@ public final class AutoCommands {
     }
 
     private static CommandResult hold(double pitch, double yaw, String shown) {
+        FarmTask.instance().stop();
         LookController.instance().hold(new Aim(yaw, pitch));
         Trace.instance().barrier("autolookat");
         Trace.instance().event("look", "holding " + shown

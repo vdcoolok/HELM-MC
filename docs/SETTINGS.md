@@ -1,7 +1,7 @@
 # Settings
 
 Every part of HELM that can be changed is a setting. Settings are grouped into
-five sections, and the name of a setting is its section, a dot, and the name
+six sections, and the name of a setting is its section, a dot, and the name
 inside it.
 
 | Section | Covers |
@@ -11,6 +11,7 @@ inside it.
 | `look` | Aiming, free look, smoothing, reach |
 | `path` | Drawing the route and search limits |
 | `cache` | Remembering chunks that are no longer loaded |
+| `farm` | What `$farm` harvests, replants and sweeps for |
 
 ## Reading and changing
 
@@ -275,3 +276,37 @@ drops the rest.
 
 See [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for what the cache
 remembers and how it is read.
+
+## farm
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `farm.replantAfterHarvest` | `true` | Plant again whatever is harvested |
+| `farm.replantNetherWart` | `false` | Plant nether wart again |
+| `farm.rescanEveryTicks` | `5` | Ticks between looking around for crops again |
+| `farm.maxTargets` | `256` | Most blocks to look for in one sweep |
+
+`farm.replantAfterHarvest` is what makes farming worth doing. With it on, the
+empty farmland and bare jungle logs the sweep finds become targets in their own
+right, not just things to walk past. Turning it off also changes what counts as
+ready for sugar cane, bamboo and cactus: on, only the top block of each stalk is
+taken so the rest is left to grow; off, every block of a stalk is taken.
+
+`farm.replantNetherWart` only has an effect while `farm.replantAfterHarvest` is
+on. With it off, soul sand is never looked for, so nether wart is harvested and
+left bare.
+
+`farm.rescanEveryTicks` is how often HELM looks around for more crops. The
+positions from one sweep are kept and re-checked against the live world every
+tick, so a block that is harvested disappears from the list immediately. The
+sweep itself is the expensive part and is what this setting spaces out. Setting
+it to `0` sweeps once, when `$farm` starts, and never looks again, so anything
+that grows or is planted after that will not be noticed.
+
+`farm.maxTargets` caps how many blocks one sweep returns, so sweeping a huge flat
+world cannot run away. The sweep stops as soon as it has this many, unless it is
+still finding crops at your own level, in which case it keeps going until it
+leaves that band or runs out of loaded chunks.
+
+See [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for what farming
+harvests and in what order.
