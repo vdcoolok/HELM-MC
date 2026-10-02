@@ -14,6 +14,7 @@
 - `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle and a farm at once
 - Walking to a goal as a journey, searching again from wherever a route ran out
 - Steady walking over farmland and other short blocks, without jumping at every crop
+- Swimming up through water to reach something, instead of building towards it
 - Steps that keep going when the player ends up a block off their height, climbing back rather than giving up the route
 - Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps
 - Automatic tool switching for every block mined

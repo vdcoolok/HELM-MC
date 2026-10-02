@@ -21,7 +21,9 @@ public final class RaiseStepExecutor implements StepExecutor {
 
     @Override
     public MoveState advance(StepContext context, MoveTick tick, PlanStep step) {
-        if (!StepPreparation.ready(context, tick, step)) {
+        PillarPreparation.apply(context, tick, step);
+        if (!PillarPreparation.alreadySwimming(context, step)
+                && !StepPreparation.ready(context, tick, step)) {
             return MoveState.PREPPING;
         }
         StepPreparation.advanceStatus(tick);
@@ -33,7 +35,7 @@ public final class RaiseStepExecutor implements StepExecutor {
             return MoveState.UNREACHABLE;
         }
 
-        if (LiquidRules.water(context.world().stateAt(step.fromX(), step.fromY(), step.fromZ()))
+        if (LiquidRules.water(context.world().stateAt(step.fromX(), step.fromY() - 1, step.fromZ()))
                 && LiquidRules.water(context.world().stateAt(step.toX(), step.toY(), step.toZ()))) {
             return swimUp(context, tick, step);
         }

@@ -322,6 +322,25 @@ solid and has to be mined out of the way first, because mining is about five
 times slower while the player is in the air. Once that block is gone, the jump
 resumes and the pillar carries on.
 
+### Swimming
+
+Rising through water is a pillar that places nothing. When the block below the
+player is water and the block they are rising into is water too, HELM swims the
+column instead of building it: it turns to face the middle of the block above,
+walks forward only while off-centre by more than a fifth of a block, and holds
+there until it has risen into it.
+
+Because nothing has to be mined first, a pillar into water skips preparing
+altogether and starts swimming straight away.
+
+Any step taken while the player is in water presses jump whenever they are more
+than three fifths of a block below the height that step is heading for. That is
+what carries a player up off the bottom of a lake towards something they are
+reaching for, and it applies to every kind of step, not just pillars.
+
+While climbing, a player standing on a ladder or vine holds the sneak key, so
+that pressing towards the climbable block does not climb it instead of moving.
+
 ### What makes a block passable
 
 A block is either walked through, stood on, or neither, and the answer is

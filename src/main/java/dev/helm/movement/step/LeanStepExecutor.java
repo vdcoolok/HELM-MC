@@ -11,6 +11,7 @@ public final class LeanStepExecutor implements StepExecutor {
 
     @Override
     public MoveState advance(StepContext context, MoveTick tick, PlanStep step) {
+        TraversePreparation.apply(context, tick, step);
         if (!StepPreparation.ready(context, tick, step)) {
             return MoveState.PREPPING;
         }
