@@ -39,6 +39,11 @@ A macro is a plain UTF-8 text file with one command per line.
 
 ## Commands
 
+Every macro command is written in full. There are no abbreviations in a macro
+file, so the short forms that work as chat commands, such as `agoto` for
+`autogoto`, are refused here and reported as an unknown command. A macro file
+containing one will not load.
+
 ### wait
 
 Pauses the macro for a period of time.
@@ -169,6 +174,9 @@ The position is held after the macro finishes, until `$stop`. Use `$stop` rather
 than expecting the macro to give it back. A later `goto` in the same macro
 releases it, so the two never fight over where the player should be.
 
+The name is written out in full. `agoto` is a chat command alias and is not a
+macro command.
+
 ### autogotohere
 
 Shorthand for anchoring on the block you are standing in. It is the short form
@@ -186,7 +194,8 @@ written into the line:
   1  autogoto -5 87 -113
 ```
 
-Like `gotohere`, this only works in the editor. A macro file never holds it.
+Like `gotohere`, this only works in the editor. A macro file never holds it, so
+it is stored as `autogoto` followed by the coordinates.
 
 ### autolookat
 
@@ -205,7 +214,8 @@ before the player moves and again after, so your mouse cannot turn the camera
 until you type `$stop`. Mining and placing still work, because the lock applies
 to the camera and not to the rotation HELM sends.
 
-This holds past the end of the macro. `$stop` releases it.
+This holds past the end of the macro. `$stop` releases it. The name is written
+out in full: `alookat` is a chat command alias and is not a macro command.
 
 ### autolookathere
 
@@ -224,6 +234,9 @@ Your current pitch and yaw are written into the line:
 
 Like `lookathere`, this only works in the editor, and the angle is fixed at the
 moment you add it.
+
+It is stored as `autolookat`, not as `lookat`, so the lock survives into the
+macro file rather than being reduced to a single turn.
 
 ### hold
 
