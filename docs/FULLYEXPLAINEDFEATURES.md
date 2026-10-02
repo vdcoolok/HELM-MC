@@ -501,6 +501,20 @@ More than two blocks out starts a counter. Over two hundred ticks out abandons
 the route; more than three blocks out abandons it straight away. Either way the
 search starts again from where the player stands.
 
+### Being a block off a step's height
+
+A step is walked by moving towards a block, not by standing on an exact square.
+If the player ends up a block above or below the level the step was heading for,
+the step does not give up the route. A step below the player's level is left to
+be walked back down; one above is climbed towards, which presses jump when the
+player is under it.
+
+This matters more than it sounds. A route that ends a step early and is searched
+for again from wherever the player actually stands will usually begin by getting
+back to the height it just lost, which is a jump. If being a block low also threw
+the route away, the player would climb, walk a moment, fall a block, throw the
+route away again and climb again, forever, never getting anywhere.
+
 ### When a route is thrown away
 
 A route is abandoned when the step being walked can no longer be done, when its

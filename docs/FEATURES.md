@@ -13,6 +13,7 @@
 - `allowInventory` setting fetching tools, placement blocks and farm supplies from the whole inventory, with slots 0 and 8 kept stocked
 - `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle and a farm at once
 - Walking to a goal as a journey, searching again from wherever a route ran out
+- Steps that keep going when the player ends up a block off their height, climbing back rather than giving up the route
 - Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps
 - Automatic tool switching for every block mined
 - Breaking blocks that stand in the way
