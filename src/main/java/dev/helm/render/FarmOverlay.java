@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.StagedVertexBuffer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 
@@ -57,7 +58,8 @@ public final class FarmOverlay {
             drops = paintDrops(pose, level, farm, fill, view);
         }
         Trace.instance().repeat("farm-tint", "render", "tint " + fill.format() + " "
-                + fill.primitiveTopology() + " " + crops + " crop faces and " + drops + " drop corners");
+                + fill.primitiveTopology() + " " + crops + " crop faces and " + drops
+                + " drop corners");
     }
 
     private static int paintCrops(PoseStack pose, ClientLevel level, List<BlockPos> crops,
@@ -67,15 +69,16 @@ public final class FarmOverlay {
         }
         FillBatch batch = batch(pose, fill, LineColour.GOAL);
         int drawn = 0;
+        boolean first = true;
         for (BlockPos crop : crops) {
             List<double[]> quads = BlockSilhouette.quads(level.getBlockState(crop));
             BlockSilhouette.fill(batch, Silhouette.at(crop.getX(), crop.getY(), crop.getZ(),
                     quads, view));
             drawn += quads.size() / 4;
-            if (drawn == 0 && crops.size() == 1) {
-                Trace.instance().pulse("farm-tint-quads", "render", "first crop "
-                        + crop.getX() + " " + crop.getY() + " " + crop.getZ() + " gave "
-                        + quads.size() + " corners");
+            if (first) {
+                first = false;
+                Trace.instance().pulse("farm-tint-crop", "render", describe(level.getBlockState(crop),
+                        Silhouette.at(crop.getX(), crop.getY(), crop.getZ(), quads, view)));
             }
         }
         batch.flush();
@@ -89,29 +92,65 @@ public final class FarmOverlay {
         }
         FillBatch batch = batch(pose, fill, LineColour.PLACE);
         int drawn = 0;
+        boolean first = true;
         for (Entity entity : level.entitiesForRendering()) {
             if (!(entity instanceof ItemEntity dropped)
                     || !farm.harvestLedger().wants(dropped.getItem())) {
                 continue;
             }
-            drawn += fillDrop(batch, dropped, view);
+            drawn += fillDrop(batch, dropped, view, first);
+            first = false;
         }
         batch.flush();
         return drawn;
     }
 
-    private static int fillDrop(FillBatch batch, ItemEntity dropped, ViewOffset view) {
-        List<double[]> corners = ItemSilhouette.corners(dropped);
-        if (corners.size() != 4 && corners.size() != 8) {
-            Trace.instance().pulse("farm-tint-drop", "render",
-                    dropped.getDisplayName().getString() + " gave " + corners.size());
+    private static int fillDrop(FillBatch batch, ItemEntity dropped, ViewOffset view,
+                                boolean first) {
+        List<double[]> model = ItemSilhouette.corners(dropped);
+        if (model.isEmpty()) {
             return 0;
         }
-        float rise = ItemBob.rise(dropped, ItemSilhouette.modelFloor(corners));
-        List<double[]> spun = Silhouette.spun(corners, ItemBob.spin(dropped), rise);
-        ShapeFill.corners(batch, Silhouette.at(dropped.getX(), dropped.getY(), dropped.getZ(),
-                spun, view));
-        return corners.size();
+        float rise = ItemBob.rise(dropped, ItemSilhouette.modelFloor(model));
+        List<double[]> placed = Silhouette.at(dropped.getX(), dropped.getY(), dropped.getZ(),
+                Silhouette.spun(model, ItemBob.spin(dropped), rise), view);
+        if (first) {
+            Trace.instance().pulse("farm-tint-drop", "render",
+                    dropped.getDisplayName().getString() + " " + describe(placed));
+        }
+        ShapeFill.corners(batch, placed);
+        return model.size();
+    }
+
+    private static String describe(BlockState state, List<double[]> placed) {
+        return state.getBlock().toString() + " " + describe(placed);
+    }
+
+    private static String describe(List<double[]> points) {
+        if (points.isEmpty()) {
+            return "no corners";
+        }
+        double minX = points.get(0)[0];
+        double maxX = minX;
+        double minY = points.get(0)[1];
+        double maxY = minY;
+        double minZ = points.get(0)[2];
+        double maxZ = minZ;
+        for (double[] point : points) {
+            minX = Math.min(minX, point[0]);
+            maxX = Math.max(maxX, point[0]);
+            minY = Math.min(minY, point[1]);
+            maxY = Math.max(maxY, point[1]);
+            minZ = Math.min(minZ, point[2]);
+            maxZ = Math.max(maxZ, point[2]);
+        }
+        return points.size() + " corners span x " + round(minX) + " to " + round(maxX)
+                + ", y " + round(minY) + " to " + round(maxY)
+                + ", z " + round(minZ) + " to " + round(maxZ);
+    }
+
+    private static String round(double value) {
+        return String.format("%.3f", value);
     }
 
     private static FillBatch batch(PoseStack pose, RenderType fill, LineColour colour) {
