@@ -1137,6 +1137,29 @@ eat whatever the off hand is holding instead. Items further back in the inventor
 are not used at all, so putting seeds straight into the hotbar is what makes
 planting work.
 
+### Seeing what farming is doing
+
+While farming is running, two kinds of thing are outlined in the world.
+
+The ripe crops it has found and is working through are outlined in green. Those
+are exactly the blocks it is about to break, so nothing else is marked, however
+much else farming walks past or breaks on the way.
+
+Anything that comes out of those crops is outlined in blue. When farming breaks
+a crop it works out what that kind of crop drops and remembers those items, and
+every dropped item lying in the world that matches one of them is outlined from
+then on. A melon is remembered as melon seeds, melon slices or a melon block;
+wheat as wheat seeds or wheat; and so on for every crop it knows.
+
+Only drops from crops this run of farming actually broke are marked. Items that
+were already lying around when farming started, or that come from something else,
+are left alone. The memory is cleared when farming stops.
+
+Both outlines are drawn only while farming is running, and either can be turned
+off on its own with `farm.renderTargets` and `farm.renderDrops`. They use the
+same line width and depth handling as the path, so `path.blocksIgnoreDepth`
+applies to them too.
+
 ### When it gives up
 
 | Reason | Reply | What happens |
@@ -1161,6 +1184,8 @@ Leaving the world ends a farm the same way `$stop` does, without a message.
 | `farm.replantNetherWart` | `false` | Plant nether wart again |
 | `farm.rescanEveryTicks` | `5` | Ticks between scans |
 | `farm.maxTargets` | `256` | Cap on blocks found by one scan |
+| `farm.renderTargets` | `true` | Outline the ripe crops farming is working through |
+| `farm.renderDrops` | `true` | Outline the items farming broke its crops into |
 
 See [SETTINGS.md](SETTINGS.md) for what each one changes.
 

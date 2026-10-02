@@ -37,6 +37,9 @@ public final class FarmTask {
     private boolean running;
     private boolean announced;
 
+    private final HarvestLedger harvested = new HarvestLedger();
+    private List<BlockPos> wanted = List.of();
+
     private FarmArea area = FarmArea.everywhere(BlockPos.ZERO);
     private List<BlockPos> swept = List.of();
     private Sweep sweeping;
@@ -64,6 +67,8 @@ public final class FarmTask {
         this.ticks = 0;
         this.announced = false;
         this.running = true;
+        this.wanted = List.of();
+        this.harvested.clear();
         Trace.instance().barrier("farm");
         Trace.instance().event("farm", "farming " + around.describe() + " from "
                 + around.centre().getX() + " " + around.centre().getY() + " "
@@ -74,10 +79,20 @@ public final class FarmTask {
         this.running = false;
         this.swept = List.of();
         this.sweeping = null;
+        this.wanted = List.of();
+        this.harvested.clear();
     }
 
     public boolean running() {
         return running;
+    }
+
+    public List<BlockPos> harvestable() {
+        return wanted;
+    }
+
+    public HarvestLedger harvestLedger() {
+        return harvested;
     }
 
     public void onTick() {
@@ -95,6 +110,7 @@ public final class FarmTask {
         sweepInTime(level, player);
         List<BlockPos> seen = sweeping != null ? sweeping.found() : swept;
         FarmFindings findings = FarmSurvey.classify(level, seen, area);
+        wanted = findings.harvestable();
         if (tended(findings, player, level)) {
             return;
         }
@@ -137,13 +153,13 @@ public final class FarmTask {
     }
 
     private boolean tended(FarmFindings findings, LocalPlayer player, ClientLevel level) {
-        return harvestNearby(findings, player)
+        return harvestNearby(findings, player, level)
                 || sowNearby(findings, player)
                 || coatNearby(findings, player, level)
                 || feedNearby(findings, player);
     }
 
-    private boolean harvestNearby(FarmFindings findings, LocalPlayer player) {
+    private boolean harvestNearby(FarmFindings findings, LocalPlayer player, ClientLevel level) {
         for (BlockPos crop : findings.harvestable()) {
             if (!FarmHands.inReach(player, crop, look())) {
                 continue;
@@ -153,6 +169,7 @@ public final class FarmTask {
                 continue;
             }
             ToolChooser.forBlock(crop);
+            harvested.record(level.getBlockState(crop).getBlock());
             return tendTo(player, crop, aim, Control.ATTACK, true);
         }
         return false;
