@@ -1158,14 +1158,11 @@ are left alone. The memory is cleared when farming stops.
 Both outlines are drawn only while farming is running, and either can be turned
 off on its own with `farm.renderTargets` and `farm.renderDrops`.
 
-Neither is filled in solid. Both are ringed by a flat outline that always turns
-to face you, drawn over the shape of the thing itself: a crop is sized by the
-column the plant is, a dropped item by the model it is rendered from. Because the
-outline faces you, it stays readable from any angle instead of turning edge on and
-disappearing as the item spins.
-
-A dropped item moves exactly as the item does: it bobs up and down on the same
-rhythm and turns with it, staying locked to the item instead of trailing behind.
+A crop is ringed by a flat outline that always turns to face you, sized by the
+column the plant is. A dropped item is ringed along its own model, following the
+edges of the shape it is drawn as rather than being a plain box, and it moves
+exactly as the item does: it bobs up and down on the same rhythm and turns with it,
+staying locked to the item instead of trailing behind.
 
 ### When it gives up
 

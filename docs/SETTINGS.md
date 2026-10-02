@@ -312,9 +312,9 @@ Targets are the ripe crops farming has found; drops are the items on the ground
 that came out of crops farming broke. Nothing else in the world is marked by them,
 including blocks farming walks through or breaks on the way to a crop.
 
-Both are drawn as a flat ring at thirty percent opacity that always faces the
-player, sized to the thing itself, so it stays readable from any angle and what is
-underneath stays visible.
+Both are drawn at thirty percent opacity. A crop is ringed by a flat outline that
+turns to face the player, sized to the plant. A dropped item is ringed along the
+shape of its own model and moves with it.
 
 `farm.replantAfterHarvest` is what makes farming worth doing. With it on, the
 empty farmland and bare jungle logs the sweep finds become targets in their own

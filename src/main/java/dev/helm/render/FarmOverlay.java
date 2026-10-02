@@ -87,7 +87,10 @@ public final class FarmOverlay {
         if (farm.harvestLedger().empty()) {
             return 0;
         }
-        FillBatch batch = batch(pose, fill, LineColour.PLACE);
+        LineBatch batch = new LineBatch(BUFFER, pose, fill)
+                .colour(LineColour.PLACE.red(), LineColour.PLACE.green(),
+                        LineColour.PLACE.blue(), ALPHA)
+                .width((float) Settings.holder().path().lineWidth());
         int drawn = 0;
         boolean first = true;
         for (Entity entity : level.entitiesForRendering()) {
@@ -102,26 +105,36 @@ public final class FarmOverlay {
         return drawn;
     }
 
-    private static int outlineDrop(FillBatch batch, ItemEntity dropped, ViewOffset view,
+    private static int outlineDrop(LineBatch batch, ItemEntity dropped, ViewOffset view,
                                    CameraRenderState camera, boolean first) {
         AABB box = ItemSilhouette.modelBox(dropped);
-        if (box == null) {
+        List<double[]> corners = ItemSilhouette.outline(dropped);
+        if (box == null || corners.isEmpty()) {
             return 0;
         }
         float rise = ItemBob.rise(dropped, ItemSilhouette.floorOf(box));
-        Vec3 mid = box.getCenter();
-        Vec3 centre = new Vec3(dropped.getX() + mid.x, dropped.getY() + rise + mid.y,
-                dropped.getZ() + mid.z);
-        List<double[]> face = Billboard.facing(camera, centre,
-                Math.max(box.getXsize(), box.getZsize()) / 2.0D + NUDGE,
-                box.getYsize() / 2.0D + NUDGE, 0.0D, view);
+        float spin = ItemBob.spin(dropped);
+        List<double[]> placed = new java.util.ArrayList<>(corners.size());
+        for (double[] corner : corners) {
+            placed.add(viewed(corner, dropped, rise, spin, view));
+        }
         if (first) {
             Trace.instance().pulse("farm-tint-drop", "render", dropped.getDisplayName().getString()
-                    + " sprite " + round(box.getXsize()) + " by " + round(box.getYsize())
-                    + " at y " + round(centre.y));
+                    + " mesh " + (corners.size() / 4) + " faces, rise " + round(rise));
         }
-        ShapeFill.corners(batch, face);
-        return 1;
+        MeshOutline.draw(batch, placed);
+        return corners.size() / 4;
+    }
+
+    private static double[] viewed(double[] corner, ItemEntity dropped, float rise, float spin,
+                                   ViewOffset view) {
+        double angle = Math.toRadians(spin);
+        double cos = Math.cos(angle);
+        double sin = Math.sin(angle);
+        double x = dropped.getX() + corner[0] * cos + corner[2] * sin;
+        double y = dropped.getY() + corner[1] + rise;
+        double z = dropped.getZ() - corner[0] * sin + corner[2] * cos;
+        return new double[]{view.applyX(x), view.applyY(y), view.applyZ(z)};
     }
 
     private static AABB bounds(List<double[]> points) {
