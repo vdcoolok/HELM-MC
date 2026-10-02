@@ -925,6 +925,12 @@ No scan happens while a route is being walked, because the targets on that route
 are already known. The next scan runs on the first tick after the route ends, so
 walking a long route defers the scan rather than skipping it.
 
+A scan does not finish in one tick. Reading every block in that many chunks is
+slow enough to be felt as a hitch, so the scan spends a small slice of each tick
+instead and carries on from where it left off. It usually takes a second or two
+to finish, and the positions from the previous scan are used right up until the
+new ones are ready.
+
 Building the list of things to walk to is also not free, since it has to look
 at every dropped crop in the level to decide what is worth picking up. That only
 happens when a route is actually needed, not on every tick.

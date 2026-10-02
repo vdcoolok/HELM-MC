@@ -25,8 +25,11 @@ import dev.helm.setting.ClientNotice;
 import dev.helm.setting.LookSettings;
 import dev.helm.setting.Settings;
 import dev.helm.tools.ToolChooser;
+import dev.helm.world.read.Sweep;
 
 public final class FarmTask {
+
+    private static final long SWEEP_BUDGET_NANOS = 4_000_000L;
 
     private static final FarmTask INSTANCE = new FarmTask();
 
@@ -35,6 +38,9 @@ public final class FarmTask {
 
     private FarmArea area = FarmArea.everywhere(BlockPos.ZERO);
     private List<BlockPos> swept = List.of();
+    private Sweep sweeping;
+    private long sweepingSince;
+    private int sweepingFrom;
     private int ticks;
 
     public static FarmTask instance() {
@@ -52,6 +58,7 @@ public final class FarmTask {
     public void start(FarmArea around) {
         this.area = around;
         this.swept = List.of();
+        this.sweeping = null;
         this.ticks = 0;
         this.running = true;
         Trace.instance().barrier("farm");
@@ -63,6 +70,7 @@ public final class FarmTask {
     public void stop() {
         this.running = false;
         this.swept = List.of();
+        this.sweeping = null;
     }
 
     public boolean running() {
@@ -94,6 +102,16 @@ public final class FarmTask {
     }
 
     private void sweepInTime(ClientLevel level, LocalPlayer player) {
+        if (sweeping != null) {
+            if (sweeping.step(SWEEP_BUDGET_NANOS)) {
+                swept = sweeping.found();
+                Trace.instance().event("farm", "swept and found " + swept.size()
+                        + " blocks worth looking at in " + millisSince(sweepingSince)
+                        + "ms over " + (ticks - sweepingFrom) + " ticks");
+                sweeping = null;
+            }
+            return;
+        }
         int interval = Settings.holder().farm().rescanEveryTicks();
         boolean due = interval <= 0 ? ticks == 0 : ticks % interval == 0;
         ticks++;
@@ -104,10 +122,9 @@ public final class FarmTask {
         if (pilot.isWalking() || pilot.searching()) {
             return;
         }
-        long started = System.nanoTime();
-        swept = FarmScan.sweep(level, player.blockPosition(), Settings.holder().farm());
-        Trace.instance().event("farm", "swept and found " + swept.size()
-                + " blocks worth looking at in " + millisSince(started) + "ms");
+        sweeping = FarmScan.begin(level, player.blockPosition(), Settings.holder().farm());
+        sweepingSince = System.nanoTime();
+        sweepingFrom = ticks;
     }
 
     private boolean tended(FarmFindings findings, LocalPlayer player, ClientLevel level) {

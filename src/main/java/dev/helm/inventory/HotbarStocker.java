@@ -13,11 +13,16 @@ public final class HotbarStocker {
 
     private static final HotbarStocker INSTANCE = new HotbarStocker();
 
+    private static final int TOOL_CHECK_TICKS = 20;
+
+    private int inventoryTick;
+
     public static HotbarStocker instance() {
         return INSTANCE;
     }
 
     public void onTick() {
+        inventoryTick++;
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null || !PlayerContainer.mayRearrange(player)
                 || SlotSwapper.instance().awaiting()) {
@@ -41,6 +46,9 @@ public final class HotbarStocker {
     private void stockTool(LocalPlayer player) {
         var mining = Settings.holder().mining();
         if (!mining.autoTool()) {
+            return;
+        }
+        if (inventoryTick % TOOL_CHECK_TICKS != 0) {
             return;
         }
         PlayerInventory inventory = new PlayerInventory(player);

@@ -323,7 +323,9 @@ spaces out.
 
 While a route is being walked no sweep happens at all, because the targets it is
 walking towards are already known. The next sweep runs on the first tick after
-that route finishes, so nothing is missed, only deferred. Setting this to `0`
+that route finishes, so nothing is missed, only deferred. A sweep itself is
+spread over a second or two of ticks rather than done in one, because reading
+every block in that many chunks at once is felt as a hitch. Setting this to `0`
 sweeps once, when `$farm` starts, and never looks again, so anything that grows
 or is planted after that will not be noticed.
 

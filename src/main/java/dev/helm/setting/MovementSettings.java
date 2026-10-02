@@ -318,6 +318,14 @@ public final class MovementSettings extends SettingSection {
     }
 
     public List<Block> placementBlocks() {
-        return BlockNames.ordered(words(PLACEMENT_BLOCKS));
+        String written = words(PLACEMENT_BLOCKS);
+        if (cachedPlacementBlocks == null || !written.equals(cachedPlacementSource)) {
+            cachedPlacementSource = written;
+            cachedPlacementBlocks = BlockNames.ordered(written);
+        }
+        return cachedPlacementBlocks;
     }
+
+    private List<Block> cachedPlacementBlocks;
+    private String cachedPlacementSource;
 }

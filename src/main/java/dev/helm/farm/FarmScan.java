@@ -1,7 +1,6 @@
 package dev.helm.farm;
 
 import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Set;
 
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -10,8 +9,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 import dev.helm.setting.FarmSettings;
-import dev.helm.world.read.BlockScan;
 import dev.helm.world.read.ChunkScanRequest;
+import dev.helm.world.read.Sweep;
 
 public final class FarmScan {
 
@@ -21,8 +20,8 @@ public final class FarmScan {
     private FarmScan() {
     }
 
-    public static List<BlockPos> sweep(ClientLevel level, BlockPos from, FarmSettings settings) {
-        return BlockScan.around(level, from, new ChunkScanRequest(watchedFor(settings),
+    public static Sweep begin(ClientLevel level, BlockPos from, FarmSettings settings) {
+        return Sweep.around(level, from, new ChunkScanRequest(watchedFor(settings),
                 settings.maxTargets(), CHUNKS_OUT, LEVELS_AROUND));
     }
 
