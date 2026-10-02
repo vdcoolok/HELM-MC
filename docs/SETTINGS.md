@@ -132,14 +132,33 @@ break penalty makes it break as few blocks as possible.
 | `movement.pathHistoryCutoffAmount` | `50` | Moves discarded when the history is trimmed |
 | `movement.blockBreakSpeed` | `6` | Ticks between mining attempts |
 | `movement.rightClickSpeed` | `4` | Ticks between placing attempts |
-| `movement.ticksBetweenInventoryMoves` | `1` | Ticks between inventory moves |
-| `movement.allowInventory` | `false` | Allow rearranging the inventory while walking |
+| `movement.ticksBetweenInventoryMoves` | `1` | Ticks between inventory moves, `0` allows one every tick |
+| `movement.allowInventory` | `false` | Fetch tools, placement blocks and farm supplies from anywhere you carry them |
 | `movement.inventoryMoveOnlyIfStationary` | `false` | Stop moving before rearranging the inventory |
 
 Lowering `movement.movementTimeoutTicks` makes HELM give up sooner on a step
 that is stuck, which is useful on a laggy server. Raising
 `movement.maxCostIncrease` makes it more tolerant of the world changing under
 it.
+
+`movement.allowInventory` turns the whole inventory subsystem on, so a tool, a
+placement block or a packet of seeds sitting in slot 20 is used rather than
+ignored. Off is the default because it sends container clicks to the server,
+which is the part of HELM a server is most likely to object to.
+
+| Setting | What it controls |
+| --- | --- |
+| `movement.allowInventory` | Whether items may be moved into the hotbar at all |
+| `movement.ticksBetweenInventoryMoves` | How many ticks must pass between two moves |
+| `movement.inventoryMoveOnlyIfStationary` | Whether HELM must wait until you have stopped |
+
+Nothing is rearranged while a chest, crafting table or any other container is
+open, because the visible container would then not be your own inventory. Slots
+`0` and `8` are kept stocked with the best tool against stone and with a
+placement block, and anything fetched on demand goes to a spare slot between them.
+
+See [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for what each part
+does and what it costs.
 
 ### Tools
 

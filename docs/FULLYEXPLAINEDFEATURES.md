@@ -1060,12 +1060,102 @@ See [SETTINGS.md](SETTINGS.md) for what each one changes.
 
 ### Known limitations
 
-- Items must already be in the hotbar or off hand. Farming will not rearrange the
-  inventory to fetch them.
 - Only farmland, soul sand and jungle logs are replanted. A harvested crop on any
   other block is left bare.
 - Drops that leave the loaded area stop being seen, because only loaded chunks
   are read.
+- Seeds, nether wart, cocoa beans and bone meal are only fetched from deeper in
+  the inventory when `movement.allowInventory` is on. See [inventory](#inventory).
+
+## inventory
+
+Moves items between the inventory and the hotbar while HELM is walking, so tools,
+placement blocks and farm supplies can be used from anywhere you are carrying
+them rather than from the nine hotbar slots alone.
+
+Off by default. Turn it on with:
+
+```
+$set movement.allowInventory true
+```
+
+### What it changes
+
+| Situation | With it off | With it on |
+| --- | --- | --- |
+| The only tool for a block is in slot 12 | Mines by hand, slowly | Swaps it into slot 0 and mines with it |
+| The best tool for a block is in slot 12 | Uses whatever is on the hotbar | Swaps the better one in if it is genuinely faster |
+| Every placement block is in the inventory | Refuses to bridge or pillar | Pulls one up and places it |
+| Seeds are in the inventory | Bare farmland is not a target | Bare farmland becomes a target, and the seeds are pulled up to plant it |
+| The best tool against stone is only in the inventory | Left where it is | Kept stocked in slot 0 |
+
+The last row is the reason two slots are reserved.
+
+### Two reserved slots
+
+| Slot | Kept holding |
+| --- | --- |
+| `0` | The fastest tool you carry against stone |
+| `8` | A block from `movement.placementBlocks` |
+
+Both are stocked in the background rather than on demand, so by the time a route
+needs a pickaxe or a bridge block it is usually already in hand and nothing is
+swapped at all. Stocking only happens when the hotbar has nothing suitable, so
+it never displaces something you put there yourself.
+
+Everything fetched on demand goes to a spare slot between 1 and 7, preferring an
+empty one, so slots 0 and 8 keep their jobs. Which spare is used is picked at
+random among the free ones, rather than always the first, so a long walk does not
+keep landing on the same slot and overwriting it.
+
+### When a swap happens
+
+A swap is a real container click, sent to the server. It is never done more than
+one at a time, and it waits for these before going out:
+
+| Gate | Setting | Default |
+| --- | --- | --- |
+| Enough ticks have passed since the last one | `movement.ticksBetweenInventoryMoves` | `1` |
+| The player has stopped, if asked to | `movement.inventoryMoveOnlyIfStationary` | `false` |
+| Nothing else is open | | |
+
+The last one matters. If a chest, a crafting table or an ender chest is open, the
+visible container is not your own inventory and swapping slots would move the
+wrong things. HELM leaves the inventory alone entirely while any other container
+is open.
+
+A swap that cannot go out yet is remembered and retried on the following tick,
+so a fetch that is one tick short of the gap still happens rather than being
+dropped. Something the current step needs takes priority over background
+stocking.
+
+`movement.inventoryMoveOnlyIfStationary` exists for servers that dislike
+container clicks while the player is moving. Turning it on means HELM only swaps
+once you have genuinely stopped, at the cost of a few ticks of delay.
+
+### Choosing what to fetch
+
+| Need | Order of preference |
+| --- | --- |
+| A tool | Whatever mines the block fastest, preferring the hotbar over the rest of the inventory |
+| A placement block | A `movement.placementBlocks` entry from anywhere, then any placeable block at all |
+| Seeds, nether wart, cocoa beans, bone meal | The hotbar, then the off hand, then the rest of the inventory |
+
+Tools are compared on actual mining speed against the block in front of you, so
+a tool only comes out of the inventory when it really is faster than what you are
+already holding. The item saver and the sword setting are respected the same way
+they are for the hotbar, so a nearly broken tool or a sword is not fetched.
+
+A block from the off hand is still usable for farm supplies without being in the
+hotbar, which is why that is checked before the inventory: the main hand is moved
+onto something harmless instead, and the off hand does the work.
+
+### Cost of turning it on
+
+- Container clicks are visible to the server. On a server that checks them, this
+  is the setting most likely to be noticed.
+- Slots 0 and 8 are HELM's to use. Anything you keep in them can be swapped out.
+- The hotbar will be visibly rearranged the first time HELM walks with this on.
 
 ## set
 

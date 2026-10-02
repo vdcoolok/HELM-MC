@@ -89,6 +89,7 @@ $set
 $set movement.allowBreak
 $set movement.allowBreak false
 $set movement.sprintAllowed true
+$set movement.allowInventory true
 $settings reset
 ```
 

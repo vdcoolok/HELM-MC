@@ -2,7 +2,6 @@ package dev.helm.farm;
 
 import java.util.List;
 
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -53,10 +52,6 @@ public final class FarmItems {
 
     public static boolean boneMeal(ItemStack stack) {
         return !stack.isEmpty() && stack.getItem() == Items.BONE_MEAL;
-    }
-
-    public static boolean tool(ItemStack stack) {
-        return stack.getItem().components().has(DataComponents.TOOL);
     }
 
     public static boolean worthCollecting(ItemStack dropped) {

@@ -125,9 +125,11 @@ public final class MovementSettings extends SettingSection {
         flag(ASSUME_EXTERNAL_AUTOTOOL, "Assume external auto tool",
                 "Never switch tools, because another mod already does.", false);
         flag(ALLOW_INVENTORY, "Use inventory",
-                "Allow rearranging the inventory while pathing.", false);
+                "Move items between the inventory and the hotbar while walking, so tools, "
+                        + "placement blocks and farm supplies are fetched from anywhere "
+                        + "instead of the hotbar alone.", false);
         count(INVENTORY_TICK_GAP, "Inventory tick gap",
-                "Ticks to wait between inventory moves.", 1, 1, 200);
+                "Ticks to wait between inventory moves. Zero allows one every tick.", 1, 0, 200);
         flag(INVENTORY_ONLY_IF_STATIONARY, "Inventory when stationary",
                 "Stop moving before rearranging the inventory.", false);
         count(BREAK_SPEED, "Break speed", "Ticks between block break attempts.", 6, 1, 20);

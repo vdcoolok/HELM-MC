@@ -10,6 +10,7 @@
 - `autogoto` and `autogotohere` commands anchoring a position and walking back if moved off it
 - `autolookat` and `autolookathere` commands locking the camera to an angle until stopped
 - `farm` command harvesting ripe crops, replanting the empty ground and picking up the drops
+- `allowInventory` setting fetching tools, placement blocks and farm supplies from the whole inventory, with slots 0 and 8 kept stocked
 - `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle and a farm at once
 - Walking to a goal as a journey, searching again from wherever a route ran out
 - Path finding across steps, step ups, drops, falls, diagonals, pillars, digging down and parkour jumps

@@ -1,6 +1,8 @@
 package dev.helm.navigate;
 
 import dev.helm.aim.LookController;
+import dev.helm.inventory.HotbarStocker;
+import dev.helm.inventory.SlotSwapper;
 import dev.helm.movement.RouteWalker;
 import dev.helm.movement.StepPricer;
 import dev.helm.movement.step.StepContext;
@@ -48,6 +50,8 @@ public final class NavigatorAgent {
                 cache.tick(client.player.getBlockX(), client.player.getBlockZ());
             }
         }
+        SlotSwapper.instance().onTick();
+        HotbarStocker.instance().onTick();
         pilot.tick();
     }
 
