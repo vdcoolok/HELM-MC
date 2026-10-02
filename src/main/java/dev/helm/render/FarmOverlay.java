@@ -20,9 +20,8 @@ public final class FarmOverlay {
 
     private static final StagedVertexBuffer BUFFER = new StagedVertexBuffer(() -> "HELM Farm", 128);
     private static final float ALPHA = 0.55F;
-    private static final double BOX_EXPAND = 0.004D;
-    private static final double DROP_EXPAND = 0.06D;
-    private static final double DROP_LIFT = 0.1D;
+    private static final double BOX_EXPAND = 0.006D;
+    private static final double DROP_EXPAND = 0.02D;
 
     private FarmOverlay() {
     }
@@ -60,11 +59,9 @@ public final class FarmOverlay {
         }
         LineBatch batch = batch(pose, width, type, LineColour.GOAL);
         for (BlockPos crop : crops) {
-            AABB outline = BlockOutlines.at(new int[]{crop.getX(), crop.getY(), crop.getZ()});
-            if (outline == null) {
-                continue;
+            for (AABB part : BlockOutlines.boxesAt(new int[]{crop.getX(), crop.getY(), crop.getZ()})) {
+                batch.box(viewed(part, view).inflate(BOX_EXPAND));
             }
-            batch.box(viewed(outline, view).inflate(BOX_EXPAND));
         }
         batch.flush();
     }
@@ -81,8 +78,7 @@ public final class FarmOverlay {
                     || !farm.harvestLedger().wants(dropped.getItem())) {
                 continue;
             }
-            AABB bounds = dropped.getBoundingBox().inflate(DROP_EXPAND).move(0, DROP_LIFT, 0);
-            batch.box(viewed(bounds, view));
+            batch.box(viewed(DropSprite.bounds(dropped), view).inflate(DROP_EXPAND));
         }
         batch.flush();
     }

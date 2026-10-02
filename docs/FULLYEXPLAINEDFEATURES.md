@@ -840,7 +840,7 @@ The settings that change walking and searching are grouped as follows.
 | `movement.diagonalAscend` | `true` | Allow stepping up while moving diagonally |
 | `movement.diagonalDescend` | `true` | Allow stepping down while moving diagonally |
 | `movement.allowDownward` | `true` | Allow digging straight down to travel |
-| `movement.assumeWalkOnWater` | `true` | Treat water surfaces as solid ground |
+| `movement.assumeWalkOnWater` | `false` | Treat water surfaces as solid ground |
 | `movement.waterBucketFall` | `true` | Allow a fall into water at any height |
 | `movement.maxFallHeight` | `3` | Longest survivable fall, in blocks |
 | `movement.maxFallHeightBucket` | `60` | Same, when a water bucket is used |
@@ -1159,6 +1159,13 @@ Both outlines are drawn only while farming is running, and either can be turned
 off on its own with `farm.renderTargets` and `farm.renderDrops`. They use the
 same line width and depth handling as the path, so `path.blocksIgnoreDepth`
 applies to them too.
+
+The outline follows the shape of the block rather than filling the whole cube, so
+a crop is drawn around the plant itself, which is a thin column that gets taller
+as it grows, and a slab or stair is drawn around its own steps. A dropped item is
+drawn around the flat sprite the item is actually rendered as, at the size the
+item really is and turned the way it is lying, rather than around a full block
+sized box.
 
 ### When it gives up
 
