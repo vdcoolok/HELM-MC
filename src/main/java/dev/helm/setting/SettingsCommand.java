@@ -1,5 +1,7 @@
 package dev.helm.setting;
 
+import java.util.List;
+
 import dev.helm.command.ArgumentAccess;
 import dev.helm.command.ArgumentDefinition;
 import dev.helm.command.ArgumentType;
@@ -74,6 +76,11 @@ public final class SettingsCommand {
         }
         String trimmed = value == null ? "" : value.trim();
         if (entry.kind() == SettingKind.BLOCKS) {
+            List<String> unknown = BlockNames.unknown(trimmed);
+            if (!unknown.isEmpty()) {
+                throw new CommandException(Component.literal(
+                        "Not a block in the game: " + String.join(", ", unknown)));
+            }
             entry.setting().accept(BlockNames.separate(trimmed));
             return;
         }

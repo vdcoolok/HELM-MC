@@ -42,7 +42,8 @@ public abstract class SettingSection {
             case BOOLEAN -> setting.accept(Boolean.valueOf(value));
             case WHOLE -> setting.accept(parseWhole(value, setting.initial()));
             case DECIMAL -> setting.accept(parseDecimal(value, setting.initial()));
-            case TEXT, BLOCKS -> setting.accept(value);
+            case TEXT -> setting.accept(value);
+            case BLOCKS -> setting.accept(BlockNames.knownOnly(value));
         }
     }
 

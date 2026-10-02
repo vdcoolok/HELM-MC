@@ -65,7 +65,7 @@ that session.
 | --- | --- | --- |
 | `movement.allowBreak` | `true` | Mine blocks that are in the way |
 | `movement.allowPlace` | `true` | Place blocks to bridge or step up |
-| `movement.placementBlocks` | dirt, cobblestone, netherrack, stone | Blocks HELM may place when a path needs one |
+| `movement.placementBlocks` | `dirt, cobblestone, netherrack, stone` | Blocks that may be placed |
 | `movement.allowParkour` | `true` | Jump across gaps |
 | `movement.allowParkourPlace` | `true` | Place a block at the end of a failed parkour jump |
 | `movement.allowParkourAscend` | `true` | Sprint up one block while parkouring |
@@ -82,6 +82,10 @@ that session.
 | `movement.allowOvershootDiagonalDescend` | `true` | Sprint diagonally off a descending step |
 | `movement.assumeStep` | `false` | Never jump while stepping up, assuming the game steps you |
 | `movement.assumeSafeWalk` | `false` | Sneak while back placing, assuming the game handles edge safety |
+
+`movement.placementBlocks` is a list of block names separated by spaces or commas,
+and it opens a picker of every block. Earlier names win when several are in the
+hotbar. A name that is not a block in the game is refused.
 
 ### What may be walked on
 
@@ -115,35 +119,6 @@ These change which route is chosen, not just how fast it is walked.
 
 Raising the placement penalty makes HELM prefer mining over placing. Raising the
 break penalty makes it break as few blocks as possible.
-
-### Choosing which blocks to place
-
-`movement.placementBlocks` is the list of blocks HELM is allowed to place when a
-route needs one put down: bridging a gap, stepping up, pillaring, or placing at
-the end of a failed parkour jump. One list covers all of them, so it is set once
-rather than per move.
-
-The default is dirt, cobblestone, netherrack and stone, in that order. The order
-matters: earlier blocks win when several of them are in the hotbar.
-
-It is a list of blocks, so it opens a picker of every block in the game rather
-than taking a single value. The picker has two columns: every block on the left,
-narrowed as you type and shown by its full name such as `minecraft:oak_planks`,
-and the blocks currently on the list on the right. It is a search aid, not an
-editor: nothing is chosen until the command is sent, and `Tab` completes the
-highlighted block's full name into the command.
-
-Type the blocks after the setting name and press `Enter`. That replaces the
-whole list:
-
-```
-$set movement.placementBlocks dirt cobblestone oak_planks
-```
-
-Spaces or commas both separate blocks. Names may be written bare or with the
-`minecraft:` prefix, in any case, and anything that is not a block in the game is
-ignored. Leaving the list empty means no block on it is preferred, so HELM falls
-back to whatever placeable block is in the hotbar.
 
 ### Timing and giving up
 

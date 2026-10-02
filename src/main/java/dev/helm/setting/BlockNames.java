@@ -20,29 +20,58 @@ public final class BlockNames {
     }
 
     public static List<Block> ordered(String list) {
-        if (list == null || list.isBlank()) {
-            return List.of();
-        }
         List<Block> blocks = new ArrayList<>();
         Set<Block> seen = new LinkedHashSet<>();
-        for (String entry : separate(list).split(",")) {
-            String name = entry.trim().toLowerCase(Locale.ROOT);
-            if (name.isEmpty()) {
-                continue;
-            }
-            if (!name.contains(":")) {
-                name = "minecraft:" + name;
-            }
-            Identifier id = Identifier.tryParse(name);
-            if (id == null || !BuiltInRegistries.BLOCK.containsKey(id)) {
-                continue;
-            }
-            Block block = BuiltInRegistries.BLOCK.getValue(id);
-            if (seen.add(block)) {
+        for (String entry : tokens(list)) {
+            Block block = blockOf(entry);
+            if (block != null && seen.add(block)) {
                 blocks.add(block);
             }
         }
         return List.copyOf(blocks);
+    }
+
+    public static String knownOnly(String list) {
+        List<String> good = new ArrayList<>();
+        for (String entry : tokens(list)) {
+            if (blockOf(entry) != null && !good.contains(entry)) {
+                good.add(entry);
+            }
+        }
+        return String.join(", ", good);
+    }
+
+    public static List<String> unknown(String list) {
+        List<String> bad = new ArrayList<>();
+        for (String entry : tokens(list)) {
+            if (blockOf(entry) == null && !bad.contains(entry)) {
+                bad.add(entry);
+            }
+        }
+        return List.copyOf(bad);
+    }
+
+    private static Block blockOf(String name) {
+        String full = name.contains(":") ? name : "minecraft:" + name;
+        Identifier id = Identifier.tryParse(full);
+        if (id == null || !BuiltInRegistries.BLOCK.containsKey(id)) {
+            return null;
+        }
+        return BuiltInRegistries.BLOCK.getValue(id);
+    }
+
+    private static List<String> tokens(String list) {
+        List<String> found = new ArrayList<>();
+        if (list == null || list.isBlank()) {
+            return found;
+        }
+        for (String entry : separate(list).split(",")) {
+            String name = entry.trim().toLowerCase(Locale.ROOT);
+            if (!name.isEmpty()) {
+                found.add(name);
+            }
+        }
+        return found;
     }
 
     public static String separate(String list) {

@@ -55,6 +55,7 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `Nothing to stop.` | Nothing was walking, held or running |
 | `Unknown command: name` | No such command |
 | `Unknown setting: name` | No such setting |
+| `Not a block in the game: name` | A block list had a name that is not a block, so nothing changed |
 | `No macro named name` | No such macro |
 | `'loop' is missing 'endloop'` | The open macro has an unclosed loop |
 
