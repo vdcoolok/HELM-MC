@@ -128,7 +128,7 @@ $stop
 | Key | What it does |
 | --- | --- |
 | `↑` `↓` | Move the cursor |
-| `Tab` or click | Choose the highlighted entry |
+| `Tab` or click | Choose the highlighted entry, or toggle it on a block list |
 | `Space` | Add or remove the highlighted block, on a block list |
 | `Enter` | Confirm and send |
 | `Esc` | Close the picker |
@@ -146,13 +146,17 @@ $set movement.placementBlocks
 ```
 
 Type part of a block name to narrow the list, then move with `↑` and `↓` and
-press `Space` to add the highlighted block or take it away again. Blocks already
-chosen are marked. Press `Space` as many times as you like: the list grows, and
-the order it grows in is the order the blocks are preferred in.
+press `Space` to add the highlighted block or take it away again. Clicking a
+block does the same thing. Blocks already chosen are marked, and the search you
+typed is left exactly as it was, so you can carry on narrowing the list and pick
+several in a row.
 
-The list is saved as soon as it changes, so nothing needs confirming. Press
-`Enter` to send the finished command, or `Esc` to close without sending anything
-else.
+The list is saved as soon as it changes, so nothing needs confirming. The order
+blocks are added in is the order they are preferred in.
+
+Press `Enter` to send the command as it stands, or `Esc` to close the picker
+without sending it. Sending the command is only needed to leave a hand written
+list in place; picking blocks with `Space` has already saved it.
 
 ## Your data
 

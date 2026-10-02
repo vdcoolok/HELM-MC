@@ -128,8 +128,9 @@ matters: earlier blocks win when several of them are in the hotbar.
 
 It is a list of blocks, so it opens a picker of every block in the game rather
 than taking a single value. Type part of a name to narrow it, then move with
-`↑` `↓` and press `Space` to add or remove the highlighted block. Blocks already
-on the list are marked, and the list is saved as soon as it changes.
+`↑` `↓` and press `Space`, or click, to add or remove the highlighted block.
+Blocks already on the list are marked, the search is left as you typed it, and
+the list is saved as soon as it changes.
 
 ```
 $set movement.placementBlocks

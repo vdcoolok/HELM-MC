@@ -16,7 +16,6 @@ import dev.helm.command.popup.PopupRow;
 import dev.helm.command.popup.PopupRows;
 import dev.helm.command.popup.PopupState;
 import dev.helm.setting.SettingCatalogue;
-import dev.helm.setting.SettingPickerScreen;
 import dev.helm.setting.SettingsCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -87,7 +86,9 @@ public abstract class MixinChatScreen {
             if (state.selected() < 0) {
                 state.select(0);
             }
-            helmApply();
+            if (!helmToggleBlock(value, cursor)) {
+                helmApply();
+            }
         } else {
             return;
         }
@@ -114,18 +115,9 @@ public abstract class MixinChatScreen {
         }
         SettingsCommand.applySideEffects();
         SettingsCommand.save();
-        helmShowAllBlocks(entry.key());
         helmRefresh();
         helmReselect(row.insert());
         return true;
-    }
-
-    private void helmShowAllBlocks(String key) {
-        String text = SettingPickerScreen.PREFIX + key + " ";
-        input.setValue(text);
-        int end = text.length();
-        input.setCursorPosition(end);
-        input.setHighlightPos(end);
     }
 
     private void helmReselect(String path) {
@@ -157,7 +149,11 @@ public abstract class MixinChatScreen {
             return;
         }
         state.select(row);
-        helmApply();
+        String value = inputValue();
+        int cursor = input == null ? 0 : input.getCursorPosition();
+        if (!helmToggleBlock(value, cursor)) {
+            helmApply();
+        }
         callback.setReturnValue(true);
     }
 
