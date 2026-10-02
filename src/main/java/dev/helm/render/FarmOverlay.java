@@ -20,8 +20,7 @@ import dev.helm.setting.Settings;
 public final class FarmOverlay {
 
     private static final StagedVertexBuffer BUFFER = new StagedVertexBuffer(() -> "HELM Farm", 128);
-    private static final float ALPHA = 1.0F;
-    private static final LineColour TINT = LineColour.of(0xFFFF2020);
+    private static final float ALPHA = 0.3F;
 
     private FarmOverlay() {
     }
@@ -68,7 +67,7 @@ public final class FarmOverlay {
         if (crops.isEmpty()) {
             return 0;
         }
-        FillBatch batch = batch(pose, fill, TINT);
+        FillBatch batch = batch(pose, fill, LineColour.GOAL);
         int drawn = 0;
         boolean first = true;
         for (BlockPos crop : crops) {
@@ -91,7 +90,7 @@ public final class FarmOverlay {
         if (farm.harvestLedger().empty()) {
             return 0;
         }
-        FillBatch batch = batch(pose, fill, TINT);
+        FillBatch batch = batch(pose, fill, LineColour.PLACE);
         int drawn = 0;
         boolean first = true;
         for (Entity entity : level.entitiesForRendering()) {

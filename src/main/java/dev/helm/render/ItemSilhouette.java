@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemDisplayContext;
-import org.joml.Vector3fc;
+import net.minecraft.world.phys.AABB;
 
 public final class ItemSilhouette {
 
@@ -20,10 +20,17 @@ public final class ItemSilhouette {
     public static List<double[]> corners(ItemEntity dropped) {
         ItemStackRenderState state = new ItemStackRenderState();
         resolver().updateForNonLiving(state, dropped.getItem(), ItemDisplayContext.GROUND, dropped);
-        List<double[]> points = new ArrayList<>();
-        state.visitExtents((Vector3fc corner) -> points.add(
-                new double[]{corner.x(), corner.y(), corner.z()}));
-        return points;
+        AABB box = state.getModelBoundingBox();
+        List<double[]> corners = new ArrayList<>(8);
+        corners.add(new double[]{box.minX, box.minY, box.minZ});
+        corners.add(new double[]{box.maxX, box.minY, box.minZ});
+        corners.add(new double[]{box.maxX, box.minY, box.maxZ});
+        corners.add(new double[]{box.minX, box.minY, box.maxZ});
+        corners.add(new double[]{box.minX, box.maxY, box.minZ});
+        corners.add(new double[]{box.maxX, box.maxY, box.minZ});
+        corners.add(new double[]{box.maxX, box.maxY, box.maxZ});
+        corners.add(new double[]{box.minX, box.maxY, box.maxZ});
+        return corners;
     }
 
     public static float modelFloor(List<double[]> corners) {

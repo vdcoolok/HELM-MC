@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.block.BlockModelResolver;
 import net.minecraft.client.renderer.block.BlockStateModelSet;
@@ -15,7 +16,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Matrix4f;
 
@@ -54,10 +55,14 @@ public final class BlockSilhouette {
     }
 
     private static List<double[]> outlined(BlockState state) {
+        ClientLevel level = Minecraft.getInstance().level;
+        if (level == null) {
+            return List.of();
+        }
         List<double[]> corners = new ArrayList<>();
-        VoxelShape shape = state.getShape(Minecraft.getInstance().level, BlockPos.ZERO);
+        VoxelShape shape = state.getShape(level, BlockPos.ZERO, CollisionContext.empty());
         if (shape.isEmpty()) {
-            shape = Shapes.block();
+            return corners;
         }
         for (AABB part : shape.toAabbs()) {
             corners.add(new double[]{part.minX, part.minY, part.minZ});
