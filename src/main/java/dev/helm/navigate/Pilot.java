@@ -260,8 +260,19 @@ public final class Pilot {
             return;
         }
         Trace.instance().event("walk", "still short of " + target.label()
+                + ", nearest target " + nearest(target) + " blocks away"
                 + ", searching again from where the player actually is");
         replan(target);
+    }
+
+    private static String nearest(Objective target) {
+        var player = Minecraft.getInstance().player;
+        if (player == null) {
+            return "an unknown";
+        }
+        var feet = player.blockPosition();
+        return String.format("%.1f", target.goal()
+                .estimate(feet.getX(), feet.getY(), feet.getZ()));
     }
 
     private String whereAmI() {
