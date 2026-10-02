@@ -1163,9 +1163,10 @@ applies to them too.
 The outline follows the shape of the block rather than filling the whole cube, so
 a crop is drawn around the plant itself, which is a thin column that gets taller
 as it grows, and a slab or stair is drawn around its own steps. A dropped item is
-drawn as a single flat loop around the sprite the item is actually rendered as,
-at the size the item really is and turned the way it is lying, rather than around
-a box.
+drawn around its model: the outline is taken from the corners of the geometry the
+item is actually rendered from, joined along the edges between them, so a flat
+item is drawn as a flat shape and a block item is drawn as a block rather than
+both being drawn as the item's hitbox.
 
 ### When it gives up
 

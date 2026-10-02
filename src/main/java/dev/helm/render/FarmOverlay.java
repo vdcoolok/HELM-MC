@@ -1,6 +1,5 @@
 package dev.helm.render;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -78,9 +77,22 @@ public final class FarmOverlay {
                     || !farm.harvestLedger().wants(dropped.getItem())) {
                 continue;
             }
-            DropSprite.outline(batch, shifted(DropSprite.corners(dropped), view));
+            drawSilhouette(batch, dropped, view);
         }
         batch.flush();
+    }
+
+    private static void drawSilhouette(LineBatch batch, ItemEntity dropped, ViewOffset view) {
+        List<double[]> model = ItemSilhouette.points(dropped, dropped.getItem());
+        if (model.isEmpty()) {
+            return;
+        }
+        List<double[]> placed = Silhouette.placed(dropped, model, view);
+        for (int[] edge : ItemSilhouette.edges(model)) {
+            double[] from = placed.get(edge[0]);
+            double[] to = placed.get(edge[1]);
+            batch.segment(from[0], from[1], from[2], to[0], to[1], to[2]);
+        }
     }
 
     private static LineBatch batch(PoseStack pose, float width,
@@ -95,14 +107,5 @@ public final class FarmOverlay {
         return new AABB(view.applyX(bounds.minX), view.applyY(bounds.minY),
                 view.applyZ(bounds.minZ), view.applyX(bounds.maxX),
                 view.applyY(bounds.maxY), view.applyZ(bounds.maxZ));
-    }
-
-    private static List<double[]> shifted(List<double[]> corners, ViewOffset view) {
-        List<double[]> moved = new ArrayList<>(corners.size());
-        for (double[] corner : corners) {
-            moved.add(new double[]{view.applyX(corner[0]), view.applyY(corner[1]),
-                    view.applyZ(corner[2])});
-        }
-        return moved;
     }
 }
