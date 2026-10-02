@@ -78,9 +78,6 @@ public abstract class MixinChatScreen {
         } else if (columns && PopupKeys.isRight(event)) {
             state.moveToColumnSlot(1);
         } else if (PopupKeys.isTab(event)) {
-            if (PopupGate.mode(value, cursor) == Mode.BLOCKS) {
-                return;
-            }
             if (state.selected() < 0) {
                 state.select(0);
             }

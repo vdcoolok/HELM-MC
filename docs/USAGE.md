@@ -129,7 +129,8 @@ $stop
 | --- | --- |
 | `↑` `↓` | Move the cursor |
 | `←` `→` | Move between columns, while a macro is open |
-| `Tab` or click | Choose the highlighted entry |
+| `Tab` | Complete the highlighted entry into the command |
+| Click | Choose the highlighted entry |
 | `Enter` | Confirm and send |
 | `Esc` | Close the picker |
 
@@ -161,12 +162,24 @@ That replaces the whole list, so only those three are chosen. The left column
 filters on the last word you typed, and it accepts either `oak_planks` or
 `oak planks` when searching, but only the underscored name is one block.
 
+`Tab` completes the highlighted block into the command, so a list can be built
+without spelling anything out in full. Start a word, press `Tab`, press `Space`,
+press `Tab` again for the next one:
+
+```
+$set movement.placementBlocks dirt [Tab] [Space] oak_planks [Tab]
+```
+
+Completing a word that is already complete changes nothing, so pressing `Tab`
+again on the same block is harmless.
+
 Spaces or commas both separate blocks, names may be written bare or with the
 `minecraft:` prefix, and anything that is not a block in the game is ignored. The
 order the blocks are in is the order they are preferred in.
 
 Nothing is chosen until you send the command. `Space` types a space, so a list
-can be written out normally, and clicking a row does not change the setting.
+can be written out normally, and clicking a row leaves the setting alone so you
+can still put the cursor where you want it.
 
 ## Your data
 

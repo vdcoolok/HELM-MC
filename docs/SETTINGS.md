@@ -130,7 +130,8 @@ It is a list of blocks, so it opens a picker of every block in the game rather
 than taking a single value. The picker has two columns: every block on the left,
 narrowed as you type and shown by its full name such as `minecraft:oak_planks`,
 and the blocks currently on the list on the right. It is a search aid, not an
-editor: nothing is chosen until the command is sent.
+editor: nothing is chosen until the command is sent, and `Tab` completes the
+highlighted block's full name into the command.
 
 Type the blocks after the setting name and press `Enter`. That replaces the
 whole list:
