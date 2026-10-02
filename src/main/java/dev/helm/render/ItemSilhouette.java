@@ -6,12 +6,9 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.AABB;
-import org.joml.Matrix4fc;
-import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import dev.helm.mixin.accessor.ItemLayerAccess;
@@ -27,20 +24,15 @@ public final class ItemSilhouette {
     public static List<double[]> outline(ItemEntity dropped) {
         ItemStackRenderState state = built(dropped);
         ItemRenderStateAccess access = (ItemRenderStateAccess) state;
-        ItemStackRenderState.LayerRenderState[] layers = access.layers();
-        if (access.activeLayers() < 1 || layers.length < 1) {
+        if (access.activeLayers() < 1 || access.layers().length < 1) {
             return List.of();
         }
-        Matrix4fc transform = ((ItemLayerAccess) layers[0]).localTransform();
-        List<double[]> corners = new ArrayList<>();
-        for (BakedQuad quad : layers[0].prepareQuadList()) {
-            for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
-                Vector3fc corner = quad.position(i);
-                Vector3f at = new Vector3f(corner).mulPosition(transform);
-                corners.add(new double[]{at.x(), at.y(), at.z()});
-            }
+        Vector3fc[] corners = ((ItemLayerAccess) access.layers()[0]).extents().get();
+        List<double[]> points = new ArrayList<>(corners.length);
+        for (Vector3fc corner : corners) {
+            points.add(new double[]{corner.x(), corner.y(), corner.z()});
         }
-        return corners;
+        return points;
     }
 
     public static AABB modelBox(ItemEntity dropped) {

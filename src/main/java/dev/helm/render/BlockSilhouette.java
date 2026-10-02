@@ -49,12 +49,11 @@ public final class BlockSilhouette {
     }
 
     private static List<BlockStateModelPart> parts(BlockState state) {
-        List<BlockStateModelPart> parts = new ArrayList<>();
         BlockModelRenderState model = new BlockModelRenderState();
         resolver().update(model, state, BlockDisplayContext.create());
-        model.setupModel(IDENTITY, false);
+        List<BlockStateModelPart> parts = model.setupModel(IDENTITY, false);
         BlockStateModel blockModel = models().get(state);
-        if (blockModel != null) {
+        if (blockModel != null && parts.isEmpty()) {
             blockModel.collectParts(model.scratchRandomSource(SEED), parts);
         }
         return parts;

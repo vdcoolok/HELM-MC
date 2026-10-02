@@ -85,7 +85,7 @@ public final class FarmOverlay {
                         level.getBlockState(crop).getBlock().toString() + " mesh "
                                 + (placed.size() / 4) + " faces");
             }
-            MeshOutline.draw(batch, placed);
+            ShapeOutline.draw(batch, placed);
             drawn += placed.size() / 4;
         }
         batch.flush();
@@ -133,7 +133,7 @@ public final class FarmOverlay {
                     + " by " + round(box.getYsize()) + " by " + round(box.getZsize())
                     + ", rise " + round(rise) + ", spin " + round(spin));
         }
-        MeshOutline.draw(batch, placed);
+        ShapeOutline.draw(batch, placed);
         return corners.size() / 4;
     }
 
