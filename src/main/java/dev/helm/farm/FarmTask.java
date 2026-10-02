@@ -90,7 +90,7 @@ public final class FarmTask {
             giveUp("nothing it wanted could be reached");
             return;
         }
-        headFor(FarmGoals.from(findings, player, level));
+        headFor(findings, player, level);
     }
 
     private void sweepInTime(ClientLevel level, LocalPlayer player) {
@@ -100,9 +100,14 @@ public final class FarmTask {
         if (!due) {
             return;
         }
+        Pilot pilot = pilot();
+        if (pilot.isWalking() || pilot.searching()) {
+            return;
+        }
+        long started = System.nanoTime();
         swept = FarmScan.sweep(level, player.blockPosition(), Settings.holder().farm());
         Trace.instance().event("farm", "swept and found " + swept.size()
-                + " blocks worth looking at");
+                + " blocks worth looking at in " + millisSince(started) + "ms");
     }
 
     private boolean tended(FarmFindings findings, LocalPlayer player, ClientLevel level) {
@@ -203,17 +208,17 @@ public final class FarmTask {
         return true;
     }
 
-    private void headFor(AnyGoal goal) {
-        if (goal.count() == 0) {
-            giveUp("there was nothing left to do");
-            return;
-        }
+    private void headFor(FarmFindings findings, LocalPlayer player, ClientLevel level) {
         Pilot pilot = pilot();
         if (pilot.isWalking() || pilot.searching()) {
             return;
         }
-        var player = Minecraft.getInstance().player;
-        if (player == null) {
+        long started = System.nanoTime();
+        AnyGoal goal = FarmGoals.from(findings, player, level);
+        Trace.instance().event("farm", "built a goal of " + goal.count() + " targets in "
+                + millisSince(started) + "ms");
+        if (goal.count() == 0) {
+            giveUp("there was nothing left to do");
             return;
         }
         var feet = player.blockPosition();
@@ -227,6 +232,10 @@ public final class FarmTask {
     }
 
     private void standStill() {
+        var player = Minecraft.getInstance().player;
+        if (player == null || !player.onGround()) {
+            return;
+        }
         Pilot pilot = pilot();
         if (pilot.isWalking() || pilot.searching()) {
             pilot.halt();
@@ -244,6 +253,10 @@ public final class FarmTask {
 
     private static Pilot pilot() {
         return NavigatorAgent.instance().pilot();
+    }
+
+    private static long millisSince(long started) {
+        return (System.nanoTime() - started) / 1_000_000L;
     }
 
     private static LookSettings look() {

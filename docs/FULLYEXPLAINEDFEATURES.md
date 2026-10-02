@@ -921,6 +921,14 @@ cap. Everything else is re-checked against the live world every tick, so a crop
 that is harvested leaves the work list immediately rather than waiting for the
 next scan.
 
+No scan happens while a route is being walked, because the targets on that route
+are already known. The next scan runs on the first tick after the route ends, so
+walking a long route defers the scan rather than skipping it.
+
+Building the list of things to walk to is also not free, since it has to look
+at every dropped crop in the level to decide what is worth picking up. That only
+happens when a route is actually needed, not on every tick.
+
 Only loaded chunks are read. Chunks the player has never been near are not
 scanned, fetched or remembered, so `$farm` never causes the client to load the
 world around you.
@@ -1007,6 +1015,12 @@ is not something farming is for.
 
 Once a target is close enough to touch, farming stops walking and works on it.
 Walking is resumed after, from wherever the player ended up.
+
+There is one exception. If the player is already airborne, farming does not stop
+the walk, because interrupting a jump part way through resets the walk's state
+and makes the step it was in the middle of start its jump again. Jumping on
+purpose rather than holding the button down matters more here than standing
+perfectly still on a crop.
 
 It always prefers to work on the first thing it can reach in its own order, so a
 ripe crop within reach is taken before a bare field ten blocks away is planted.

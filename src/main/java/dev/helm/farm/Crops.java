@@ -21,6 +21,9 @@ import dev.helm.setting.Settings;
 
 public final class Crops {
 
+    private static List<ReadyCrop> catalogue = List.of();
+    private static boolean catalogueReplants;
+
     private Crops() {
     }
 
@@ -39,6 +42,15 @@ public final class Crops {
     }
 
     private static List<ReadyCrop> ripe() {
+        boolean replants = Settings.holder().farm().replant();
+        if (catalogue.isEmpty() || catalogueReplants != replants) {
+            catalogueReplants = replants;
+            catalogue = catalogueOf(replants);
+        }
+        return catalogue;
+    }
+
+    private static List<ReadyCrop> catalogueOf(boolean replants) {
         return List.of(
                 new ReadyCrop(Blocks.WHEAT, atMaxAge()),
                 new ReadyCrop(Blocks.CARROTS, atMaxAge()),
@@ -48,9 +60,9 @@ public final class Crops {
                 new ReadyCrop(Blocks.MELON, whenever()),
                 new ReadyCrop(Blocks.NETHER_WART, atLeast(NetherWartBlock.AGE, 3)),
                 new ReadyCrop(Blocks.COCOA, atLeast(CocoaBlock.AGE, 2)),
-                new ReadyCrop(Blocks.SUGAR_CANE, topOfStack(SugarCaneBlock.class)),
-                new ReadyCrop(Blocks.BAMBOO, topOfStack(BambooStalkBlock.class)),
-                new ReadyCrop(Blocks.CACTUS, topOfStack(CactusBlock.class)));
+                new ReadyCrop(Blocks.SUGAR_CANE, topOfStack(SugarCaneBlock.class, replants)),
+                new ReadyCrop(Blocks.BAMBOO, topOfStack(BambooStalkBlock.class, replants)),
+                new ReadyCrop(Blocks.CACTUS, topOfStack(CactusBlock.class, replants)));
     }
 
     private static Ripe atMaxAge() {
@@ -65,8 +77,8 @@ public final class Crops {
         return (level, pos, state) -> true;
     }
 
-    private static Ripe topOfStack(Class<?> stem) {
-        if (!Settings.holder().farm().replant()) {
+    private static Ripe topOfStack(Class<?> stem, boolean replants) {
+        if (!replants) {
             return whenever();
         }
         return (level, pos, state) -> stem.isInstance(level.getBlockState(pos.below()).getBlock());

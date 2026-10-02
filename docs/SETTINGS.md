@@ -315,12 +315,17 @@ taken so the rest is left to grow; off, every block of a stalk is taken.
 on. With it off, soul sand is never looked for, so nether wart is harvested and
 left bare.
 
-`farm.rescanEveryTicks` is how often HELM looks around for more crops. The
-positions from one sweep are kept and re-checked against the live world every
-tick, so a block that is harvested disappears from the list immediately. The
-sweep itself is the expensive part and is what this setting spaces out. Setting
-it to `0` sweeps once, when `$farm` starts, and never looks again, so anything
-that grows or is planted after that will not be noticed.
+`farm.rescanEveryTicks` is how often HELM looks around for more crops when it has
+nothing else to do. The positions from one sweep are kept and re-checked against
+the live world every tick, so a block that is harvested disappears from the list
+immediately. The sweep itself is the expensive part and is what this setting
+spaces out.
+
+While a route is being walked no sweep happens at all, because the targets it is
+walking towards are already known. The next sweep runs on the first tick after
+that route finishes, so nothing is missed, only deferred. Setting this to `0`
+sweeps once, when `$farm` starts, and never looks again, so anything that grows
+or is planted after that will not be noticed.
 
 `farm.maxTargets` caps how many blocks one sweep returns, so sweeping a huge flat
 world cannot run away. The sweep stops as soon as it has this many, unless it is
