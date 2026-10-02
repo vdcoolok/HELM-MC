@@ -1,5 +1,6 @@
 package dev.helm.render;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -21,7 +22,6 @@ public final class FarmOverlay {
     private static final StagedVertexBuffer BUFFER = new StagedVertexBuffer(() -> "HELM Farm", 128);
     private static final float ALPHA = 0.55F;
     private static final double BOX_EXPAND = 0.006D;
-    private static final double DROP_EXPAND = 0.02D;
 
     private FarmOverlay() {
     }
@@ -60,7 +60,7 @@ public final class FarmOverlay {
         LineBatch batch = batch(pose, width, type, LineColour.GOAL);
         for (BlockPos crop : crops) {
             for (AABB part : BlockOutlines.boxesAt(new int[]{crop.getX(), crop.getY(), crop.getZ()})) {
-                batch.box(viewed(part, view).inflate(BOX_EXPAND));
+                batch.box(shifted(part, view).inflate(BOX_EXPAND));
             }
         }
         batch.flush();
@@ -78,7 +78,7 @@ public final class FarmOverlay {
                     || !farm.harvestLedger().wants(dropped.getItem())) {
                 continue;
             }
-            batch.box(viewed(DropSprite.bounds(dropped), view).inflate(DROP_EXPAND));
+            DropSprite.outline(batch, shifted(DropSprite.corners(dropped), view));
         }
         batch.flush();
     }
@@ -91,9 +91,18 @@ public final class FarmOverlay {
                 .width(width);
     }
 
-    private static AABB viewed(AABB bounds, ViewOffset view) {
+    private static AABB shifted(AABB bounds, ViewOffset view) {
         return new AABB(view.applyX(bounds.minX), view.applyY(bounds.minY),
                 view.applyZ(bounds.minZ), view.applyX(bounds.maxX),
                 view.applyY(bounds.maxY), view.applyZ(bounds.maxZ));
+    }
+
+    private static List<double[]> shifted(List<double[]> corners, ViewOffset view) {
+        List<double[]> moved = new ArrayList<>(corners.size());
+        for (double[] corner : corners) {
+            moved.add(new double[]{view.applyX(corner[0]), view.applyY(corner[1]),
+                    view.applyZ(corner[2])});
+        }
+        return moved;
     }
 }
