@@ -14,11 +14,11 @@ import org.joml.Matrix4fc;
 import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
+import dev.helm.mixin.accessor.ItemLayerAccess;
 import dev.helm.mixin.accessor.ItemRenderStateAccess;
 
 public final class ItemSilhouette {
 
-    private static final Matrix4fc IDENTITY = new org.joml.Matrix4f();
     private static ItemModelResolver resolver;
 
     private ItemSilhouette() {
@@ -28,11 +28,16 @@ public final class ItemSilhouette {
         ItemStackRenderState state = built(dropped);
         ItemRenderStateAccess access = (ItemRenderStateAccess) state;
         ItemStackRenderState.LayerRenderState[] layers = access.layers();
-        int count = Math.min(access.activeLayers(), layers.length);
+        if (access.activeLayers() < 1 || layers.length < 1) {
+            return List.of();
+        }
+        Matrix4fc transform = ((ItemLayerAccess) layers[0]).localTransform();
         List<double[]> corners = new ArrayList<>();
-        for (int i = 0; i < count; i++) {
-            for (BakedQuad quad : layers[i].prepareQuadList()) {
-                collect(corners, quad, IDENTITY);
+        for (BakedQuad quad : layers[0].prepareQuadList()) {
+            for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
+                Vector3fc corner = quad.position(i);
+                Vector3f at = new Vector3f(corner).mulPosition(transform);
+                corners.add(new double[]{at.x(), at.y(), at.z()});
             }
         }
         return corners;
@@ -46,14 +51,6 @@ public final class ItemSilhouette {
         ItemStackRenderState state = new ItemStackRenderState();
         resolver().updateForNonLiving(state, dropped.getItem(), ItemDisplayContext.GROUND, dropped);
         return state;
-    }
-
-    private static void collect(List<double[]> corners, BakedQuad quad, Matrix4fc transform) {
-        for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
-            Vector3fc corner = quad.position(i);
-            Vector3f at = new Vector3f(corner).mulPosition(transform);
-            corners.add(new double[]{at.x(), at.y(), at.z()});
-        }
     }
 
     private static ItemModelResolver resolver() {

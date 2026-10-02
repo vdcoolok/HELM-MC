@@ -50,8 +50,7 @@ public final class FarmOverlay {
             return;
         }
         ViewOffset view = ViewOffset.of(camera);
-        RenderType lines = RouteRenderTypes.forPath(
-                Settings.holder().path().blocksIgnoreDepth());
+        RenderType lines = RouteRenderTypes.forPath(true);
         int crops = settings.renderTargets() ? paintCrops(pose, level, farm.harvestable(), lines, view) : 0;
         int drops = settings.renderDrops() ? paintDrops(pose, level, farm, lines, view) : 0;
         Trace.instance().repeat("farm-tint", "render", "tint " + crops + " crops and "
