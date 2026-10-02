@@ -526,16 +526,20 @@ macro action add
 
 ```text
 [HELM] macro syntax
-[HELM]   wait <duration>         pause for a time, e.g. wait 1s
-[HELM]   goto <x> <y> <z>        walk to a position, e.g. goto -50 -50 -50
-[HELM]   gotohere                walk to where you are aiming, e.g. gotohere
-[HELM]   lookat <pitch> / <yaw>  turn to an angle, e.g. lookat 14/240
-[HELM]   lookathere              turn to where you are aiming, e.g. lookathere
-[HELM]   hold <input>            press and keep an input down, e.g. hold M1
-[HELM]   release <input>         let an input go, e.g. release M1
-[HELM]   press <input>           tap an input once, e.g. press M1
-[HELM]   loop [count]            repeat a block until endloop, e.g. loop 3
-[HELM]   endloop                 close a loop, e.g. endloop
+[HELM]   wait <duration>             pause for a time, e.g. wait 1s
+[HELM]   goto <x> <y> <z>            walk to a position, e.g. goto -50 -50 -50
+[HELM]   gotohere                    walk to where you are aiming, e.g. gotohere
+[HELM]   autogoto <x> <y> <z>        walk to a position and keep going back if pushed off it, e.g. autogoto -50 -50 -50
+[HELM]   autogotohere                hold the block you are standing in, e.g. autogotohere
+[HELM]   lookat <pitch> / <yaw>      turn to an angle, e.g. lookat 14/240
+[HELM]   lookathere                  turn to where you are aiming, e.g. lookathere
+[HELM]   autolookat <pitch> / <yaw>  lock an angle, ignoring the mouse until $stop, e.g. autolookat 14/240
+[HELM]   autolookathere              lock the angle you are facing now, e.g. autolookathere
+[HELM]   hold <input>                press and keep an input down, e.g. hold M1
+[HELM]   release <input>             let an input go, e.g. release M1
+[HELM]   press <input>               tap an input once, e.g. press M1
+[HELM]   loop [count]                repeat a block until endloop, e.g. loop 3
+[HELM]   endloop                     close a loop, e.g. endloop
 [HELM] add one with: macro action add <line>
 ```
 

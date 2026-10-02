@@ -17,7 +17,6 @@ import dev.helm.command.chat.SystemMessageOutput;
 import dev.helm.storage.HelmStorage;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
 
 public final class CommandSystem {
 
@@ -37,7 +36,8 @@ public final class CommandSystem {
         commands.add(SettingsCommand.changeCommand());
         CommandTree.instance().install(commands.toArray(new Command[0]));
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HelmStorage.prepare()
-                .ifPresent(problem -> new SystemMessageOutput(client).error(Component.literal(problem))));
+                .ifPresent(problem -> new SystemMessageOutput(client)
+                        .error(CommandFeedback.error(problem))));
     }
 
     public static boolean isCommandLine(String message) {

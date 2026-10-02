@@ -5,7 +5,6 @@ import java.util.Deque;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.chat.Component;
 
 import dev.helm.setting.LookSettings;
 
@@ -221,12 +220,5 @@ public final class LookController {
             return new MouseScale(0.5D);
         }
         return MouseScale.fromOptions(client.options.sensitivity().get());
-    }
-
-    public void report(String message) {
-        Minecraft client = Minecraft.getInstance();
-        if (client != null && client.gui != null && client.gui.hud != null) {
-            client.gui.hud.getChat().addClientSystemMessage(Component.literal(message));
-        }
     }
 }
