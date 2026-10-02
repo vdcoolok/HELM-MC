@@ -30,7 +30,7 @@ public final class BlockSilhouette {
     private BlockSilhouette() {
     }
 
-    public static List<double[]> quads(BlockState state) {
+    public static Mesh mesh(BlockState state) {
         List<BlockStateModelPart> found = parts(state);
         List<double[]> corners = new ArrayList<>();
         StringBuilder counts = new StringBuilder();
@@ -41,7 +41,6 @@ public final class BlockSilhouette {
             }
             counts.append(' ').append(perPart);
         }
-        Faces.last.set(found.size() + " parts:" + counts);
         for (BlockStateModelPart part : found) {
             for (Direction face : Direction.values()) {
                 for (BakedQuad quad : part.getQuads(face)) {
@@ -52,10 +51,12 @@ public final class BlockSilhouette {
                 }
             }
         }
-        if (corners.isEmpty()) {
-            return outlined(state);
-        }
-        return corners;
+        return corners.isEmpty()
+                ? new Mesh(outlined(state), "none")
+                : new Mesh(corners, found.size() + " parts:" + counts);
+    }
+
+    public record Mesh(List<double[]> corners, String parts) {
     }
 
     private static List<BlockStateModelPart> parts(BlockState state) {

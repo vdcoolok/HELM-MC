@@ -1,8 +1,8 @@
 package dev.helm.render;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.item.ItemEntity;
-import net.minecraft.world.phys.AABB;
 
 public final class ItemBob {
 
@@ -14,12 +14,16 @@ public final class ItemBob {
     private ItemBob() {
     }
 
-    public static float rise(ItemEntity dropped, AABB model) {
-        return Mth.sin(dropped.tickCount / BOB_SPEED + dropped.bobOffs) * BOB_HEIGHT
-                + BOB_BASE - (float) model.minY + HOVER_GAP;
+    public static float age(ItemEntity dropped) {
+        return dropped.tickCount + Minecraft.getInstance().getDeltaTracker().getGameTimeDeltaTicks();
+    }
+
+    public static float rise(ItemEntity dropped, double modelFloor) {
+        return Mth.sin(age(dropped) / BOB_SPEED + dropped.bobOffs) * BOB_HEIGHT
+                + BOB_BASE - (float) modelFloor + HOVER_GAP;
     }
 
     public static float spin(ItemEntity dropped) {
-        return ItemEntity.getSpin(dropped.tickCount, dropped.bobOffs);
+        return ItemEntity.getSpin(age(dropped), dropped.bobOffs);
     }
 }

@@ -13,9 +13,7 @@
     "MixinLevelRenderer",
     "MixinEntityMovementRotation",
     "MixinLivingEntityJumpRotation",
-    "accessor.GameModeAccess",
-    "accessor.ItemRenderStateAccess",
-    "accessor.ItemLayerAccess"
+    "accessor.GameModeAccess"
   ],
   "injectors": {
     "defaultRequire": 1

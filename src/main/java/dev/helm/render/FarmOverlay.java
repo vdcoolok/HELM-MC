@@ -69,7 +69,8 @@ public final class FarmOverlay {
         int drawn = 0;
         boolean first = true;
         for (BlockPos crop : crops) {
-            List<double[]> quads = BlockSilhouette.quads(level.getBlockState(crop));
+            BlockSilhouette.Mesh mesh = BlockSilhouette.mesh(level.getBlockState(crop));
+            List<double[]> quads = mesh.corners();
             if (quads.isEmpty()) {
                 continue;
             }
@@ -81,12 +82,14 @@ public final class FarmOverlay {
             }
             if (first) {
                 first = false;
+                AABB box = ShapeOutline.bounds(placed);
                 Trace.instance().pulse("farm-tint-crop", "render",
-                        level.getBlockState(crop).getBlock().toString() + " mesh "
-                                + (placed.size() / 4) + " corners " + placed.size()
-                                + " from " + Faces.last.get());
+                        level.getBlockState(crop).getBlock().toString() + " outline "
+                                + (placed.size() / 4) + " faces, box " + round(box.getXsize())
+                                + " by " + round(box.getYsize()) + " by " + round(box.getZsize())
+                                + ", floor " + round(box.minY) + " from " + mesh.parts());
             }
-            ShapeOutline.draw(batch, placed);
+            ShapeOutline.each(batch, placed);
             drawn += placed.size() / 4;
         }
         batch.flush();
@@ -117,22 +120,22 @@ public final class FarmOverlay {
     }
 
     private static int outlineDrop(LineBatch batch, ItemEntity dropped, ViewOffset view, boolean first) {
-        AABB box = ItemSilhouette.modelBox(dropped);
-        List<double[]> corners = ItemSilhouette.outline(dropped);
-        if (box == null || corners.isEmpty()) {
+        List<double[]> corners = ItemSilhouette.corners(dropped);
+        if (corners.isEmpty()) {
             return 0;
         }
-        float rise = ItemBob.rise(dropped, box);
+        float rise = ItemBob.rise(dropped, ShapeOutline.lowest(corners));
         float spin = ItemBob.spin(dropped);
         List<double[]> placed = new java.util.ArrayList<>(corners.size());
         for (double[] corner : corners) {
             placed.add(viewed(corner, dropped, rise, spin, view));
         }
         if (first) {
+            AABB box = ShapeOutline.bounds(corners);
             Trace.instance().pulse("farm-tint-drop", "render", dropped.getDisplayName().getString()
-                    + " mesh " + (corners.size() / 4) + " faces, box " + round(box.getXsize())
+                    + " outline " + corners.size() + " corners, box " + round(box.getXsize())
                     + " by " + round(box.getYsize()) + " by " + round(box.getZsize())
-                    + ", rise " + round(rise) + ", spin " + round(spin));
+                    + ", floor " + round(box.minY) + ", rise " + round(rise) + ", spin " + round(spin));
         }
         ShapeOutline.draw(batch, placed);
         return corners.size() / 4;
