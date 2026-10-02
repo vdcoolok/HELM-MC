@@ -83,7 +83,8 @@ public final class FarmOverlay {
                 first = false;
                 Trace.instance().pulse("farm-tint-crop", "render",
                         level.getBlockState(crop).getBlock().toString() + " mesh "
-                                + (placed.size() / 4) + " faces");
+                                + (placed.size() / 4) + " corners " + placed.size()
+                                + " from " + Faces.last.get());
             }
             ShapeOutline.draw(batch, placed);
             drawn += placed.size() / 4;

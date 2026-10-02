@@ -6,9 +6,12 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
+import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.AABB;
+import org.joml.Matrix4fc;
+import org.joml.Vector3f;
 import org.joml.Vector3fc;
 
 import dev.helm.mixin.accessor.ItemLayerAccess;
@@ -27,12 +30,17 @@ public final class ItemSilhouette {
         if (access.activeLayers() < 1 || access.layers().length < 1) {
             return List.of();
         }
-        Vector3fc[] corners = ((ItemLayerAccess) access.layers()[0]).extents().get();
-        List<double[]> points = new ArrayList<>(corners.length);
-        for (Vector3fc corner : corners) {
-            points.add(new double[]{corner.x(), corner.y(), corner.z()});
+        ItemStackRenderState.LayerRenderState layer = access.layers()[0];
+        Matrix4fc transform = ((ItemLayerAccess) layer).localTransform();
+        List<double[]> corners = new ArrayList<>();
+        for (BakedQuad quad : layer.prepareQuadList()) {
+            for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
+                Vector3fc corner = quad.position(i);
+                Vector3f at = new Vector3f(corner).mulPosition(transform);
+                corners.add(new double[]{at.x(), at.y(), at.z()});
+            }
         }
-        return points;
+        return corners;
     }
 
     public static AABB modelBox(ItemEntity dropped) {

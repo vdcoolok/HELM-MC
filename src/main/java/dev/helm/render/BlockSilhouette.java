@@ -31,8 +31,18 @@ public final class BlockSilhouette {
     }
 
     public static List<double[]> quads(BlockState state) {
+        List<BlockStateModelPart> found = parts(state);
         List<double[]> corners = new ArrayList<>();
-        for (BlockStateModelPart part : parts(state)) {
+        StringBuilder counts = new StringBuilder();
+        for (BlockStateModelPart part : found) {
+            int perPart = 0;
+            for (Direction face : Direction.values()) {
+                perPart += part.getQuads(face).size();
+            }
+            counts.append(' ').append(perPart);
+        }
+        Faces.last.set(found.size() + " parts:" + counts);
+        for (BlockStateModelPart part : found) {
             for (Direction face : Direction.values()) {
                 for (BakedQuad quad : part.getQuads(face)) {
                     for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
