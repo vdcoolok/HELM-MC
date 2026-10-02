@@ -1,13 +1,9 @@
 package dev.helm.render;
 
-import com.mojang.blaze3d.pipeline.BlendFunction;
-import com.mojang.blaze3d.pipeline.ColorTargetState;
 import com.mojang.blaze3d.pipeline.DepthStencilState;
 import com.mojang.blaze3d.pipeline.RenderPipeline;
 import com.mojang.blaze3d.platform.CompareOp;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import net.minecraft.client.renderer.RenderPipelines;
-import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
 
@@ -22,27 +18,8 @@ public final class RouteRenderTypes {
     private RouteRenderTypes() {
     }
 
-    private static final RenderType TRANSLUCENT_FILL = RenderType.create("helm_fill",
-            RenderSetup.builder(RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
-                    .withLocation("pipelines/helm_fill")
-                    .withVertexBinding(0, DefaultVertexFormat.POSITION_COLOR)
-                    .withVertexShader("core/position_color")
-                    .withFragmentShader("core/position_color")
-                    .withColorTargetState(new ColorTargetState(BlendFunction.TRANSLUCENT))
-                    .withCull(false)
-                    .withPrimitiveTopology(com.mojang.blaze3d.PrimitiveTopology.TRIANGLES)
-                    .withDepthStencilState(new DepthStencilState(CompareOp.ALWAYS_PASS, false))
-                    .build())
-                    .sortOnUpload()
-                    .setLayeringTransform(LayeringTransform.VIEW_OFFSET_Z_LAYERING)
-                    .createRenderSetup());
-
     public static RenderType forPath(boolean ignoreDepth) {
         return ignoreDepth ? NO_DEPTH : WITH_DEPTH;
-    }
-
-    public static RenderType translucentFill() {
-        return TRANSLUCENT_FILL;
     }
 
     private static RenderSetup setup(CompareOp compare) {

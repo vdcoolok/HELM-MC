@@ -30,27 +30,34 @@ public final class BlockSilhouette {
     private BlockSilhouette() {
     }
 
-    public static List<double[]> boxes(BlockState state) {
-        ClientLevel level = Minecraft.getInstance().level;
-        if (level == null) {
-            return List.of();
-        }
-        VoxelShape shape = state.getShape(level, BlockPos.ZERO, CollisionContext.empty());
-        if (shape.isEmpty()) {
-            return List.of();
-        }
+    public static List<double[]> quads(BlockState state) {
         List<double[]> corners = new ArrayList<>();
-        for (AABB part : shape.toAabbs()) {
-            corners.add(new double[]{part.minX, part.minY, part.minZ});
-            corners.add(new double[]{part.maxX, part.minY, part.minZ});
-            corners.add(new double[]{part.maxX, part.minY, part.maxZ});
-            corners.add(new double[]{part.minX, part.minY, part.maxZ});
-            corners.add(new double[]{part.minX, part.maxY, part.minZ});
-            corners.add(new double[]{part.maxX, part.maxY, part.minZ});
-            corners.add(new double[]{part.maxX, part.maxY, part.maxZ});
-            corners.add(new double[]{part.minX, part.maxY, part.maxZ});
+        for (BlockStateModelPart part : parts(state)) {
+            for (Direction face : Direction.values()) {
+                for (BakedQuad quad : part.getQuads(face)) {
+                    for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
+                        var corner = quad.position(i);
+                        corners.add(new double[]{corner.x(), corner.y(), corner.z()});
+                    }
+                }
+            }
+        }
+        if (corners.isEmpty()) {
+            return outlined(state);
         }
         return corners;
+    }
+
+    private static List<BlockStateModelPart> parts(BlockState state) {
+        List<BlockStateModelPart> parts = new ArrayList<>();
+        BlockModelRenderState model = new BlockModelRenderState();
+        resolver().update(model, state, BlockDisplayContext.create());
+        model.setupModel(IDENTITY, false);
+        BlockStateModel blockModel = models().get(state);
+        if (blockModel != null) {
+            blockModel.collectParts(model.scratchRandomSource(SEED), parts);
+        }
+        return parts;
     }
 
     private static List<double[]> outlined(BlockState state) {
@@ -58,8 +65,8 @@ public final class BlockSilhouette {
         if (level == null) {
             return List.of();
         }
-        List<double[]> corners = new ArrayList<>();
         VoxelShape shape = state.getShape(level, BlockPos.ZERO, CollisionContext.empty());
+        List<double[]> corners = new ArrayList<>();
         if (shape.isEmpty()) {
             return corners;
         }
@@ -75,8 +82,6 @@ public final class BlockSilhouette {
         }
         return corners;
     }
-
-
 
     private static BlockModelResolver resolver() {
         if (resolver == null) {

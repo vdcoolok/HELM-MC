@@ -12,7 +12,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 
 import dev.helm.diag.Trace;
 import dev.helm.farm.FarmTask;
@@ -22,7 +21,6 @@ public final class FarmOverlay {
 
     private static final StagedVertexBuffer BUFFER = new StagedVertexBuffer(() -> "HELM Farm", 128);
     private static final float ALPHA = 0.3F;
-    private static final double NUDGE = 0.02D;
 
     private FarmOverlay() {
     }
@@ -49,45 +47,55 @@ public final class FarmOverlay {
             return;
         }
         ViewOffset view = ViewOffset.of(camera);
-        RenderType fill = RouteRenderTypes.translucentFill();
-        int crops = settings.renderTargets() ? paintCrops(pose, level, farm.harvestable(), fill,
-                view, camera) : 0;
-        int drops = settings.renderDrops() ? paintDrops(pose, level, farm, fill, view, camera) : 0;
+        RenderType lines = RouteRenderTypes.forPath(
+                Settings.holder().path().blocksIgnoreDepth());
+        int crops = settings.renderTargets() ? paintCrops(pose, level, farm.harvestable(), lines, view) : 0;
+        int drops = settings.renderDrops() ? paintDrops(pose, level, farm, lines, view) : 0;
         Trace.instance().repeat("farm-tint", "render", "tint " + crops + " crops and "
-                + drops + " drops, each " + fill.format() + " " + fill.primitiveTopology());
+                + drops + " drops");
     }
 
     private static int paintCrops(PoseStack pose, ClientLevel level, List<BlockPos> crops,
-                                  RenderType fill, ViewOffset view, CameraRenderState camera) {
+                                  RenderType lines, ViewOffset view) {
         if (crops.isEmpty()) {
             return 0;
         }
-        FillBatch batch = batch(pose, fill, LineColour.GOAL);
+        LineBatch batch = new LineBatch(BUFFER, pose, lines)
+                .colour(LineColour.GOAL.red(), LineColour.GOAL.green(),
+                        LineColour.GOAL.blue(), ALPHA)
+                .width((float) Settings.holder().path().lineWidth());
         int drawn = 0;
+        boolean first = true;
         for (BlockPos crop : crops) {
-            List<double[]> box = BlockSilhouette.boxes(level.getBlockState(crop));
-            if (box.isEmpty()) {
+            List<double[]> quads = BlockSilhouette.quads(level.getBlockState(crop));
+            if (quads.isEmpty()) {
                 continue;
             }
-            AABB bounds = bounds(box);
-            Vec3 mid = bounds.getCenter();
-            Vec3 centre = new Vec3(crop.getX() + mid.x, crop.getY() + mid.y,
-                    crop.getZ() + mid.z);
-            ShapeFill.corners(batch, Billboard.facing(camera, centre,
-                    Math.max(bounds.getXsize(), bounds.getZsize()) / 2.0D + NUDGE,
-                    bounds.getYsize() / 2.0D + NUDGE, 0.0D, view));
-            drawn++;
+            List<double[]> placed = new java.util.ArrayList<>(quads.size());
+            for (double[] corner : quads) {
+                placed.add(new double[]{view.applyX(corner[0] + crop.getX()),
+                        view.applyY(corner[1] + crop.getY()),
+                        view.applyZ(corner[2] + crop.getZ())});
+            }
+            if (first) {
+                first = false;
+                Trace.instance().pulse("farm-tint-crop", "render",
+                        level.getBlockState(crop).getBlock().toString() + " mesh "
+                                + (placed.size() / 4) + " faces");
+            }
+            MeshOutline.draw(batch, placed);
+            drawn += placed.size() / 4;
         }
         batch.flush();
         return drawn;
     }
 
     private static int paintDrops(PoseStack pose, ClientLevel level, FarmTask farm,
-                                  RenderType fill, ViewOffset view, CameraRenderState camera) {
+                                  RenderType lines, ViewOffset view) {
         if (farm.harvestLedger().empty()) {
             return 0;
         }
-        LineBatch batch = new LineBatch(BUFFER, pose, fill)
+        LineBatch batch = new LineBatch(BUFFER, pose, lines)
                 .colour(LineColour.PLACE.red(), LineColour.PLACE.green(),
                         LineColour.PLACE.blue(), ALPHA)
                 .width((float) Settings.holder().path().lineWidth());
@@ -98,15 +106,14 @@ public final class FarmOverlay {
                     || !farm.harvestLedger().wants(dropped.getItem())) {
                 continue;
             }
-            drawn += outlineDrop(batch, dropped, view, camera, first);
+            drawn += outlineDrop(batch, dropped, view, first);
             first = false;
         }
         batch.flush();
         return drawn;
     }
 
-    private static int outlineDrop(LineBatch batch, ItemEntity dropped, ViewOffset view,
-                                   CameraRenderState camera, boolean first) {
+    private static int outlineDrop(LineBatch batch, ItemEntity dropped, ViewOffset view, boolean first) {
         AABB box = ItemSilhouette.modelBox(dropped);
         List<double[]> corners = ItemSilhouette.outline(dropped);
         if (box == null || corners.isEmpty()) {
@@ -137,30 +144,8 @@ public final class FarmOverlay {
         return new double[]{view.applyX(x), view.applyY(y), view.applyZ(z)};
     }
 
-    private static AABB bounds(List<double[]> points) {
-        double minX = points.get(0)[0];
-        double maxX = minX;
-        double minY = points.get(0)[1];
-        double maxY = minY;
-        double minZ = points.get(0)[2];
-        double maxZ = minZ;
-        for (double[] point : points) {
-            minX = Math.min(minX, point[0]);
-            maxX = Math.max(maxX, point[0]);
-            minY = Math.min(minY, point[1]);
-            maxY = Math.max(maxY, point[1]);
-            minZ = Math.min(minZ, point[2]);
-            maxZ = Math.max(maxZ, point[2]);
-        }
-        return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
-    }
-
     private static String round(double value) {
         return String.format("%.3f", value);
     }
 
-    private static FillBatch batch(PoseStack pose, RenderType fill, LineColour colour) {
-        return new FillBatch(BUFFER, pose, fill)
-                .colour(colour.red(), colour.green(), colour.blue(), ALPHA);
-    }
 }
