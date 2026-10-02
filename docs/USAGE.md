@@ -56,6 +56,10 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `Unknown command: name` | No such command |
 | `Unknown setting: name` | No such setting |
 | `Not a block in the game: name` | A block list had a name that is not a block, so nothing changed |
+| `Name = value` | `$set` changed one setting, or was asked about one |
+
+The `$set` reply is the setting's name and its new value, nothing more. What the
+setting does is already in the picker, so it is not repeated in chat.
 | `No macro named name` | No such macro |
 | `'loop' is missing 'endloop'` | The open macro has an unclosed loop |
 

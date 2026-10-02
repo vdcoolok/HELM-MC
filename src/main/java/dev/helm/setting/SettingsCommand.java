@@ -38,7 +38,7 @@ public final class SettingsCommand {
             Settings.holder().restoreDefaults();
             BlockAvoidList.refresh(Settings.holder().mining());
             save();
-            call.output().feedback(Component.literal("Settings restored to defaults."));
+            call.output().feedback(CommandFeedback.success("Settings restored to defaults."));
             return CommandResult.SUCCESS;
         }).also("defaults").describedAs("Restores every setting to its default value.");
     }
@@ -55,7 +55,7 @@ public final class SettingsCommand {
             return CommandResult.FAILURE;
         }
         if (!arguments.has("value")) {
-            call.output().feedback(Component.literal(entry.summary()));
+            call.output().feedback(CommandFeedback.info(entry.summary()));
             return CommandResult.SUCCESS;
         }
         apply(call, entry, arguments.optionalString("value"));
@@ -66,7 +66,7 @@ public final class SettingsCommand {
         store(entry, value);
         applySideEffects();
         save();
-        call.output().feedback(Component.literal(entry.summary()));
+        call.output().feedback(CommandFeedback.success(entry.summary()));
         return CommandResult.SUCCESS;
     }
 

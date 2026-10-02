@@ -38,7 +38,7 @@ public final class SettingCatalogue {
         }
 
         public String summary() {
-            return label() + " = " + shown() + "  (" + detail() + ")";
+            return label() + " = " + shown();
         }
     }
 
