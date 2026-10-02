@@ -2,6 +2,7 @@ package dev.helm.pathfinding.world.block;
 
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class Passability {
@@ -18,7 +19,6 @@ public final class Passability {
                 || block == Blocks.BUBBLE_COLUMN
                 || block instanceof net.minecraft.world.level.block.ShulkerBoxBlock
                 || block instanceof net.minecraft.world.level.block.SlabBlock
-                || block instanceof net.minecraft.world.level.block.TrapDoorBlock
                 || block == Blocks.HONEY_BLOCK
                 || block == Blocks.END_ROD
                 || block == Blocks.SWEET_BERRY_BUSH
@@ -49,7 +49,8 @@ public final class Passability {
 
     public static boolean maybeWalk(BlockState state) {
         return state.getBlock() instanceof net.minecraft.world.level.block.CarpetBlock
-                || state.getBlock() instanceof net.minecraft.world.level.block.SnowLayerBlock;
+                || state.getBlock() instanceof net.minecraft.world.level.block.SnowLayerBlock
+                || state.getBlock() instanceof TrapDoorBlock;
     }
 
     public static boolean neverFullyPass(Block block) {

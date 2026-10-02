@@ -324,6 +324,24 @@ resumes and the pillar carries on.
 
 ### What makes a block passable
 
+A block is either walked through, stood on, or neither, and the answer is
+cached per block state so it is worked out once rather than every time. A few
+blocks need to know what is around them as well, so they are re-checked where
+they are found:
+
+| Block | Walkable when |
+| --- | --- |
+| Carpet | Whatever is under it is solid enough to stand on |
+| Snow layer | It is thin enough to step over, and there is ground under it |
+| Trapdoor, open | Always, you walk through the gap |
+| Trapdoor, closed | Whatever is under it is solid enough to stand on |
+| Water, still | Nothing above it and it is not a source |
+
+A trapdoor is not mined to get through it. An open one is a doorway and a
+closed one is low enough to step onto, so neither is worth breaking. A closed
+trapdoor in mid air is a different matter, because there is nothing to stand on
+if you try, so that one still has to go.
+
 The classification is the part that decides whether a route is sensible, so it
 follows the same rules the game itself uses.
 

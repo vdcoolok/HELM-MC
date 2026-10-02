@@ -5,6 +5,7 @@ import dev.helm.pathfinding.world.BlockView;
 import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.SnowLayerBlock;
+import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.SlabType;
 
@@ -38,6 +39,9 @@ public final class WalkRules {
     private boolean throughAt(int x, int y, int z, BlockState state) {
         if (state.getBlock() instanceof net.minecraft.world.level.block.CarpetBlock) {
             return onTop(x, y - 1, z);
+        }
+        if (state.getBlock() instanceof TrapDoorBlock) {
+            return state.getValue(TrapDoorBlock.OPEN) || onTop(x, y - 1, z);
         }
         if (state.getBlock() instanceof SnowLayerBlock) {
             if (!world.loaded(x, z)) {
@@ -109,6 +113,9 @@ public final class WalkRules {
     private boolean decidedByNeighbours(int x, int y, int z, BlockState state) {
         if (state.getBlock() == Blocks.MAGMA_BLOCK) {
             return tuning.magmaWalkAllowed();
+        }
+        if (state.getBlock() instanceof TrapDoorBlock) {
+            return onTop(x, y - 1, z);
         }
         if (state.getBlock() instanceof net.minecraft.world.level.block.SlabBlock) {
             if (!tuning.bottomSlabWalkAllowed()) {
