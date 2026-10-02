@@ -49,7 +49,8 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `Holding p/y.` | Your facing was locked |
 | `Farming everywhere.` | `$farm` started with no range |
 | `Farming N blocks.` | `$farm N` started and will work within `N` blocks |
-| `Farm failed.` | There was nothing to do, or nothing could be reached |
+| `Nothing to harvest right now. Still watching.` | Everything it found is already harvested and the rest is still growing |
+| `Farm failed.` | Nothing it wanted could be reached |
 | `Walking stopped. Look released.` | `$stop` caught a walk and a held facing |
 | `Walking stopped. Macro stopped.` | `$stop` caught a walk and a running macro |
 | `Look released.` | `$stop` caught a held facing |
@@ -104,8 +105,11 @@ $stop
 ## Farming
 
 `$farm` looks around for ripe crops and works through what it finds, one thing at
-a time. It keeps going until `$stop`, until there is nothing left within range,
-or until nothing it wants can be reached.
+a time. It keeps going until `$stop`, or until nothing it wants can be reached.
+
+When it has harvested everything that is ripe, it does not stop. It says so once,
+stands where it is, and keeps checking the field as the rest grows. Anything that
+ripens is picked up as soon as it is ready, without typing the command again.
 
 ```
 $farm

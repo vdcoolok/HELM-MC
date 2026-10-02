@@ -957,9 +957,16 @@ With no argument it works everywhere it can see. With a range it works only
 within that many blocks of where the player was standing when it was typed. A
 range of `0` means everywhere, the same as leaving it off.
 
-Farming runs until `$stop`, until there is nothing left inside the range, or
-until nothing it wants can be reached. It is not a route with an end point, so it
-does not announce arrival; it either keeps finding work or gives up.
+Farming runs until `$stop`, or until nothing it wants can be reached. It is not a
+route with an end point, so it does not announce arrival; it either keeps finding
+work or gives up.
+
+Running out of work is not giving up. Crops that are not ripe yet are still on the
+field, and a field is not finished just because everything harvestable has been
+taken. Once there is nothing ripe left, farming says so once, stands still, and
+keeps looking. The blocks it found stay on its list and are re-read every tick, so
+anything that ripens is picked up as soon as it is ready, with nothing typed
+again.
 
 Farming is the only thing driving HELM while it runs. `$goto`, `$autogoto`,
 `$autolookat` and starting a macro each end the farm first, because they need
@@ -1132,13 +1139,17 @@ planting work.
 
 ### When it gives up
 
-| Reason | Reply |
-| --- | --- |
-| Nothing was found and nothing was dropped | `Farm failed.` |
-| Nothing it wants could be reached | `Farm failed.` |
+| Reason | Reply | What happens |
+| --- | --- | --- |
+| Nothing it wants could be reached | `Farm failed.` | Farming ends |
+| The search could not be started | `Farm failed.` | Farming ends |
 
 Both end the farm and clear the goal, so HELM does not keep searching for work
 that is not there.
+
+Running out of ripe crops is not on that list, because it does not end anything.
+That case answers `Nothing to harvest right now. Still watching.` once, stands
+still, and carries on watching the field until `$stop`.
 
 Leaving the world ends a farm the same way `$stop` does, without a message.
 

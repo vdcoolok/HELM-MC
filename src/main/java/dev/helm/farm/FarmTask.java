@@ -35,6 +35,7 @@ public final class FarmTask {
 
     private boolean installed;
     private boolean running;
+    private boolean announced;
 
     private FarmArea area = FarmArea.everywhere(BlockPos.ZERO);
     private List<BlockPos> swept = List.of();
@@ -61,6 +62,7 @@ public final class FarmTask {
         this.sweeping = null;
         this.sweepingSteps = 0;
         this.ticks = 0;
+        this.announced = false;
         this.running = true;
         Trace.instance().barrier("farm");
         Trace.instance().event("farm", "farming " + around.describe() + " from "
@@ -242,7 +244,7 @@ public final class FarmTask {
         Trace.instance().event("farm", "built a goal of " + goal.count() + " targets in "
                 + millisSince(started) + "ms");
         if (goal.count() == 0) {
-            giveUp("there was nothing left to do");
+            outOfWork();
             return;
         }
         var feet = pilot().feet();
@@ -256,7 +258,18 @@ public final class FarmTask {
             giveUp("the search could not be started");
             return;
         }
+        announced = false;
         pilot.await(job, new Objective(goal, "the next farm job"));
+    }
+
+    private void outOfWork() {
+        standStill();
+        if (announced) {
+            return;
+        }
+        announced = true;
+        Trace.instance().event("farm", "nothing ripe to do, waiting and watching the field");
+        ClientNotice.warn("Nothing to harvest right now. Still watching.");
     }
 
     private void standStill() {
