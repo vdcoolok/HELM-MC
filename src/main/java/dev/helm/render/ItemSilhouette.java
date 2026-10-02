@@ -4,9 +4,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.item.CuboidItemModelWrapper;
 import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
-import net.minecraft.client.resources.model.geometry.BakedQuad;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.phys.AABB;
@@ -33,12 +33,10 @@ public final class ItemSilhouette {
         ItemStackRenderState.LayerRenderState layer = access.layers()[0];
         Matrix4fc transform = ((ItemLayerAccess) layer).localTransform();
         List<double[]> corners = new ArrayList<>();
-        for (BakedQuad quad : layer.prepareQuadList()) {
-            for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
-                Vector3fc corner = quad.position(i);
-                Vector3f at = new Vector3f(corner).mulPosition(transform);
-                corners.add(new double[]{at.x(), at.y(), at.z()});
-            }
+        for (Vector3fc corner
+                : CuboidItemModelWrapper.computeExtents(layer.prepareQuadList())) {
+            Vector3f at = new Vector3f(corner).mulPosition(transform);
+            corners.add(new double[]{at.x(), at.y(), at.z()});
         }
         return corners;
     }
