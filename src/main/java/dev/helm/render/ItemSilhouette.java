@@ -42,10 +42,6 @@ public final class ItemSilhouette {
         return built(dropped).getModelBoundingBox();
     }
 
-    public static float floorOf(AABB box) {
-        return (float) box.minY;
-    }
-
     private static ItemStackRenderState built(ItemEntity dropped) {
         ItemStackRenderState state = new ItemStackRenderState();
         resolver().updateForNonLiving(state, dropped.getItem(), ItemDisplayContext.GROUND, dropped);

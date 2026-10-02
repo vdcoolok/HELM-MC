@@ -11,7 +11,10 @@ import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import com.mojang.math.Axis;
 import net.minecraft.world.phys.AABB;
+import org.joml.Quaternionf;
+import org.joml.Vector3f;
 
 import dev.helm.diag.Trace;
 import dev.helm.farm.FarmTask;
@@ -119,7 +122,7 @@ public final class FarmOverlay {
         if (box == null || corners.isEmpty()) {
             return 0;
         }
-        float rise = ItemBob.rise(dropped, ItemSilhouette.floorOf(box));
+        float rise = ItemBob.rise(dropped, box);
         float spin = ItemBob.spin(dropped);
         List<double[]> placed = new java.util.ArrayList<>(corners.size());
         for (double[] corner : corners) {
@@ -127,7 +130,9 @@ public final class FarmOverlay {
         }
         if (first) {
             Trace.instance().pulse("farm-tint-drop", "render", dropped.getDisplayName().getString()
-                    + " mesh " + (corners.size() / 4) + " faces, rise " + round(rise));
+                    + " mesh " + (corners.size() / 4) + " faces, box " + round(box.getXsize())
+                    + " by " + round(box.getYsize()) + " by " + round(box.getZsize())
+                    + ", rise " + round(rise) + ", spin " + round(spin));
         }
         MeshOutline.draw(batch, placed);
         return corners.size() / 4;
@@ -135,12 +140,12 @@ public final class FarmOverlay {
 
     private static double[] viewed(double[] corner, ItemEntity dropped, float rise, float spin,
                                    ViewOffset view) {
-        double angle = Math.toRadians(spin);
-        double cos = Math.cos(angle);
-        double sin = Math.sin(angle);
-        double x = dropped.getX() + corner[0] * cos + corner[2] * sin;
-        double y = dropped.getY() + corner[1] + rise;
-        double z = dropped.getZ() - corner[0] * sin + corner[2] * cos;
+        Quaternionf turn = Axis.YP.rotation(spin);
+        Vector3f at = new Vector3f((float) corner[0], (float) corner[1], (float) corner[2]);
+        at.rotate(turn);
+        double x = dropped.getX() + at.x();
+        double y = dropped.getY() + at.y() + rise;
+        double z = dropped.getZ() + at.z();
         return new double[]{view.applyX(x), view.applyY(y), view.applyZ(z)};
     }
 
