@@ -41,6 +41,7 @@ public final class FarmTask {
     private Sweep sweeping;
     private long sweepingSince;
     private int sweepingFrom;
+    private boolean sweptOnce;
     private int ticks;
 
     public static FarmTask instance() {
@@ -59,6 +60,7 @@ public final class FarmTask {
         this.area = around;
         this.swept = List.of();
         this.sweeping = null;
+        this.sweptOnce = false;
         this.ticks = 0;
         this.running = true;
         Trace.instance().barrier("farm");
@@ -94,6 +96,9 @@ public final class FarmTask {
         if (tended(findings, player, level)) {
             return;
         }
+        if (sweeping != null || !sweptOnce) {
+            return;
+        }
         if (pilot().unreachable()) {
             giveUp("nothing it wanted could be reached");
             return;
@@ -105,6 +110,7 @@ public final class FarmTask {
         if (sweeping != null) {
             if (sweeping.step(SWEEP_BUDGET_NANOS)) {
                 swept = sweeping.found();
+                sweptOnce = true;
                 Trace.instance().event("farm", "swept and found " + swept.size()
                         + " blocks worth looking at in " + millisSince(sweepingSince)
                         + "ms over " + (ticks - sweepingFrom) + " ticks");
