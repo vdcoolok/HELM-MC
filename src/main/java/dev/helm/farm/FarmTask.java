@@ -256,14 +256,7 @@ public final class FarmTask {
     }
 
     private void standStill() {
-        var player = Minecraft.getInstance().player;
-        if (player == null || !player.onGround()) {
-            return;
-        }
-        Pilot pilot = pilot();
-        if (pilot.isWalking() || pilot.searching()) {
-            pilot.halt();
-        }
+        pilot().holdStill();
     }
 
     private void giveUp(String why) {

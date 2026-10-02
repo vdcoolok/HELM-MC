@@ -1044,11 +1044,12 @@ is not something farming is for.
 Once a target is close enough to touch, farming stops walking and works on it.
 Walking is resumed after, from wherever the player ended up.
 
-There is one exception. If the player is already airborne, farming does not stop
-the walk, because interrupting a jump part way through resets the walk's state
-and makes the step it was in the middle of start its jump again. Jumping on
-purpose rather than holding the button down matters more here than standing
-perfectly still on a crop.
+Standing still while working does not give up the walk. The route it was
+following, the search it was waiting on, and the step it was in the middle of are
+all kept, and it picks the route back up exactly where it left off once nothing is
+in reach any more. Giving those up instead would mean re-searching for every
+crop, and in a field where something is nearly always in reach it would mean
+never walking at all.
 
 It always prefers to work on the first thing it can reach in its own order, so a
 ripe crop within reach is taken before a bare field ten blocks away is planted.

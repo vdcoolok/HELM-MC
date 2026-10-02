@@ -36,6 +36,7 @@ public final class Pilot {
     private Objective objective;
     private boolean pendingAnnouncement;
     private boolean active;
+    private boolean held;
     private boolean outOfReach;
     private Objective anchor;
     private int anchorCooldown;
@@ -101,6 +102,10 @@ public final class Pilot {
         look.clear();
     }
 
+    public void holdStill() {
+        this.held = true;
+    }
+
     public void forgetObjective() {
         this.objective = null;
         this.anchor = null;
@@ -130,6 +135,11 @@ public final class Pilot {
         placer.tick(wantsPlace);
         look.tick();
 
+        boolean standing = held;
+        held = false;
+        if (standing) {
+            return;
+        }
         if (!active) {
             holdAnchor();
             return;
