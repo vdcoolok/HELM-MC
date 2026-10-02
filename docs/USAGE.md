@@ -128,6 +128,7 @@ $stop
 | Key | What it does |
 | --- | --- |
 | `↑` `↓` | Move the cursor |
+| `←` `→` | Move between columns |
 | `Tab` or click | Choose the highlighted entry, or toggle it on a block list |
 | `Space` | Add or remove the highlighted block, on a block list |
 | `Enter` | Confirm and send |
@@ -145,18 +146,28 @@ those names opens a picker of every block in the game:
 $set movement.placementBlocks
 ```
 
-Type part of a block name to narrow the list, then move with `↑` and `↓` and
-press `Space` to add the highlighted block or take it away again. Clicking a
-block does the same thing. Blocks already chosen are marked, and the search you
-typed is left exactly as it was, so you can carry on narrowing the list and pick
-several in a row.
+The picker has two columns. The left is every block in the game, searchable by
+typing part of a name. The right is the blocks currently on the list, in order,
+and it is always shown whatever you have typed on the left.
 
-The list is saved as soon as it changes, so nothing needs confirming. The order
-blocks are added in is the order they are preferred in.
+Use whichever is quicker:
 
-Press `Enter` to send the command as it stands, or `Esc` to close the picker
-without sending it. Sending the command is only needed to leave a hand written
-list in place; picking blocks with `Space` has already saved it.
+- **Search and pick.** Type to narrow the left column, move with `↑` `↓`, then
+  press `Space` to add the highlighted block. Press it again to take it away.
+  Picking from the right column always removes. `←` and `→` move between the two
+  columns, and clicking works too.
+- **Just type it.** Type the blocks after the setting name and press `Enter`.
+  This replaces the whole list, so only the ones you typed are chosen:
+
+  ```
+  $set movement.placementBlocks dirt cobblestone oak_planks
+  ```
+
+Spaces or commas both separate blocks, names may be written bare or with the
+`minecraft:` prefix, and anything that is not a block in the game is ignored.
+
+Picking with `Space` saves as it goes, so nothing needs confirming. The order
+blocks are in is the order they are preferred in.
 
 ## Your data
 

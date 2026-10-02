@@ -127,25 +127,21 @@ The default is dirt, cobblestone, netherrack and stone, in that order. The order
 matters: earlier blocks win when several of them are in the hotbar.
 
 It is a list of blocks, so it opens a picker of every block in the game rather
-than taking a single value. Type part of a name to narrow it, then move with
-`↑` `↓` and press `Space`, or click, to add or remove the highlighted block.
-Blocks already on the list are marked, the search is left as you typed it, and
-the list is saved as soon as it changes.
+than taking a single value. The picker has two columns: every block on the left,
+searchable by typing, and the blocks currently on the list on the right. Press
+`Space`, or click, to add or remove the highlighted block, and the list is saved
+as soon as it changes.
+
+The list can also be written straight out, which replaces it entirely:
 
 ```
-$set movement.placementBlocks
+$set movement.placementBlocks dirt cobblestone oak_planks
 ```
 
-The value can also be written out by hand as a comma separated list:
-
-```
-$set movement.placementBlocks minecraft:oak_planks, minecraft:cobblestone
-```
-
-Names may be written bare or with the `minecraft:` prefix, in any case, and
-anything that is not a block in the game is ignored. Leaving the list empty means
-no block on it is preferred, so HELM falls back to whatever placeable block is in
-the hotbar.
+Spaces or commas both separate blocks. Names may be written bare or with the
+`minecraft:` prefix, in any case, and anything that is not a block in the game is
+ignored. Leaving the list empty means no block on it is preferred, so HELM falls
+back to whatever placeable block is in the hotbar.
 
 ### Timing and giving up
 

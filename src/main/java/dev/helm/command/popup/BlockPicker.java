@@ -13,6 +13,9 @@ import dev.helm.setting.SettingCatalogue;
 
 public final class BlockPicker {
 
+    public static final int SEARCH_COLUMN = 0;
+    public static final int CHOSEN_COLUMN = 1;
+
     private static List<Choice> cached;
 
     private BlockPicker() {
@@ -28,8 +31,11 @@ public final class BlockPicker {
             if (!matches(choice, partial)) {
                 continue;
             }
-            String note = chosen.contains(choice.path()) ? "chosen" : "";
-            built.add(new PopupRow(choice.shown(), note, 0, choice.path()));
+            String note = chosen.contains(choice.path()) ? "on" : "";
+            built.add(new PopupRow(choice.shown(), note, SEARCH_COLUMN, choice.path()));
+        }
+        for (String path : chosen) {
+            built.add(new PopupRow(shownName(path), "remove", CHOSEN_COLUMN, path));
         }
         return built;
     }
@@ -66,6 +72,16 @@ public final class BlockPicker {
             }
         }
         return found;
+    }
+
+    private static String shownName(String path) {
+        for (Choice choice : all()) {
+            if (choice.path().equals(path)) {
+                return choice.shown();
+            }
+        }
+        int colon = path.indexOf(':');
+        return colon < 0 ? path : path.substring(colon + 1).replace('_', ' ');
     }
 
     private static boolean matches(Choice choice, String partial) {

@@ -65,8 +65,10 @@ public final class SettingCatalogue {
             return null;
         }
         for (Entry entry : all()) {
-            if (SettingsFile.normalise(entry.key()).equals(wanted)) {
-                return entry;
+            for (String candidate : namesFor(entry)) {
+                if (SettingsFile.normalise(candidate).equals(wanted)) {
+                    return entry;
+                }
             }
         }
         return null;

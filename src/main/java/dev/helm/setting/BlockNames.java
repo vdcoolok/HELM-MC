@@ -25,7 +25,7 @@ public final class BlockNames {
         }
         List<Block> blocks = new ArrayList<>();
         Set<Block> seen = new LinkedHashSet<>();
-        for (String entry : list.split(",")) {
+        for (String entry : separate(list).split(",")) {
             String name = entry.trim().toLowerCase(Locale.ROOT);
             if (name.isEmpty()) {
                 continue;
@@ -43,5 +43,12 @@ public final class BlockNames {
             }
         }
         return List.copyOf(blocks);
+    }
+
+    public static String separate(String list) {
+        if (list == null || list.isBlank()) {
+            return "";
+        }
+        return list.trim().replaceAll("[,\\s]+", ", ");
     }
 }

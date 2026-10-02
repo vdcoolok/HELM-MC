@@ -61,13 +61,23 @@ public final class SettingsCommand {
     }
 
     public static CommandResult apply(CommandCall call, SettingCatalogue.Entry entry, String value) {
-        String trimmed = value == null ? "" : value.trim();
-        Object parsed = parse(entry, trimmed);
-        entry.setting().accept(parsed);
+        store(entry, value);
         applySideEffects();
         save();
         call.output().feedback(Component.literal(entry.summary()));
         return CommandResult.SUCCESS;
+    }
+
+    public static void store(SettingCatalogue.Entry entry, String value) {
+        if (entry == null) {
+            return;
+        }
+        String trimmed = value == null ? "" : value.trim();
+        if (entry.kind() == SettingKind.BLOCKS) {
+            entry.setting().accept(BlockNames.separate(trimmed));
+            return;
+        }
+        entry.setting().accept(parse(entry, trimmed));
     }
 
     public static void applySideEffects() {

@@ -71,7 +71,7 @@ public final class PopupGate {
         if (words.size() <= 2) {
             return true;
         }
-        return words.size() == 3 && picksBlocks(words.get(1));
+        return picksBlocks(words.get(1));
     }
 
     private static boolean picksBlocks(String name) {
