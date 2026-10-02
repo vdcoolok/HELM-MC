@@ -359,6 +359,24 @@ or lava.
 Lava is never walked on. Water is walked on only when the block above it is not
 water, which is why a path will not try to run across a deep lake.
 
+### Standing on a block that is not a full cube
+
+Farmland, soul sand, a dirt path and a bottom slab all come up short of a full
+block. Farmland stops at fifteen sixteenths, soul sand at seven eighths. A player
+standing on either is a little below the height the block above them starts at,
+so the height is read from the block the player is standing in rather than from
+the raw position, with a slab counted as the block on top of it.
+
+This is what keeps walking over a field of crops steady. Read raw, the player's
+height dips under the block boundary every time they settle onto farmland, a step
+reads that as being a block too low, and the player is told to jump. They jump,
+land on farmland, dip again, and jump for as long as the field goes on. It only
+shows on crops because farmland is the common short block a player walks over.
+
+The same height is used everywhere the player's position is compared against the
+world: starting a search, deciding whether a goal has been reached, holding an
+anchored spot, and the centre a farm scans around.
+
 ### What a path will avoid
 
 - Lava, fire, cactus, sweet berries, cobwebs, an end portal and bubble columns

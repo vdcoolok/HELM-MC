@@ -129,7 +129,7 @@ public final class FarmTask {
         if (pilot.isWalking() || pilot.searching()) {
             return;
         }
-        sweeping = FarmScan.begin(level, player.blockPosition(), Settings.holder().farm());
+        sweeping = FarmScan.begin(level, scanCentre(player), Settings.holder().farm());
         sweepingSince = System.nanoTime();
         sweepingSteps = 0;
     }
@@ -245,9 +245,13 @@ public final class FarmTask {
             giveUp("there was nothing left to do");
             return;
         }
-        var feet = player.blockPosition();
+        var feet = pilot().feet();
+        if (feet == null) {
+            giveUp("the player is not in a world");
+            return;
+        }
         SearchJob job = NavigatorAgent.instance().navigator()
-                .searchFor(goal, feet.getX(), feet.getY(), feet.getZ());
+                .searchFor(goal, feet[0], feet[1], feet[2]);
         if (job == null) {
             giveUp("the search could not be started");
             return;
@@ -257,6 +261,12 @@ public final class FarmTask {
 
     private void standStill() {
         pilot().holdStill();
+    }
+
+    private BlockPos scanCentre(LocalPlayer player) {
+        int[] feet = pilot().feet();
+        return feet == null ? player.blockPosition()
+                : new BlockPos(feet[0], feet[1], feet[2]);
     }
 
     private void giveUp(String why) {

@@ -42,13 +42,12 @@ public final class AutoCommands {
 
     public static Command autoGoToHere() {
         return Command.leaf("autogotohere", call -> {
-            var player = Minecraft.getInstance().player;
-            if (player == null) {
+            var feet = NavigatorAgent.instance().pilot().feet();
+            if (feet == null) {
                 ClientNotice.warn("Not in a world yet.");
                 return CommandResult.FAILURE;
             }
-            var feet = player.blockPosition();
-            return walk(call, feet.getX(), feet.getY(), feet.getZ());
+            return walk(call, feet[0], feet[1], feet[2]);
         }).also("agotohere").describedAs("Walks back to where you are and holds that spot.");
     }
 
@@ -85,21 +84,20 @@ public final class AutoCommands {
             ClientNotice.warn("Not in a world yet.");
             return CommandResult.FAILURE;
         }
-        var player = Minecraft.getInstance().player;
-        if (player == null) {
+        var feet = agent.pilot().feet();
+        if (feet == null) {
             ClientNotice.warn("Not in a world yet.");
             return CommandResult.FAILURE;
         }
 
-        var feet = player.blockPosition();
         Trace.instance().barrier("autogoto");
         Trace.instance().event("goto", "anchoring on " + x + " " + y + " " + z
-                + " from " + feet.getX() + " " + feet.getY() + " " + feet.getZ());
+                + " from " + feet[0] + " " + feet[1] + " " + feet[2]);
         FarmTask.instance().stop();
 
         Objective target = Objective.at(x, y, z);
         agent.pilot().anchorAt(target);
-        if (feet.getX() == x && feet.getY() == y && feet.getZ() == z) {
+        if (feet[0] == x && feet[1] == y && feet[2] == z) {
             Trace.instance().event("goto", "already standing on the anchored spot");
             agent.pilot().halt();
             ClientNotice.warn("Holding " + x + " " + y + " " + z + ".");
@@ -107,7 +105,7 @@ public final class AutoCommands {
         }
 
         SearchJob job = agent.navigator().searchFor(new BlockGoal(x, y, z),
-                feet.getX(), feet.getY(), feet.getZ());
+                feet[0], feet[1], feet[2]);
         if (job == null) {
             ClientNotice.warn("Not in a world yet.");
             return CommandResult.FAILURE;

@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
 
 import dev.helm.pathfinding.world.BlockView;
+import dev.helm.pathfinding.world.block.StandHeight;
 import dev.helm.pathfinding.world.block.WalkRules;
 import dev.helm.setting.LookSettings;
 import dev.helm.setting.MovementSettings;
@@ -26,6 +27,10 @@ public final class StepContext {
         return Minecraft.getInstance().player;
     }
 
+    public int[] feetOf(LocalPlayer who) {
+        return StandHeight.of(world, who.getX(), who.getY(), who.getZ());
+    }
+
     public BlockView world() {
         return world;
     }
@@ -44,7 +49,6 @@ public final class StepContext {
 
     public int[] feet() {
         LocalPlayer player = player();
-        return new int[]{player.blockPosition().getX(), player.blockPosition().getY(),
-                player.blockPosition().getZ()};
+        return feetOf(player);
     }
 }

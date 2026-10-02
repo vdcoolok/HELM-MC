@@ -65,6 +65,14 @@ public final class Pilot {
         return active && !route.steps().isEmpty();
     }
 
+    public int[] feet() {
+        var player = Minecraft.getInstance().player;
+        if (player == null || context == null) {
+            return null;
+        }
+        return context.feetOf(player);
+    }
+
     public void setContext(StepContext stepContext) {
         this.context = stepContext;
         walker.bind(stepContext);
@@ -171,10 +179,10 @@ public final class Pilot {
         if (player == null || satisfiedBy(what, player)) {
             return;
         }
-        var feet = player.blockPosition();
+        var feet = context.feetOf(player);
         Trace.instance().event("goto", "anchored on " + what.label()
-                + " but the player is at " + feet.getX() + " " + feet.getY() + " "
-                + feet.getZ() + ", going back");
+                + " but the player is at " + feet[0] + " " + feet[1] + " "
+                + feet[2] + ", going back");
         anchorCooldown = ANCHOR_COOLDOWN;
         replan(what);
     }
@@ -265,14 +273,14 @@ public final class Pilot {
         replan(target);
     }
 
-    private static String nearest(Objective target) {
+    private String nearest(Objective target) {
         var player = Minecraft.getInstance().player;
-        if (player == null) {
+        if (player == null || context == null) {
             return "an unknown";
         }
-        var feet = player.blockPosition();
+        var feet = context.feetOf(player);
         return String.format("%.1f", target.goal()
-                .estimate(feet.getX(), feet.getY(), feet.getZ()));
+                .estimate(feet[0], feet[1], feet[2]));
     }
 
     private String whereAmI() {
@@ -291,11 +299,11 @@ public final class Pilot {
         if (player == null) {
             return;
         }
-        var feet = player.blockPosition();
+        var feet = context.feetOf(player);
         Trace.instance().event("goto", "searching again for " + target.label()
-                + " from " + feet.getX() + " " + feet.getY() + " " + feet.getZ());
+                + " from " + feet[0] + " " + feet[1] + " " + feet[2]);
         SearchJob job = agent.navigator()
-                .searchFor(target.goal(), feet.getX(), feet.getY(), feet.getZ());
+                .searchFor(target.goal(), feet[0], feet[1], feet[2]);
         if (job == null) {
             Trace.instance().event("goto", "the search could not be started");
             return;
@@ -304,11 +312,11 @@ public final class Pilot {
         pendingAnnouncement = false;
     }
 
-    private static boolean satisfiedBy(Objective what, LocalPlayer player) {
-        if (player == null) {
+    private boolean satisfiedBy(Objective what, LocalPlayer player) {
+        if (player == null || context == null) {
             return false;
         }
-        var feet = player.blockPosition();
-        return what.satisfiedBy(feet.getX(), feet.getY(), feet.getZ());
+        var feet = context.feetOf(player);
+        return what.satisfiedBy(feet[0], feet[1], feet[2]);
     }
 }
