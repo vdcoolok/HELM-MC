@@ -128,7 +128,7 @@ $stop
 | Key | What it does |
 | --- | --- |
 | `↑` `↓` | Move the cursor |
-| `←` `→` | Move between columns |
+| `←` `→` | Move between columns, while a macro is open |
 | `Tab` or click | Choose the highlighted entry |
 | `Enter` | Confirm and send |
 | `Esc` | Close the picker |
@@ -146,8 +146,9 @@ $set movement.placementBlocks
 ```
 
 The picker has two columns. The left is every block in the game, narrowed as you
-type. The right is the blocks currently on the list, in order, and it does not
-change as you type.
+type, and shown by its full name such as `minecraft:oak_planks` so there is no
+guessing about whether a space belongs in it. The right is the blocks currently
+on the list, in order, and it does not change as you type.
 
 It is there to help you type, not to do the work for you. Type the blocks you
 want after the setting name and press `Enter`:
@@ -157,8 +158,8 @@ $set movement.placementBlocks dirt cobblestone oak_planks
 ```
 
 That replaces the whole list, so only those three are chosen. The left column
-filters on the last word you typed, so as you type `oak_planks` it narrows to
-the oak blocks and you can see the exact name to use.
+filters on the last word you typed, and it accepts either `oak_planks` or
+`oak planks` when searching, but only the underscored name is one block.
 
 Spaces or commas both separate blocks, names may be written bare or with the
 `minecraft:` prefix, and anything that is not a block in the game is ignored. The

@@ -31,10 +31,10 @@ public final class BlockPicker {
             if (!matches(choice, partial)) {
                 continue;
             }
-            built.add(new PopupRow(choice.shown(), "", SEARCH_COLUMN, choice.path()));
+            built.add(new PopupRow(choice.path(), "", SEARCH_COLUMN, choice.path()));
         }
-        for (String path : chosen) {
-            built.add(new PopupRow(shownName(path), "", CHOSEN_COLUMN, path));
+        for (String name : chosen) {
+            built.add(new PopupRow(name, "", CHOSEN_COLUMN, name));
         }
         return built;
     }
@@ -60,16 +60,6 @@ public final class BlockPicker {
         return found;
     }
 
-    private static String shownName(String path) {
-        for (Choice choice : all()) {
-            if (choice.path().equals(path)) {
-                return choice.shown();
-            }
-        }
-        int colon = path.indexOf(':');
-        return colon < 0 ? path : path.substring(colon + 1).replace('_', ' ');
-    }
-
     private static boolean matches(Choice choice, String partial) {
         String wanted = partial == null ? "" : partial.trim().toLowerCase(Locale.ROOT);
         if (wanted.isEmpty()) {
@@ -93,7 +83,7 @@ public final class BlockPicker {
             }
             String path = id.toString();
             String bare = id.getPath().replace('_', ' ');
-            String search = (bare + " " + path.replace('/', ' ')).toLowerCase(Locale.ROOT);
+            String search = (path + " " + bare).toLowerCase(Locale.ROOT);
             found.add(new Choice(path, bare, search));
         }
         found.sort((one, two) -> one.shown().compareTo(two.shown()));

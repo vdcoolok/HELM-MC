@@ -128,8 +128,9 @@ matters: earlier blocks win when several of them are in the hotbar.
 
 It is a list of blocks, so it opens a picker of every block in the game rather
 than taking a single value. The picker has two columns: every block on the left,
-narrowed as you type, and the blocks currently on the list on the right. It is a
-search aid, not an editor: nothing is chosen until the command is sent.
+narrowed as you type and shown by its full name such as `minecraft:oak_planks`,
+and the blocks currently on the list on the right. It is a search aid, not an
+editor: nothing is chosen until the command is sent.
 
 Type the blocks after the setting name and press `Enter`. That replaces the
 whole list:

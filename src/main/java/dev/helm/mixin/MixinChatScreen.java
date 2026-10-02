@@ -67,14 +67,15 @@ public abstract class MixinChatScreen {
         PopupState state = PopupState.instance();
         String value = inputValue();
         int cursor = input == null ? 0 : input.getCursorPosition();
+        boolean columns = PopupGate.mode(value, cursor) == Mode.NAMES;
 
         if (PopupKeys.isUp(event)) {
             helmMove(-1);
         } else if (PopupKeys.isDown(event)) {
             helmMove(1);
-        } else if (PopupKeys.isLeft(event)) {
+        } else if (columns && PopupKeys.isLeft(event)) {
             state.moveToColumnSlot(-1);
-        } else if (PopupKeys.isRight(event)) {
+        } else if (columns && PopupKeys.isRight(event)) {
             state.moveToColumnSlot(1);
         } else if (PopupKeys.isTab(event)) {
             if (PopupGate.mode(value, cursor) == Mode.BLOCKS) {
