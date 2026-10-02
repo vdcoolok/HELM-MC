@@ -12,6 +12,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 
+import dev.helm.diag.Trace;
 import dev.helm.farm.FarmTask;
 import dev.helm.setting.Settings;
 
@@ -24,6 +25,14 @@ public final class FarmOverlay {
     }
 
     public static void draw(PoseStack pose, CameraRenderState camera) {
+        try {
+            paint(pose, camera);
+        } catch (RuntimeException | LinkageError failure) {
+            Trace.instance().pulse("farm-tint", "render", "tint gave up: " + failure);
+        }
+    }
+
+    private static void paint(PoseStack pose, CameraRenderState camera) {
         FarmTask farm = FarmTask.instance();
         if (!farm.running()) {
             return;
@@ -39,53 +48,68 @@ public final class FarmOverlay {
         ViewOffset view = ViewOffset.of(camera);
         RenderType fill = RouteRenderTypes.translucentFill();
 
+        int crops = 0;
+        int drops = 0;
         if (settings.renderTargets()) {
-            paintCrops(pose, level, farm.harvestable(), fill, view);
+            crops = paintCrops(pose, level, farm.harvestable(), fill, view);
         }
         if (settings.renderDrops()) {
-            paintDrops(pose, level, farm, fill, view);
+            drops = paintDrops(pose, level, farm, fill, view);
         }
+        Trace.instance().repeat("farm-tint", "render", "tint " + fill.format() + " "
+                + fill.primitiveTopology() + " " + crops + " crops and " + drops + " drops");
     }
 
-    private static void paintCrops(PoseStack pose, ClientLevel level, List<BlockPos> crops,
-                                   RenderType fill, ViewOffset view) {
+    private static int paintCrops(PoseStack pose, ClientLevel level, List<BlockPos> crops,
+                                  RenderType fill, ViewOffset view) {
         if (crops.isEmpty()) {
-            return;
+            return 0;
         }
         FillBatch batch = batch(pose, fill, LineColour.GOAL);
+        int drawn = 0;
         for (BlockPos crop : crops) {
             List<double[]> quads = BlockSilhouette.quads(level.getBlockState(crop));
             BlockSilhouette.fill(batch, Silhouette.at(crop.getX(), crop.getY(), crop.getZ(),
                     quads, view));
+            drawn += quads.size() / 4;
+            if (drawn == 0 && crops.size() == 1) {
+                Trace.instance().pulse("farm-tint-quads", "render", "first crop "
+                        + crop.getX() + " " + crop.getY() + " " + crop.getZ() + " gave "
+                        + quads.size() + " corners");
+            }
         }
         batch.flush();
+        return drawn;
     }
 
-    private static void paintDrops(PoseStack pose, ClientLevel level, FarmTask farm,
-                                   RenderType fill, ViewOffset view) {
+    private static int paintDrops(PoseStack pose, ClientLevel level, FarmTask farm,
+                                  RenderType fill, ViewOffset view) {
         if (farm.harvestLedger().empty()) {
-            return;
+            return 0;
         }
         FillBatch batch = batch(pose, fill, LineColour.PLACE);
+        int drawn = 0;
         for (Entity entity : level.entitiesForRendering()) {
             if (!(entity instanceof ItemEntity dropped)
                     || !farm.harvestLedger().wants(dropped.getItem())) {
                 continue;
             }
-            fillDrop(batch, dropped, view);
+            drawn += fillDrop(batch, dropped, view);
         }
         batch.flush();
+        return drawn;
     }
 
-    private static void fillDrop(FillBatch batch, ItemEntity dropped, ViewOffset view) {
+    private static int fillDrop(FillBatch batch, ItemEntity dropped, ViewOffset view) {
         List<double[]> corners = ItemSilhouette.corners(dropped);
         if (corners.size() < 3) {
-            return;
+            return 0;
         }
         float rise = ItemBob.rise(dropped, ItemSilhouette.modelFloor(corners));
         List<double[]> spun = Silhouette.spun(corners, ItemBob.spin(dropped), rise);
         ShapeFill.corners(batch, Silhouette.at(dropped.getX(), dropped.getY(), dropped.getZ(),
                 spun, view));
+        return corners.size();
     }
 
     private static FillBatch batch(PoseStack pose, RenderType fill, LineColour colour) {
