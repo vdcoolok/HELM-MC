@@ -34,7 +34,7 @@ public final class RaiseStepExecutor implements StepExecutor {
         }
 
         if (LiquidRules.water(context.world().stateAt(step.fromX(), step.fromY(), step.fromZ()))
-                && LiquidRules.any(context.world().stateAt(step.toX(), step.toY(), step.toZ()))) {
+                && LiquidRules.water(context.world().stateAt(step.toX(), step.toY(), step.toZ()))) {
             return swimUp(context, tick, step);
         }
 
@@ -77,7 +77,6 @@ public final class RaiseStepExecutor implements StepExecutor {
             tick.set(Control.JUMP, context.player().getY() < step.toY());
         }
         if (!groundThere) {
-            tick.set(Control.JUMP, false);
             clearColumn(context, tick, step, toPlace);
         }
         if (atDest(context, step) && (groundThere || climbing)) {
@@ -100,6 +99,7 @@ public final class RaiseStepExecutor implements StepExecutor {
         if (reachable != null) {
             tick.intent().aimedAt(reachable, true);
         }
+        tick.set(Control.JUMP, false);
         tick.press(Control.ATTACK);
     }
 

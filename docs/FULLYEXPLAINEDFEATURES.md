@@ -302,6 +302,26 @@ A route is built out of these moves, and only these:
 A step that needs bridging, and a step that needs mining, are both still steps.
 What changes is the cost, because mining and placing are priced in.
 
+### How a pillar is done
+
+A pillar is the only move that has to jump before it can place anything, because
+the block it needs is the one the player is standing in.
+
+The player walks to the middle of the column first. Once within a small distance
+of the centre and standing still, they jump. Only once they are high enough that
+the block they are standing in is below their feet does HELM place it, which
+lifts them onto it and completes the move.
+
+That order matters and is the whole move. A block cannot be placed inside the
+player, so the jump has to happen before the placement, not after. If the jump is
+suppressed the placement can never happen, the player never rises, and the step
+sits there doing nothing until it runs out of ticks.
+
+The jump is suppressed in exactly one case: when the block being placed on is
+solid and has to be mined out of the way first, because mining is about five
+times slower while the player is in the air. Once that block is gone, the jump
+resumes and the pillar carries on.
+
 ### What makes a block passable
 
 The classification is the part that decides whether a route is sensible, so it
@@ -578,6 +598,11 @@ A pillar breaks only the block two above the player, never the block at their
 own head height, and a parkour breaks nothing at all. Getting either of those
 wrong means the player turns to face, and mines, a block that was never in the
 way.
+
+A pillar can also break the block it is standing in, but only when that block is
+solid and in the way of the one it needs to place there. That is the one case
+where a pillar mines at its own feet rather than overhead, and it stops jumping
+while it does.
 
 A diagonal breaks nothing either, and this is the one that surprises people
 most. The search only offers a diagonal when the player can get round at least
