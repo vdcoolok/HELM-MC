@@ -1137,34 +1137,6 @@ eat whatever the off hand is holding instead. Items further back in the inventor
 are not used at all, so putting seeds straight into the hotbar is what makes
 planting work.
 
-### Seeing what farming is doing
-
-While farming is running, two kinds of thing are tinted in the world.
-
-The ripe crops it has found and is working through are ringed in green. Those are
-exactly the blocks it is about to break, so nothing else is marked, however much
-else farming walks past or breaks on the way.
-
-Anything that comes out of those crops is ringed in blue. When farming breaks
-a crop it works out what that kind of crop drops and remembers those items, and
-every dropped item lying in the world that matches one of them is outlined from
-then on. A melon is remembered as melon seeds, melon slices or a melon block;
-wheat as wheat seeds or wheat; and so on for every crop it knows.
-
-Only drops from crops this run of farming actually broke are marked. Items that
-were already lying around when farming started, or that come from something else,
-are left alone. The memory is cleared when farming stops.
-
-Both outlines are drawn only while farming is running, and either can be turned
-off on its own with `farm.renderTargets` and `farm.renderDrops`.
-
-Both are outlined along the shape they are actually drawn as, edge by edge, so a
-crop shows its own form rather than a box around it and an item shows its own
-outline rather than a plain cube.
-
-A dropped item moves exactly as the item does: it bobs up and down on the same
-rhythm and turns with it, staying locked to the item instead of trailing behind.
-
 ### When it gives up
 
 | Reason | Reply | What happens |
@@ -1189,8 +1161,6 @@ Leaving the world ends a farm the same way `$stop` does, without a message.
 | `farm.replantNetherWart` | `false` | Plant nether wart again |
 | `farm.rescanEveryTicks` | `5` | Ticks between scans |
 | `farm.maxTargets` | `256` | Cap on blocks found by one scan |
-| `farm.renderTargets` | `true` | Outline the ripe crops farming is working through |
-| `farm.renderDrops` | `true` | Outline the items farming broke its crops into |
 
 See [SETTINGS.md](SETTINGS.md) for what each one changes.
 
@@ -1198,8 +1168,6 @@ See [SETTINGS.md](SETTINGS.md) for what each one changes.
 
 - Only farmland, soul sand and jungle logs are replanted. A harvested crop on any
   other block is left bare.
-- Drops that leave the loaded area stop being seen, because only loaded chunks
-  are read.
 - Seeds, nether wart, cocoa beans and bone meal are only fetched from deeper in
   the inventory when `movement.allowInventory` is on. See [inventory](#inventory).
 

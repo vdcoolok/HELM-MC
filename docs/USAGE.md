@@ -111,15 +111,6 @@ When it has harvested everything that is ripe, it does not stop. It says so once
 stands where it is, and keeps checking the field as the rest grows. Anything that
 ripens is picked up as soon as it is ready, without typing the command again.
 
-While it runs, the ripe crops it is working through are outlined in green, and
-anything those crops drop is outlined in blue so it can be picked up. Both are
-outlined along the shape they are drawn as. Either can be turned off:
-
-```
-$set farm.renderTargets false
-$set farm.renderDrops false
-```
-
 ```
 $farm
 ```

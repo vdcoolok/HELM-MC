@@ -13,7 +13,6 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-import dev.helm.render.FarmOverlay;
 import dev.helm.render.RouteOverlay;
 
 @Mixin(LevelRenderer.class)
@@ -32,6 +31,5 @@ public abstract class MixinLevelRenderer {
         PoseStack pose = new PoseStack();
         pose.mulPose(modelView);
         RouteOverlay.draw(pose, camera);
-        FarmOverlay.draw(pose, camera);
     }
 }
