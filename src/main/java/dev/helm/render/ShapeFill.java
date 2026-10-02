@@ -4,28 +4,19 @@ import java.util.List;
 
 public final class ShapeFill {
 
-    private static final int[][] FACES = {
-            {0, 1, 3, 2}, {4, 5, 7, 6}, {0, 1, 5, 4},
-            {2, 3, 7, 6}, {0, 2, 6, 4}, {1, 3, 7, 5},
-    };
+    private static final int CORNERS_PER_FACE = 4;
 
     private ShapeFill() {
     }
 
     public static void corners(FillBatch batch, List<double[]> points) {
-        if (points.size() == 4) {
+        if (points.size() == CORNERS_PER_FACE) {
             face(batch, points.get(0), points.get(1), points.get(2), points.get(3));
             return;
         }
-        if (points.size() == 8) {
-            box(batch, points);
-        }
-    }
-
-    private static void box(FillBatch batch, List<double[]> points) {
-        for (int[] face : FACES) {
-            face(batch, points.get(face[0]), points.get(face[1]), points.get(face[2]),
-                    points.get(face[3]));
+        for (int i = 0; i + CORNERS_PER_FACE <= points.size(); i += CORNERS_PER_FACE) {
+            face(batch, points.get(i), points.get(i + 1), points.get(i + 2),
+                    points.get(i + 3));
         }
     }
 

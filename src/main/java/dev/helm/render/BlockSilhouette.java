@@ -11,8 +11,12 @@ import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.Shapes;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.joml.Matrix4f;
 
 public final class BlockSilhouette {
@@ -42,6 +46,28 @@ public final class BlockSilhouette {
                     }
                 }
             }
+        }
+        if (corners.isEmpty()) {
+            return outlined(state);
+        }
+        return corners;
+    }
+
+    private static List<double[]> outlined(BlockState state) {
+        List<double[]> corners = new ArrayList<>();
+        VoxelShape shape = state.getShape(Minecraft.getInstance().level, BlockPos.ZERO);
+        if (shape.isEmpty()) {
+            shape = Shapes.block();
+        }
+        for (AABB part : shape.toAabbs()) {
+            corners.add(new double[]{part.minX, part.minY, part.minZ});
+            corners.add(new double[]{part.maxX, part.minY, part.minZ});
+            corners.add(new double[]{part.maxX, part.minY, part.maxZ});
+            corners.add(new double[]{part.minX, part.minY, part.maxZ});
+            corners.add(new double[]{part.minX, part.maxY, part.minZ});
+            corners.add(new double[]{part.maxX, part.maxY, part.minZ});
+            corners.add(new double[]{part.maxX, part.maxY, part.maxZ});
+            corners.add(new double[]{part.minX, part.maxY, part.maxZ});
         }
         return corners;
     }
