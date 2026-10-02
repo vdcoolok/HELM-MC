@@ -9,9 +9,10 @@ import net.minecraft.client.renderer.StagedVertexBuffer;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.Vec3;
 
 import dev.helm.diag.Trace;
 import dev.helm.farm.FarmTask;
@@ -21,6 +22,7 @@ public final class FarmOverlay {
 
     private static final StagedVertexBuffer BUFFER = new StagedVertexBuffer(() -> "HELM Farm", 128);
     private static final float ALPHA = 0.3F;
+    private static final double NUDGE = 0.02D;
 
     private FarmOverlay() {
     }
@@ -48,45 +50,40 @@ public final class FarmOverlay {
         }
         ViewOffset view = ViewOffset.of(camera);
         RenderType fill = RouteRenderTypes.translucentFill();
-
-        int crops = 0;
-        int drops = 0;
-        if (settings.renderTargets()) {
-            crops = paintCrops(pose, level, farm.harvestable(), fill, view);
-        }
-        if (settings.renderDrops()) {
-            drops = paintDrops(pose, level, farm, fill, view);
-        }
-        Trace.instance().repeat("farm-tint", "render", "tint " + fill.format() + " "
-                + fill.primitiveTopology() + " " + crops + " crop faces and " + drops
-                + " drop corners");
+        int crops = settings.renderTargets() ? paintCrops(pose, level, farm.harvestable(), fill,
+                view, camera) : 0;
+        int drops = settings.renderDrops() ? paintDrops(pose, level, farm, fill, view, camera) : 0;
+        Trace.instance().repeat("farm-tint", "render", "tint " + crops + " crops and "
+                + drops + " drops, each " + fill.format() + " " + fill.primitiveTopology());
     }
 
     private static int paintCrops(PoseStack pose, ClientLevel level, List<BlockPos> crops,
-                                  RenderType fill, ViewOffset view) {
+                                  RenderType fill, ViewOffset view, CameraRenderState camera) {
         if (crops.isEmpty()) {
             return 0;
         }
         FillBatch batch = batch(pose, fill, LineColour.GOAL);
         int drawn = 0;
-        boolean first = true;
         for (BlockPos crop : crops) {
-            List<double[]> quads = BlockSilhouette.quads(level.getBlockState(crop));
-            BlockSilhouette.fill(batch, Silhouette.at(crop.getX(), crop.getY(), crop.getZ(),
-                    quads, view));
-            drawn += quads.size() / 4;
-            if (first) {
-                first = false;
-                Trace.instance().pulse("farm-tint-crop", "render", describe(level.getBlockState(crop),
-                        Silhouette.at(crop.getX(), crop.getY(), crop.getZ(), quads, view)));
+            List<double[]> box = BlockSilhouette.boxes(level.getBlockState(crop));
+            if (box.isEmpty()) {
+                continue;
             }
+            AABB bounds = bounds(box);
+            Vec3 mid = bounds.getCenter();
+            Vec3 centre = new Vec3(crop.getX() + mid.x, crop.getY() + mid.y,
+                    crop.getZ() + mid.z);
+            ShapeFill.corners(batch, Billboard.facing(camera, centre,
+                    Math.max(bounds.getXsize(), bounds.getZsize()) / 2.0D + NUDGE,
+                    bounds.getYsize() / 2.0D + NUDGE, 0.0D, view));
+            drawn++;
         }
         batch.flush();
         return drawn;
     }
 
     private static int paintDrops(PoseStack pose, ClientLevel level, FarmTask farm,
-                                  RenderType fill, ViewOffset view) {
+                                  RenderType fill, ViewOffset view, CameraRenderState camera) {
         if (farm.harvestLedger().empty()) {
             return 0;
         }
@@ -98,38 +95,36 @@ public final class FarmOverlay {
                     || !farm.harvestLedger().wants(dropped.getItem())) {
                 continue;
             }
-            drawn += fillDrop(batch, dropped, view, first);
+            drawn += outlineDrop(batch, dropped, view, camera, first);
             first = false;
         }
         batch.flush();
         return drawn;
     }
 
-    private static int fillDrop(FillBatch batch, ItemEntity dropped, ViewOffset view,
-                                boolean first) {
-        List<double[]> model = ItemSilhouette.corners(dropped);
-        if (model.isEmpty()) {
+    private static int outlineDrop(FillBatch batch, ItemEntity dropped, ViewOffset view,
+                                   CameraRenderState camera, boolean first) {
+        AABB box = ItemSilhouette.modelBox(dropped);
+        if (box == null) {
             return 0;
         }
-        float rise = ItemBob.rise(dropped, ItemSilhouette.modelFloor(model));
-        List<double[]> placed = Silhouette.at(dropped.getX(), dropped.getY(), dropped.getZ(),
-                Silhouette.spun(model, ItemBob.spin(dropped), rise), view);
+        float rise = ItemBob.rise(dropped, ItemSilhouette.floorOf(box));
+        Vec3 mid = box.getCenter();
+        Vec3 centre = new Vec3(dropped.getX() + mid.x, dropped.getY() + rise + mid.y,
+                dropped.getZ() + mid.z);
+        List<double[]> face = Billboard.facing(camera, centre,
+                Math.max(box.getXsize(), box.getZsize()) / 2.0D + NUDGE,
+                box.getYsize() / 2.0D + NUDGE, 0.0D, view);
         if (first) {
-            Trace.instance().pulse("farm-tint-drop", "render",
-                    dropped.getDisplayName().getString() + " " + describe(placed));
+            Trace.instance().pulse("farm-tint-drop", "render", dropped.getDisplayName().getString()
+                    + " sprite " + round(box.getXsize()) + " by " + round(box.getYsize())
+                    + " at y " + round(centre.y));
         }
-        ShapeFill.corners(batch, placed);
-        return model.size();
+        ShapeFill.corners(batch, face);
+        return 1;
     }
 
-    private static String describe(BlockState state, List<double[]> placed) {
-        return state.getBlock().toString() + " " + describe(placed);
-    }
-
-    private static String describe(List<double[]> points) {
-        if (points.isEmpty()) {
-            return "no corners";
-        }
+    private static AABB bounds(List<double[]> points) {
         double minX = points.get(0)[0];
         double maxX = minX;
         double minY = points.get(0)[1];
@@ -144,9 +139,7 @@ public final class FarmOverlay {
             minZ = Math.min(minZ, point[2]);
             maxZ = Math.max(maxZ, point[2]);
         }
-        return points.size() + " corners span x " + round(minX) + " to " + round(maxX)
-                + ", y " + round(minY) + " to " + round(maxY)
-                + ", z " + round(minZ) + " to " + round(maxZ);
+        return new AABB(minX, minY, minZ, maxX, maxY, maxZ);
     }
 
     private static String round(double value) {

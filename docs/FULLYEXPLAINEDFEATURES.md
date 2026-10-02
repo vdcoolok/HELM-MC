@@ -1141,11 +1141,11 @@ planting work.
 
 While farming is running, two kinds of thing are tinted in the world.
 
-The ripe crops it has found and is working through are tinted green. Those are
+The ripe crops it has found and is working through are ringed in green. Those are
 exactly the blocks it is about to break, so nothing else is marked, however much
 else farming walks past or breaks on the way.
 
-Anything that comes out of those crops is tinted blue. When farming breaks
+Anything that comes out of those crops is ringed in blue. When farming breaks
 a crop it works out what that kind of crop drops and remembers those items, and
 every dropped item lying in the world that matches one of them is outlined from
 then on. A melon is remembered as melon seeds, melon slices or a melon block;
@@ -1158,17 +1158,14 @@ are left alone. The memory is cleared when farming stops.
 Both outlines are drawn only while farming is running, and either can be turned
 off on its own with `farm.renderTargets` and `farm.renderDrops`.
 
-Neither is outlined. Both are covered with the shape that is actually rendered,
-tinted and thirty percent see-through, so the crop or the item shows through and
-what it is stays visible.
+Neither is filled in solid. Both are ringed by a flat outline that always turns
+to face you, drawn over the shape of the thing itself: a crop is sized by the
+column the plant is, a dropped item by the model it is rendered from. Because the
+outline faces you, it stays readable from any angle instead of turning edge on and
+disappearing as the item spins.
 
-The shape is the real one rather than the shape a block is selected or collided
-with, so a crop is covered along the crossed planes it is drawn as rather than
-in a box around the block.
-
-A dropped item is covered along its own model and moves exactly as the item does:
-it bobs up and down on the same rhythm and turns at the same speed, staying locked
-to the item instead of trailing behind it.
+A dropped item moves exactly as the item does: it bobs up and down on the same
+rhythm and turns with it, staying locked to the item instead of trailing behind.
 
 ### When it gives up
 
@@ -1194,8 +1191,8 @@ Leaving the world ends a farm the same way `$stop` does, without a message.
 | `farm.replantNetherWart` | `false` | Plant nether wart again |
 | `farm.rescanEveryTicks` | `5` | Ticks between scans |
 | `farm.maxTargets` | `256` | Cap on blocks found by one scan |
-| `farm.renderTargets` | `true` | Tint the ripe crops farming is working through |
-| `farm.renderDrops` | `true` | Tint the items farming broke its crops into |
+| `farm.renderTargets` | `true` | Ring the ripe crops farming is working through |
+| `farm.renderDrops` | `true` | Ring the items farming broke its crops into |
 
 See [SETTINGS.md](SETTINGS.md) for what each one changes.
 
