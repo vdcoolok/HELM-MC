@@ -57,7 +57,7 @@ public final class FarmOverlay {
             drops = paintDrops(pose, level, farm, fill, view);
         }
         Trace.instance().repeat("farm-tint", "render", "tint " + fill.format() + " "
-                + fill.primitiveTopology() + " " + crops + " crops and " + drops + " drops");
+                + fill.primitiveTopology() + " " + crops + " crop faces and " + drops + " drop corners");
     }
 
     private static int paintCrops(PoseStack pose, ClientLevel level, List<BlockPos> crops,
@@ -102,7 +102,9 @@ public final class FarmOverlay {
 
     private static int fillDrop(FillBatch batch, ItemEntity dropped, ViewOffset view) {
         List<double[]> corners = ItemSilhouette.corners(dropped);
-        if (corners.size() < 3) {
+        if (corners.size() != 4 && corners.size() != 8) {
+            Trace.instance().pulse("farm-tint-drop", "render",
+                    dropped.getDisplayName().getString() + " gave " + corners.size());
             return 0;
         }
         float rise = ItemBob.rise(dropped, ItemSilhouette.modelFloor(corners));

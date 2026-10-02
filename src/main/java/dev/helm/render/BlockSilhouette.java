@@ -6,6 +6,8 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.block.BlockModelResolver;
+import net.minecraft.client.renderer.block.BlockStateModelSet;
+import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
@@ -15,7 +17,10 @@ import org.joml.Matrix4f;
 
 public final class BlockSilhouette {
 
+    private static final long SEED = 42L;
+    private static final Matrix4f IDENTITY = new Matrix4f();
     private static BlockModelResolver resolver;
+    private static BlockStateModelSet models;
 
     private BlockSilhouette() {
     }
@@ -23,8 +28,13 @@ public final class BlockSilhouette {
     public static List<double[]> quads(BlockState state) {
         BlockModelRenderState model = new BlockModelRenderState();
         resolver().update(model, state, BlockDisplayContext.create());
+        List<BlockStateModelPart> parts = model.setupModel(IDENTITY, false);
+        BlockStateModel blockModel = models().get(state);
+        if (blockModel != null && parts.isEmpty()) {
+            blockModel.collectParts(model.scratchRandomSource(SEED), parts);
+        }
         List<double[]> corners = new ArrayList<>();
-        for (BlockStateModelPart part : model.setupModel(new Matrix4f(), false)) {
+        for (BlockStateModelPart part : parts) {
             for (Direction face : Direction.values()) {
                 for (BakedQuad quad : part.getQuads(face)) {
                     for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
@@ -53,5 +63,12 @@ public final class BlockSilhouette {
             resolver = new BlockModelResolver(Minecraft.getInstance().getModelManager());
         }
         return resolver;
+    }
+
+    private static BlockStateModelSet models() {
+        if (models == null) {
+            models = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
+        }
+        return models;
     }
 }
