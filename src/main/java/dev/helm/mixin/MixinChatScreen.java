@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
-import dev.helm.command.popup.BlockPicker;
 import dev.helm.command.popup.PopupBounds;
 import dev.helm.command.popup.PopupCommands;
 import dev.helm.command.popup.Mode;
@@ -16,7 +15,6 @@ import dev.helm.command.popup.PopupRow;
 import dev.helm.command.popup.PopupRows;
 import dev.helm.command.popup.PopupState;
 import dev.helm.setting.SettingCatalogue;
-import dev.helm.setting.SettingsCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -78,59 +76,18 @@ public abstract class MixinChatScreen {
             state.moveToColumnSlot(-1);
         } else if (PopupKeys.isRight(event)) {
             state.moveToColumnSlot(1);
-        } else if (PopupKeys.isSpace(event)) {
-            if (!helmToggleBlock(value, cursor)) {
+        } else if (PopupKeys.isTab(event)) {
+            if (PopupGate.mode(value, cursor) == Mode.BLOCKS) {
                 return;
             }
-        } else if (PopupKeys.isTab(event)) {
             if (state.selected() < 0) {
                 state.select(0);
             }
-            if (!helmToggleBlock(value, cursor)) {
-                helmApply();
-            }
+            helmApply();
         } else {
             return;
         }
         callback.setReturnValue(true);
-    }
-
-    private boolean helmToggleBlock(String value, int cursor) {
-        if (PopupGate.mode(value, cursor) != Mode.BLOCKS) {
-            return false;
-        }
-        PopupState state = PopupState.instance();
-        PopupRow row = state.current();
-        if (row == null) {
-            state.select(0);
-            row = state.current();
-        }
-        if (row == null) {
-            return false;
-        }
-        var entry = SettingCatalogue.find(PopupGate.settingName(value, cursor));
-        String chosen = BlockPicker.toggle(entry, row);
-        if (chosen == null) {
-            return false;
-        }
-        SettingsCommand.applySideEffects();
-        SettingsCommand.save();
-        helmRefresh();
-        helmReselect(row.insert());
-        return true;
-    }
-
-    private void helmReselect(String path) {
-        PopupState state = PopupState.instance();
-        for (int index = 0; index < state.rows().size(); index++) {
-            if (state.rows().get(index).insert().equals(path)) {
-                state.select(index);
-                PopupPlacement placement = helmPlacement(state.rows(),
-                        Minecraft.getInstance().font);
-                state.reveal(index, placement.visibleLines(), placement.totalLines());
-                return;
-            }
-        }
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
@@ -148,17 +105,17 @@ public abstract class MixinChatScreen {
         if (row < 0) {
             return;
         }
-        state.select(row);
-        String value = inputValue();
-        int cursor = input == null ? 0 : input.getCursorPosition();
-        if (!helmToggleBlock(value, cursor)) {
-            helmApply();
+        if (PopupGate.mode(inputValue(), input == null ? 0 : input.getCursorPosition())
+                == Mode.BLOCKS) {
+            return;
         }
+        state.select(row);
+        helmApply();
         callback.setReturnValue(true);
     }
 
     @Inject(method = "mouseScrolled", at = @At("HEAD"), cancellable = true)
-    private void helmPopupScroll(double horizontal, double vertical, double dx, double dy,
+    private void helmPopupScroll(double mouseX, double mouseY, double scrollX, double scrollY,
                                  CallbackInfoReturnable<Boolean> callback) {
         if (!helmPopup || !PopupState.instance().isOpen()) {
             return;
@@ -167,7 +124,7 @@ public abstract class MixinChatScreen {
         Font font = Minecraft.getInstance().font;
         PopupPlacement placement = helmPlacement(state.rows(), font);
         if (placement.scrollsSideways()) {
-            if (state.scrollColumnsBy(vertical < 0 ? 1 : -1, placement.maxFirstColumn())) {
+            if (state.scrollColumnsBy(scrollY < 0 ? 1 : -1, placement.maxFirstColumn())) {
                 callback.setReturnValue(true);
                 return;
             }
@@ -175,7 +132,7 @@ public abstract class MixinChatScreen {
         if (!placement.scrolls()) {
             return;
         }
-        if (state.scrollBy(vertical < 0 ? 1 : -1,
+        if (state.scrollBy(scrollY < 0 ? 1 : -1,
                 placement.totalLines() - placement.visibleLines())) {
             callback.setReturnValue(true);
         }

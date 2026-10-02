@@ -31,26 +31,12 @@ public final class BlockPicker {
             if (!matches(choice, partial)) {
                 continue;
             }
-            String note = chosen.contains(choice.path()) ? "on" : "";
-            built.add(new PopupRow(choice.shown(), note, SEARCH_COLUMN, choice.path()));
+            built.add(new PopupRow(choice.shown(), "", SEARCH_COLUMN, choice.path()));
         }
         for (String path : chosen) {
-            built.add(new PopupRow(shownName(path), "remove", CHOSEN_COLUMN, path));
+            built.add(new PopupRow(shownName(path), "", CHOSEN_COLUMN, path));
         }
         return built;
-    }
-
-    public static String toggle(SettingCatalogue.Entry entry, PopupRow row) {
-        if (entry == null || row == null || row.insert().isEmpty()) {
-            return null;
-        }
-        List<String> chosen = new ArrayList<>(chosen(entry));
-        if (!chosen.remove(row.insert())) {
-            chosen.add(row.insert());
-        }
-        String joined = String.join(", ", chosen);
-        entry.setting().accept(joined);
-        return joined;
     }
 
     public static List<String> chosen(SettingCatalogue.Entry entry) {

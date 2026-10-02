@@ -129,8 +129,7 @@ $stop
 | --- | --- |
 | `↑` `↓` | Move the cursor |
 | `←` `→` | Move between columns |
-| `Tab` or click | Choose the highlighted entry, or toggle it on a block list |
-| `Space` | Add or remove the highlighted block, on a block list |
+| `Tab` or click | Choose the highlighted entry |
 | `Enter` | Confirm and send |
 | `Esc` | Close the picker |
 
@@ -146,28 +145,27 @@ those names opens a picker of every block in the game:
 $set movement.placementBlocks
 ```
 
-The picker has two columns. The left is every block in the game, searchable by
-typing part of a name. The right is the blocks currently on the list, in order,
-and it is always shown whatever you have typed on the left.
+The picker has two columns. The left is every block in the game, narrowed as you
+type. The right is the blocks currently on the list, in order, and it does not
+change as you type.
 
-Use whichever is quicker:
+It is there to help you type, not to do the work for you. Type the blocks you
+want after the setting name and press `Enter`:
 
-- **Search and pick.** Type to narrow the left column, move with `↑` `↓`, then
-  press `Space` to add the highlighted block. Press it again to take it away.
-  Picking from the right column always removes. `←` and `→` move between the two
-  columns, and clicking works too.
-- **Just type it.** Type the blocks after the setting name and press `Enter`.
-  This replaces the whole list, so only the ones you typed are chosen:
+```
+$set movement.placementBlocks dirt cobblestone oak_planks
+```
 
-  ```
-  $set movement.placementBlocks dirt cobblestone oak_planks
-  ```
+That replaces the whole list, so only those three are chosen. The left column
+filters on the last word you typed, so as you type `oak_planks` it narrows to
+the oak blocks and you can see the exact name to use.
 
 Spaces or commas both separate blocks, names may be written bare or with the
-`minecraft:` prefix, and anything that is not a block in the game is ignored.
+`minecraft:` prefix, and anything that is not a block in the game is ignored. The
+order the blocks are in is the order they are preferred in.
 
-Picking with `Space` saves as it goes, so nothing needs confirming. The order
-blocks are in is the order they are preferred in.
+Nothing is chosen until you send the command. `Space` types a space, so a list
+can be written out normally, and clicking a row does not change the setting.
 
 ## Your data
 

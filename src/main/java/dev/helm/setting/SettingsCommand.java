@@ -68,7 +68,7 @@ public final class SettingsCommand {
         return CommandResult.SUCCESS;
     }
 
-    public static void store(SettingCatalogue.Entry entry, String value) {
+    private static void store(SettingCatalogue.Entry entry, String value) {
         if (entry == null) {
             return;
         }

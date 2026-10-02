@@ -28,10 +28,6 @@ public final class PopupKeys {
         return matches(event, GLFW.GLFW_KEY_TAB);
     }
 
-    public static boolean isSpace(KeyEvent event) {
-        return matches(event, GLFW.GLFW_KEY_SPACE);
-    }
-
     private static boolean matches(KeyEvent event, int... keys) {
         if (event == null) {
             return false;
