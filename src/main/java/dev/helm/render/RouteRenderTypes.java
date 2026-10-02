@@ -18,8 +18,20 @@ public final class RouteRenderTypes {
     private RouteRenderTypes() {
     }
 
+    private static final RenderType TRANSLUCENT_FILL = RenderType.create("helm_fill",
+            RenderSetup.builder(RenderPipeline.builder(RenderPipelines.LINES_SNIPPET)
+                    .withLocation("pipelines/helm_fill")
+                    .withPrimitiveTopology(com.mojang.blaze3d.PrimitiveTopology.TRIANGLES)
+                    .withDepthStencilState(new DepthStencilState(CompareOp.LESS_THAN_OR_EQUAL, false))
+                    .build())
+                    .createRenderSetup());
+
     public static RenderType forPath(boolean ignoreDepth) {
         return ignoreDepth ? NO_DEPTH : WITH_DEPTH;
+    }
+
+    public static RenderType translucentFill() {
+        return TRANSLUCENT_FILL;
     }
 
     private static RenderSetup setup(CompareOp compare) {

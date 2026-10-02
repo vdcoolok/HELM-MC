@@ -1139,13 +1139,13 @@ planting work.
 
 ### Seeing what farming is doing
 
-While farming is running, two kinds of thing are outlined in the world.
+While farming is running, two kinds of thing are tinted in the world.
 
-The ripe crops it has found and is working through are outlined in green. Those
-are exactly the blocks it is about to break, so nothing else is marked, however
-much else farming walks past or breaks on the way.
+The ripe crops it has found and is working through are tinted green. Those are
+exactly the blocks it is about to break, so nothing else is marked, however much
+else farming walks past or breaks on the way.
 
-Anything that comes out of those crops is outlined in blue. When farming breaks
+Anything that comes out of those crops is tinted blue. When farming breaks
 a crop it works out what that kind of crop drops and remembers those items, and
 every dropped item lying in the world that matches one of them is outlined from
 then on. A melon is remembered as melon seeds, melon slices or a melon block;
@@ -1156,15 +1156,19 @@ were already lying around when farming started, or that come from something else
 are left alone. The memory is cleared when farming stops.
 
 Both outlines are drawn only while farming is running, and either can be turned
-off on its own with `farm.renderTargets` and `farm.renderDrops`. They use the
-same line width and depth handling as the path, so `path.blocksIgnoreDepth`
-applies to them too.
+off on its own with `farm.renderTargets` and `farm.renderDrops`.
 
-The outline is drawn from the geometry that is actually rendered, not from the
-shape the block is selected or collided with. A crop is drawn as the crossed
-planes it is drawn as in the world rather than as a box around the block, and a
-dropped item is drawn from the corners of its own model, so a flat item comes out
-flat and a block item comes out as a block.
+Neither is outlined. Both are covered with the shape that is actually rendered,
+tinted and thirty percent see-through, so the crop or the item shows through and
+what it is stays visible.
+
+The shape is the real one rather than the shape a block is selected or collided
+with, so a crop is covered along the crossed planes it is drawn as rather than
+in a box around the block.
+
+A dropped item is covered along its own model and moves exactly as the item does:
+it bobs up and down on the same rhythm and turns at the same speed, staying locked
+to the item instead of trailing behind it.
 
 ### When it gives up
 
@@ -1190,8 +1194,8 @@ Leaving the world ends a farm the same way `$stop` does, without a message.
 | `farm.replantNetherWart` | `false` | Plant nether wart again |
 | `farm.rescanEveryTicks` | `5` | Ticks between scans |
 | `farm.maxTargets` | `256` | Cap on blocks found by one scan |
-| `farm.renderTargets` | `true` | Outline the ripe crops farming is working through |
-| `farm.renderDrops` | `true` | Outline the items farming broke its crops into |
+| `farm.renderTargets` | `true` | Tint the ripe crops farming is working through |
+| `farm.renderDrops` | `true` | Tint the items farming broke its crops into |
 
 See [SETTINGS.md](SETTINGS.md) for what each one changes.
 

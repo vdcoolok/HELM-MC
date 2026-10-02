@@ -18,7 +18,7 @@ import dev.helm.setting.Settings;
 public final class FarmOverlay {
 
     private static final StagedVertexBuffer BUFFER = new StagedVertexBuffer(() -> "HELM Farm", 128);
-    private static final float ALPHA = 0.55F;
+    private static final float ALPHA = 0.3F;
 
     private FarmOverlay() {
     }
@@ -37,69 +37,59 @@ public final class FarmOverlay {
             return;
         }
         ViewOffset view = ViewOffset.of(camera);
-        float width = (float) Settings.holder().path().lineWidth();
-        var type = RouteRenderTypes.forPath(Settings.holder().path().blocksIgnoreDepth());
+        RenderType fill = RouteRenderTypes.translucentFill();
 
         if (settings.renderTargets()) {
-            paintCrops(pose, farm.harvestable(), width, type, view);
+            paintCrops(pose, level, farm.harvestable(), fill, view);
         }
         if (settings.renderDrops()) {
-            paintDrops(pose, level, farm, width, type, view);
+            paintDrops(pose, level, farm, fill, view);
         }
     }
 
-    private static void paintCrops(PoseStack pose, List<BlockPos> crops, float width,
-                                   RenderType type,
-                                   ViewOffset view) {
+    private static void paintCrops(PoseStack pose, ClientLevel level, List<BlockPos> crops,
+                                   RenderType fill, ViewOffset view) {
         if (crops.isEmpty()) {
             return;
         }
-        LineBatch batch = batch(pose, width, type, LineColour.GOAL);
-        ClientLevel level = Minecraft.getInstance().level;
+        FillBatch batch = batch(pose, fill, LineColour.GOAL);
         for (BlockPos crop : crops) {
-            List<double[]> corners = BlockSilhouette.quads(level.getBlockState(crop));
-            BlockSilhouette.outline(batch,
-                    Silhouette.at(crop.getX(), crop.getY(), crop.getZ(), corners, view));
+            List<double[]> quads = BlockSilhouette.quads(level.getBlockState(crop));
+            BlockSilhouette.fill(batch, Silhouette.at(crop.getX(), crop.getY(), crop.getZ(),
+                    quads, view));
         }
         batch.flush();
     }
 
-    private static void paintDrops(PoseStack pose, ClientLevel level, FarmTask farm, float width,
-                                   RenderType type,
-                                   ViewOffset view) {
+    private static void paintDrops(PoseStack pose, ClientLevel level, FarmTask farm,
+                                   RenderType fill, ViewOffset view) {
         if (farm.harvestLedger().empty()) {
             return;
         }
-        LineBatch batch = batch(pose, width, type, LineColour.PLACE);
+        FillBatch batch = batch(pose, fill, LineColour.PLACE);
         for (Entity entity : level.entitiesForRendering()) {
             if (!(entity instanceof ItemEntity dropped)
                     || !farm.harvestLedger().wants(dropped.getItem())) {
                 continue;
             }
-            drawSilhouette(batch, dropped, view);
+            fillDrop(batch, dropped, view);
         }
         batch.flush();
     }
 
-    private static void drawSilhouette(LineBatch batch, ItemEntity dropped, ViewOffset view) {
-        List<double[]> model = ItemSilhouette.points(dropped, dropped.getItem());
-        if (model.isEmpty()) {
+    private static void fillDrop(FillBatch batch, ItemEntity dropped, ViewOffset view) {
+        List<double[]> corners = ItemSilhouette.corners(dropped);
+        if (corners.size() < 3) {
             return;
         }
-        List<double[]> placed = Silhouette.placed(dropped, model, view);
-        for (int[] edge : ItemSilhouette.edges(model)) {
-            double[] from = placed.get(edge[0]);
-            double[] to = placed.get(edge[1]);
-            batch.segment(from[0], from[1], from[2], to[0], to[1], to[2]);
-        }
+        float rise = ItemBob.rise(dropped, ItemSilhouette.modelFloor(corners));
+        List<double[]> spun = Silhouette.spun(corners, ItemBob.spin(dropped), rise);
+        ShapeFill.corners(batch, Silhouette.at(dropped.getX(), dropped.getY(), dropped.getZ(),
+                spun, view));
     }
 
-    private static LineBatch batch(PoseStack pose, float width,
-                                   RenderType type,
-                                   LineColour colour) {
-        return new LineBatch(BUFFER, pose, type)
-                .colour(colour.red(), colour.green(), colour.blue(), ALPHA)
-                .width(width);
+    private static FillBatch batch(PoseStack pose, RenderType fill, LineColour colour) {
+        return new FillBatch(BUFFER, pose, fill)
+                .colour(colour.red(), colour.green(), colour.blue(), ALPHA);
     }
-
 }

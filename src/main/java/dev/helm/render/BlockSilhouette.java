@@ -36,15 +36,11 @@ public final class BlockSilhouette {
         return corners;
     }
 
-    public static LineBatch outline(LineBatch batch, List<double[]> corners) {
+    public static void fill(FillBatch batch, List<double[]> corners) {
         for (int i = 0; i + BakedQuad.VERTEX_COUNT <= corners.size(); i += BakedQuad.VERTEX_COUNT) {
-            for (int edge = 0; edge < BakedQuad.VERTEX_COUNT; edge++) {
-                double[] from = corners.get(i + edge);
-                double[] to = corners.get(i + (edge + 1) % BakedQuad.VERTEX_COUNT);
-                batch.segment(from[0], from[1], from[2], to[0], to[1], to[2]);
-            }
+            ShapeFill.face(batch, corners.get(i), corners.get(i + 1), corners.get(i + 2),
+                    corners.get(i + 3));
         }
-        return batch;
     }
 
     private static double[] point(BakedQuad quad, int index) {

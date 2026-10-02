@@ -304,16 +304,16 @@ remembers and how it is read.
 | `farm.replantNetherWart` | `false` | Plant nether wart again |
 | `farm.rescanEveryTicks` | `5` | Ticks between looking around for crops again |
 | `farm.maxTargets` | `256` | Most blocks to look for in one sweep |
-| `farm.renderTargets` | `true` | Outline the ripe crops farming is working through |
-| `farm.renderDrops` | `true` | Outline the items farming broke its crops into |
+| `farm.renderTargets` | `true` | Tint the ripe crops farming is working through |
+| `farm.renderDrops` | `true` | Tint the items farming broke its crops into |
 
 `farm.renderTargets` and `farm.renderDrops` only draw while farming is running.
 Targets are the ripe crops farming has found; drops are the items on the ground
 that came out of crops farming broke. Nothing else in the world is marked by them,
 including blocks farming walks through or breaks on the way to a crop.
 
-Both outlines follow the same line width and depth handling as the path, so
-`path.lineWidth` and `path.blocksIgnoreDepth` change how they look as well.
+Both are drawn as the shape the thing is actually rendered as, at thirty percent
+opacity, so what is underneath stays visible.
 
 `farm.replantAfterHarvest` is what makes farming worth doing. With it on, the
 empty farmland and bare jungle logs the sweep finds become targets in their own
