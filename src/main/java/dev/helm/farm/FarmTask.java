@@ -40,8 +40,7 @@ public final class FarmTask {
     private List<BlockPos> swept = List.of();
     private Sweep sweeping;
     private long sweepingSince;
-    private int sweepingFrom;
-    private boolean sweptOnce;
+    private int sweepingSteps;
     private int ticks;
 
     public static FarmTask instance() {
@@ -60,7 +59,7 @@ public final class FarmTask {
         this.area = around;
         this.swept = List.of();
         this.sweeping = null;
-        this.sweptOnce = false;
+        this.sweepingSteps = 0;
         this.ticks = 0;
         this.running = true;
         Trace.instance().barrier("farm");
@@ -92,11 +91,12 @@ public final class FarmTask {
         }
 
         sweepInTime(level, player);
-        FarmFindings findings = FarmSurvey.classify(level, swept, area);
+        List<BlockPos> seen = sweeping != null ? sweeping.found() : swept;
+        FarmFindings findings = FarmSurvey.classify(level, seen, area);
         if (tended(findings, player, level)) {
             return;
         }
-        if (sweeping != null || !sweptOnce) {
+        if (sweeping != null && seen.isEmpty()) {
             return;
         }
         if (pilot().unreachable()) {
@@ -108,13 +108,14 @@ public final class FarmTask {
 
     private void sweepInTime(ClientLevel level, LocalPlayer player) {
         if (sweeping != null) {
+            sweepingSteps++;
             if (sweeping.step(SWEEP_BUDGET_NANOS)) {
                 swept = sweeping.found();
-                sweptOnce = true;
                 Trace.instance().event("farm", "swept and found " + swept.size()
                         + " blocks worth looking at in " + millisSince(sweepingSince)
-                        + "ms over " + (ticks - sweepingFrom) + " ticks");
+                        + "ms over " + sweepingSteps + " ticks");
                 sweeping = null;
+                sweepingSteps = 0;
             }
             return;
         }
@@ -130,7 +131,7 @@ public final class FarmTask {
         }
         sweeping = FarmScan.begin(level, player.blockPosition(), Settings.holder().farm());
         sweepingSince = System.nanoTime();
-        sweepingFrom = ticks;
+        sweepingSteps = 0;
     }
 
     private boolean tended(FarmFindings findings, LocalPlayer player, ClientLevel level) {

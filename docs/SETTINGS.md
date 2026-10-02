@@ -323,11 +323,14 @@ spaces out.
 
 While a route is being walked no sweep happens at all, because the targets it is
 walking towards are already known. The next sweep runs on the first tick after
-that route finishes, so nothing is missed, only deferred. A sweep itself is
-spread over a second or two of ticks rather than done in one, because reading
-every block in that many chunks at once is felt as a hitch. Setting this to `0`
-sweeps once, when `$farm` starts, and never looks again, so anything that grows
-or is planted after that will not be noticed.
+that route finishes, so nothing is missed, only deferred.
+
+A sweep itself is spread over a second or two of ticks rather than done in one,
+because reading every block in that many chunks at once is felt as a hitch. Its
+results are used as soon as there are any, so `$farm` starts working straight
+away rather than waiting for the sweep to finish. Setting this to `0` sweeps
+once, when `$farm` starts, and never looks again, so anything that grows or is
+planted after that will not be noticed.
 
 `farm.maxTargets` caps how many blocks one sweep returns, so sweeping a huge flat
 world cannot run away. The sweep stops as soon as it has this many, unless it is

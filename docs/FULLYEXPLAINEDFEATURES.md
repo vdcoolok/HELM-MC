@@ -945,9 +945,12 @@ walking a long route defers the scan rather than skipping it.
 
 A scan does not finish in one tick. Reading every block in that many chunks is
 slow enough to be felt as a hitch, so the scan spends a small slice of each tick
-instead and carries on from where it left off. It usually takes a second or two
-to finish, and the positions from the previous scan are used right up until the
-new ones are ready. Nothing is decided until the first scan has finished, so
+instead and carries on from where it left off, starting with the chunk the player
+is standing in and widening from there.
+
+The positions found so far are used as soon as they exist, not when the scan
+finishes, so `$farm` starts working almost immediately and keeps discovering more
+as the scan widens. Nothing is decided until the scan has found something, so
 `$farm` cannot report a field as empty before it has looked at it.
 
 Building the list of things to walk to is also not free, since it has to look
