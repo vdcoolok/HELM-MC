@@ -7,8 +7,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.block.BlockModelRenderState;
 import net.minecraft.client.renderer.block.BlockModelResolver;
-import net.minecraft.client.renderer.block.BlockStateModelSet;
-import net.minecraft.client.renderer.block.dispatch.BlockStateModel;
 import net.minecraft.client.renderer.block.dispatch.BlockStateModelPart;
 import net.minecraft.client.renderer.block.model.BlockDisplayContext;
 import net.minecraft.client.resources.model.geometry.BakedQuad;
@@ -18,56 +16,48 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.joml.Matrix4f;
+import org.joml.Matrix4fc;
+import org.joml.Vector3f;
+
+import dev.helm.mixin.accessor.BlockModelAccess;
 
 public final class BlockSilhouette {
 
-    private static final long SEED = 42L;
-    private static final Matrix4f IDENTITY = new Matrix4f();
     private static BlockModelResolver resolver;
-    private static BlockStateModelSet models;
 
     private BlockSilhouette() {
     }
 
     public static Mesh mesh(BlockState state) {
-        List<BlockStateModelPart> found = parts(state);
+        BlockModelRenderState model = new BlockModelRenderState();
+        resolver().update(model, state, BlockDisplayContext.create());
+        BlockModelAccess access = (BlockModelAccess) model;
+        List<BlockStateModelPart> found = access.modelParts();
         List<double[]> corners = new ArrayList<>();
-        StringBuilder counts = new StringBuilder();
-        for (BlockStateModelPart part : found) {
-            int perPart = 0;
-            for (Direction face : Direction.values()) {
-                perPart += part.getQuads(face).size();
-            }
-            counts.append(' ').append(perPart);
-        }
         for (BlockStateModelPart part : found) {
             for (Direction face : Direction.values()) {
                 for (BakedQuad quad : part.getQuads(face)) {
                     for (int i = 0; i < BakedQuad.VERTEX_COUNT; i++) {
-                        var corner = quad.position(i);
-                        corners.add(new double[]{corner.x(), corner.y(), corner.z()});
+                        corners.add(at(quad.position(i), access.transformation()));
                     }
                 }
             }
         }
-        return corners.isEmpty()
-                ? new Mesh(outlined(state), "none")
-                : new Mesh(corners, found.size() + " parts:" + counts);
+        if (corners.isEmpty()) {
+            return new Mesh(outlined(state), found.size() + " parts, fell back to its shape");
+        }
+        return new Mesh(corners, found.size() + " parts");
     }
 
     public record Mesh(List<double[]> corners, String parts) {
     }
 
-    private static List<BlockStateModelPart> parts(BlockState state) {
-        BlockModelRenderState model = new BlockModelRenderState();
-        resolver().update(model, state, BlockDisplayContext.create());
-        List<BlockStateModelPart> parts = model.setupModel(IDENTITY, false);
-        BlockStateModel blockModel = models().get(state);
-        if (blockModel != null && parts.isEmpty()) {
-            blockModel.collectParts(model.scratchRandomSource(SEED), parts);
+    private static double[] at(org.joml.Vector3fc corner, Matrix4fc transformation) {
+        if (transformation == null) {
+            return new double[]{corner.x(), corner.y(), corner.z()};
         }
-        return parts;
+        Vector3f moved = new Vector3f(corner).mulPosition(transformation);
+        return new double[]{moved.x(), moved.y(), moved.z()};
     }
 
     private static List<double[]> outlined(BlockState state) {
@@ -98,12 +88,5 @@ public final class BlockSilhouette {
             resolver = new BlockModelResolver(Minecraft.getInstance().getModelManager());
         }
         return resolver;
-    }
-
-    private static BlockStateModelSet models() {
-        if (models == null) {
-            models = Minecraft.getInstance().getModelManager().getBlockStateModelSet();
-        }
-        return models;
     }
 }
