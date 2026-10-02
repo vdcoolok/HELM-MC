@@ -28,6 +28,10 @@ public abstract class SettingSection {
         return register(Setting.text(key, label, detail, initial));
     }
 
+    protected final Setting<String> blocks(String key, String label, String detail, String initial) {
+        return register(Setting.blocks(key, label, detail, initial));
+    }
+
     @SuppressWarnings("unchecked")
     protected final void apply(String key, String value) {
         Setting<?> setting = byKey.get(key);
@@ -38,7 +42,7 @@ public abstract class SettingSection {
             case BOOLEAN -> setting.accept(Boolean.valueOf(value));
             case WHOLE -> setting.accept(parseWhole(value, setting.initial()));
             case DECIMAL -> setting.accept(parseDecimal(value, setting.initial()));
-            case TEXT -> setting.accept(value);
+            case TEXT, BLOCKS -> setting.accept(value);
         }
     }
 

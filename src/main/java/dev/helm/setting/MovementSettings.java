@@ -1,5 +1,9 @@
 package dev.helm.setting;
 
+import java.util.List;
+
+import net.minecraft.world.level.block.Block;
+
 public final class MovementSettings extends SettingSection {
 
     public static final String ALLOW_BREAK = "movement.allowBreak";
@@ -46,6 +50,7 @@ public final class MovementSettings extends SettingSection {
     public static final String BREAK_SPEED = "movement.blockBreakSpeed";
     public static final String PLACE_SPEED = "movement.rightClickSpeed";
     public static final String ALLOW_SPRINT = "movement.allowSprint";
+    public static final String PLACEMENT_BLOCKS = "movement.placementBlocks";
 
     public MovementSettings() {
         flag(ALLOW_BREAK, "Allow breaking", "Blocks in the way may be mined.", true);
@@ -128,6 +133,10 @@ public final class MovementSettings extends SettingSection {
         count(BREAK_SPEED, "Break speed", "Ticks between block break attempts.", 6, 1, 20);
         count(PLACE_SPEED, "Place speed", "Ticks between block place attempts.", 4, 1, 20);
         flag(ALLOW_SPRINT, "Allow sprint", "Allow sprinting while pathing.", true);
+        blocks(PLACEMENT_BLOCKS, "Placement blocks",
+                "Blocks HELM may place when a path needs one, such as bridging, "
+                        + "pillaring or a failed parkour jump. Earlier blocks are preferred.",
+                "minecraft:dirt, minecraft:cobblestone, minecraft:netherrack, minecraft:stone");
     }
 
     public boolean allowBreak() {
@@ -304,5 +313,9 @@ public final class MovementSettings extends SettingSection {
 
     public boolean sprintAllowed() {
         return on(ALLOW_SPRINT);
+    }
+
+    public List<Block> placementBlocks() {
+        return BlockNames.ordered(words(PLACEMENT_BLOCKS));
     }
 }

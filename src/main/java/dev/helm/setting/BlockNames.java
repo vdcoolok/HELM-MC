@@ -1,7 +1,8 @@
 package dev.helm.setting;
 
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -15,10 +16,15 @@ public final class BlockNames {
     }
 
     public static Set<Block> parse(String list) {
+        return Set.copyOf(ordered(list));
+    }
+
+    public static List<Block> ordered(String list) {
         if (list == null || list.isBlank()) {
-            return Collections.emptySet();
+            return List.of();
         }
-        Set<Block> blocks = new LinkedHashSet<>();
+        List<Block> blocks = new ArrayList<>();
+        Set<Block> seen = new LinkedHashSet<>();
         for (String entry : list.split(",")) {
             String name = entry.trim().toLowerCase(Locale.ROOT);
             if (name.isEmpty()) {
@@ -31,8 +37,11 @@ public final class BlockNames {
             if (id == null || !BuiltInRegistries.BLOCK.containsKey(id)) {
                 continue;
             }
-            blocks.add(BuiltInRegistries.BLOCK.getValue(id));
+            Block block = BuiltInRegistries.BLOCK.getValue(id);
+            if (seen.add(block)) {
+                blocks.add(block);
+            }
         }
-        return Set.copyOf(blocks);
+        return List.copyOf(blocks);
     }
 }

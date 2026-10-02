@@ -65,6 +65,7 @@ that session.
 | --- | --- | --- |
 | `movement.allowBreak` | `true` | Mine blocks that are in the way |
 | `movement.allowPlace` | `true` | Place blocks to bridge or step up |
+| `movement.placementBlocks` | dirt, cobblestone, netherrack, stone | Blocks HELM may place when a path needs one |
 | `movement.allowParkour` | `true` | Jump across gaps |
 | `movement.allowParkourPlace` | `true` | Place a block at the end of a failed parkour jump |
 | `movement.allowParkourAscend` | `true` | Sprint up one block while parkouring |
@@ -114,6 +115,36 @@ These change which route is chosen, not just how fast it is walked.
 
 Raising the placement penalty makes HELM prefer mining over placing. Raising the
 break penalty makes it break as few blocks as possible.
+
+### Choosing which blocks to place
+
+`movement.placementBlocks` is the list of blocks HELM is allowed to place when a
+route needs one put down: bridging a gap, stepping up, pillaring, or placing at
+the end of a failed parkour jump. One list covers all of them, so it is set once
+rather than per move.
+
+The default is dirt, cobblestone, netherrack and stone, in that order. The order
+matters: earlier blocks win when several of them are in the hotbar.
+
+It is a list of blocks, so it opens a picker of every block in the game rather
+than taking a single value. Type part of a name to narrow it, then move with
+`↑` `↓` and press `Space` to add or remove the highlighted block. Blocks already
+on the list are marked, and the list is saved as soon as it changes.
+
+```
+$set movement.placementBlocks
+```
+
+The value can also be written out by hand as a comma separated list:
+
+```
+$set movement.placementBlocks minecraft:oak_planks, minecraft:cobblestone
+```
+
+Names may be written bare or with the `minecraft:` prefix, in any case, and
+anything that is not a block in the game is ignored. Leaving the list empty means
+no block on it is preferred, so HELM falls back to whatever placeable block is in
+the hotbar.
 
 ### Timing and giving up
 

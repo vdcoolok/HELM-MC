@@ -1,27 +1,21 @@
 package dev.helm.tools;
 
+import java.util.List;
+
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
 
 import dev.helm.world.PlayerInventory;
 
 public final class ThrowawayChooser {
-
-    private static final Block[] PREFERRED = {
-            Blocks.DIRT,
-            Blocks.COBBLESTONE,
-            Blocks.NETHERRACK,
-            Blocks.STONE
-    };
 
     private ThrowawayChooser() {
     }
 
     public static boolean selectFor(boolean select) {
         PlayerInventory inventory = inventory();
-        int slot = bestSlot(inventory);
+        int slot = bestSlot(inventory, preferred());
         if (slot < 0) {
             return false;
         }
@@ -29,6 +23,10 @@ public final class ThrowawayChooser {
             inventory.selectSlot(slot);
         }
         return true;
+    }
+
+    private static List<Block> preferred() {
+        return dev.helm.setting.Settings.holder().movement().placementBlocks();
     }
 
     private static PlayerInventory inventory() {
@@ -39,7 +37,7 @@ public final class ThrowawayChooser {
         return new PlayerInventory(client.player);
     }
 
-    private static int bestSlot(PlayerInventory inventory) {
+    private static int bestSlot(PlayerInventory inventory, List<Block> preferred) {
         int anyBlock = -1;
         for (int slot = 0; slot < 9; slot++) {
             Block block = placeableFrom(inventory.slot(slot));
@@ -49,7 +47,7 @@ public final class ThrowawayChooser {
             if (anyBlock < 0) {
                 anyBlock = slot;
             }
-            for (Block wanted : PREFERRED) {
+            for (Block wanted : preferred) {
                 if (block == wanted) {
                     return slot;
                 }

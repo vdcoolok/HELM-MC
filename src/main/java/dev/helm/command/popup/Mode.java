@@ -6,5 +6,6 @@ public enum Mode {
     NAMES,
     INPUTS,
     SETTINGS,
-    VALUES
+    VALUES,
+    BLOCKS
 }

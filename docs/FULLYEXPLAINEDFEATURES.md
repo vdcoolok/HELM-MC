@@ -557,9 +557,17 @@ about which face is being hit.
 
 To place, HELM needs something that is actually a block in hand. If the held slot
 holds a tool, an item, or nothing at all, a throwaway block is picked from the
-hotbar instead, preferring dirt, cobblestone, netherrack or stone. If the hotbar
-holds no placeable block at all, the step reports that it cannot be done rather
-than waiting forever for something to appear.
+hotbar instead. The blocks it will use for that come from
+`movement.placementBlocks`, and they are tried in the order that list is in, so
+the first block on the list that is in the hotbar is the one that gets used. The
+default list is dirt, cobblestone, netherrack and stone. If the hotbar holds no
+placeable block at all, the step reports that it cannot be done rather than
+waiting forever for something to appear.
+
+One list covers every kind of placement: bridging a gap, stepping up, pillaring,
+and placing at the end of a failed parkour jump. There is no separate list per
+move, so a block added once is available to all of them. See
+[SETTINGS.md](SETTINGS.md) for how the picker works.
 
 `movement.assumeSafeWalk` takes the edge safety out of the equation: HELM places
 without insisting on crouching first. It is faster and it will drop the player
@@ -768,6 +776,7 @@ The settings that change walking and searching are grouped as follows.
 | `movement.maxFallHeightBucket` | `60` | Same, when a water bucket is used |
 | `movement.jumpPenalty` | `2.0` | Cost of every jump, because it costs hunger |
 | `movement.blockPlacementPenalty` | `20.0` | Cost of placing one block |
+| `movement.placementBlocks` | dirt, cobblestone, netherrack, stone | Blocks that may be placed when a route needs one |
 | `movement.blockBreakAdditionalPenalty` | `2.0` | Added to every block mined |
 | `movement.walkOnWaterOnePenalty` | `3.0` | Added to stepping onto a water surface |
 | `movement.maxCostIncrease` | `10.0` | How much dearer a step may get before the route is dropped |

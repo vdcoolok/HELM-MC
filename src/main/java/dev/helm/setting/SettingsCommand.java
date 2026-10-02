@@ -84,7 +84,7 @@ public final class SettingsCommand {
                 case BOOLEAN -> parseBoolean(entry, value);
                 case WHOLE -> Integer.valueOf(value);
                 case DECIMAL -> Double.valueOf(value);
-                case TEXT -> value;
+                case TEXT, BLOCKS -> value;
             };
         } catch (NumberFormatException invalid) {
             throw new CommandException(CommandFeedback.invalidArgument(entry.key(), value));

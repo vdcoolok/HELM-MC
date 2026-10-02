@@ -129,11 +129,30 @@ $stop
 | --- | --- |
 | `↑` `↓` | Move the cursor |
 | `Tab` or click | Choose the highlighted entry |
+| `Space` | Add or remove the highlighted block, on a block list |
 | `Enter` | Confirm and send |
 | `Esc` | Close the picker |
 
 Anything typed in the chat box is filtered live as you type, and the command
 suggestions strip appears once `$` and a space are typed.
+
+## Choosing blocks
+
+Some settings are a list of blocks rather than a single value. Typing one of
+those names opens a picker of every block in the game:
+
+```
+$set movement.placementBlocks
+```
+
+Type part of a block name to narrow the list, then move with `↑` and `↓` and
+press `Space` to add the highlighted block or take it away again. Blocks already
+chosen are marked. Press `Space` as many times as you like: the list grows, and
+the order it grows in is the order the blocks are preferred in.
+
+The list is saved as soon as it changes, so nothing needs confirming. Press
+`Enter` to send the finished command, or `Esc` to close without sending anything
+else.
 
 ## Your data
 

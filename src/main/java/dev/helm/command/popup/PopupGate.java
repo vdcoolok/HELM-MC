@@ -6,6 +6,7 @@ import java.util.List;
 import dev.helm.command.MacroEditing;
 import dev.helm.command.chat.DollarPrefix;
 import dev.helm.setting.SettingCatalogue;
+import dev.helm.setting.SettingKind;
 
 public final class PopupGate {
 
@@ -43,9 +44,14 @@ public final class PopupGate {
 
     public static Mode mode(String chatValue, int cursor) {
         if (mentionsSetting(chatValue)) {
-            return namedSetting(chatValue, cursor) == null
-                    ? Mode.SETTINGS
-                    : Mode.VALUES;
+            SettingCatalogue.Entry entry = namedSetting(chatValue, cursor);
+            if (entry == null) {
+                return Mode.SETTINGS;
+            }
+            if (entry.kind() == SettingKind.BLOCKS) {
+                return Mode.BLOCKS;
+            }
+            return Mode.VALUES;
         }
         if (!owns(chatValue)) {
             return Mode.NONE;
@@ -62,13 +68,25 @@ public final class PopupGate {
         if (words.isEmpty() || !words.get(0).equalsIgnoreCase(SET)) {
             return false;
         }
-        return words.size() <= 2;
+        if (words.size() <= 2) {
+            return true;
+        }
+        return words.size() == 3 && picksBlocks(words.get(1));
+    }
+
+    private static boolean picksBlocks(String name) {
+        SettingCatalogue.Entry entry = SettingCatalogue.find(name);
+        return entry != null && entry.kind() == SettingKind.BLOCKS;
     }
 
     public static List<PopupRow> rows(String chatValue, int cursor) {
         Mode mode = mode(chatValue, cursor);
         if (mode == Mode.SETTINGS) {
             return SettingPicker.rows(partial(chatValue, cursor));
+        }
+        if (mode == Mode.BLOCKS) {
+            SettingCatalogue.Entry entry = namedSetting(chatValue, cursor);
+            return BlockPicker.rows(entry, blockFilter(chatValue, cursor, entry));
         }
         if (mode == Mode.VALUES) {
             return SettingPicker.values(namedSetting(chatValue, cursor),
@@ -77,12 +95,26 @@ public final class PopupGate {
         return List.of();
     }
 
+    private static String blockFilter(String chatValue, int cursor,
+                                      SettingCatalogue.Entry entry) {
+        String typed = partial(chatValue, cursor);
+        if (entry != null && typed.equalsIgnoreCase(entry.key())) {
+            return "";
+        }
+        return typed;
+    }
+
     private static SettingCatalogue.Entry namedSetting(String chatValue, int cursor) {
         List<String> words = tokens(body(chatValue).substring(0, bounded(chatValue, cursor)));
         if (words.size() < 2) {
             return null;
         }
         return SettingCatalogue.find(words.get(1));
+    }
+
+    public static String settingName(String chatValue, int cursor) {
+        List<String> words = tokens(body(chatValue).substring(0, bounded(chatValue, cursor)));
+        return words.size() < 2 ? null : words.get(1);
     }
 
     public static String hint(String chatValue, int cursor) {

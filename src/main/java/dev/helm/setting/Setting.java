@@ -42,6 +42,10 @@ public final class Setting<T> {
         return new Setting<>(key, label, detail, initial, SettingKind.TEXT, null, null);
     }
 
+    public static Setting<String> blocks(String key, String label, String detail, String initial) {
+        return new Setting<>(key, label, detail, initial, SettingKind.BLOCKS, null, null);
+    }
+
     public String key() {
         return key;
     }

@@ -5,5 +5,6 @@ public enum SettingKind {
     BOOLEAN,
     WHOLE,
     DECIMAL,
-    TEXT
+    TEXT,
+    BLOCKS
 }

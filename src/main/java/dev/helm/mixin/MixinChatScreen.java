@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
+import dev.helm.command.popup.BlockPicker;
 import dev.helm.command.popup.PopupBounds;
 import dev.helm.command.popup.PopupCommands;
 import dev.helm.command.popup.Mode;
@@ -14,6 +15,9 @@ import dev.helm.command.popup.PopupPlacement;
 import dev.helm.command.popup.PopupRow;
 import dev.helm.command.popup.PopupRows;
 import dev.helm.command.popup.PopupState;
+import dev.helm.setting.SettingCatalogue;
+import dev.helm.setting.SettingPickerScreen;
+import dev.helm.setting.SettingsCommand;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -64,6 +68,8 @@ public abstract class MixinChatScreen {
             return;
         }
         PopupState state = PopupState.instance();
+        String value = inputValue();
+        int cursor = input == null ? 0 : input.getCursorPosition();
 
         if (PopupKeys.isUp(event)) {
             helmMove(-1);
@@ -73,6 +79,10 @@ public abstract class MixinChatScreen {
             state.moveToColumnSlot(-1);
         } else if (PopupKeys.isRight(event)) {
             state.moveToColumnSlot(1);
+        } else if (PopupKeys.isSpace(event)) {
+            if (!helmToggleBlock(value, cursor)) {
+                return;
+            }
         } else if (PopupKeys.isTab(event)) {
             if (state.selected() < 0) {
                 state.select(0);
@@ -82,6 +92,53 @@ public abstract class MixinChatScreen {
             return;
         }
         callback.setReturnValue(true);
+    }
+
+    private boolean helmToggleBlock(String value, int cursor) {
+        if (PopupGate.mode(value, cursor) != Mode.BLOCKS) {
+            return false;
+        }
+        PopupState state = PopupState.instance();
+        PopupRow row = state.current();
+        if (row == null) {
+            state.select(0);
+            row = state.current();
+        }
+        if (row == null) {
+            return false;
+        }
+        var entry = SettingCatalogue.find(PopupGate.settingName(value, cursor));
+        String chosen = BlockPicker.toggle(entry, row);
+        if (chosen == null) {
+            return false;
+        }
+        SettingsCommand.applySideEffects();
+        SettingsCommand.save();
+        helmShowAllBlocks(entry.key());
+        helmRefresh();
+        helmReselect(row.insert());
+        return true;
+    }
+
+    private void helmShowAllBlocks(String key) {
+        String text = SettingPickerScreen.PREFIX + key + " ";
+        input.setValue(text);
+        int end = text.length();
+        input.setCursorPosition(end);
+        input.setHighlightPos(end);
+    }
+
+    private void helmReselect(String path) {
+        PopupState state = PopupState.instance();
+        for (int index = 0; index < state.rows().size(); index++) {
+            if (state.rows().get(index).insert().equals(path)) {
+                state.select(index);
+                PopupPlacement placement = helmPlacement(state.rows(),
+                        Minecraft.getInstance().font);
+                state.reveal(index, placement.visibleLines(), placement.totalLines());
+                return;
+            }
+        }
     }
 
     @Inject(method = "mouseClicked", at = @At("HEAD"), cancellable = true)
@@ -178,7 +235,7 @@ public abstract class MixinChatScreen {
         }
         List<PopupRow> offered = switch (mode) {
             case INPUTS -> PopupRows.inputs();
-            case SETTINGS, VALUES -> PopupGate.rows(value, cursor);
+            case SETTINGS, VALUES, BLOCKS -> PopupGate.rows(value, cursor);
             default -> PopupRows.build();
         };
         helmDetail = mode == Mode.SETTINGS;
