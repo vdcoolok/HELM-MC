@@ -4,7 +4,7 @@
 
 ### Minecraft client automation for Fabric
 
-**Navigation. Movement. World interaction. Inventory. Macros.**
+**Minecraft automation mod. Macros, pathfinding, mining and farming. A better Baritone.**
 
 [Documentation](docs/FULLYEXPLAINEDFEATURES.md) ·
 [Commands](docs/USAGE.md) ·
