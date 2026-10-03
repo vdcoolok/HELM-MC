@@ -13,6 +13,7 @@ import net.minecraft.world.level.block.AirBlock;
 
 import dev.helm.drops.DropCache;
 import dev.helm.pathfinding.goal.AnyGoal;
+import dev.helm.pathfinding.world.block.LiquidRules;
 import dev.helm.pathfinding.goal.BesideGoal;
 import dev.helm.pathfinding.goal.BlockGoal;
 import dev.helm.pathfinding.goal.BreakableGoal;
@@ -62,13 +63,32 @@ public final class FarmGoals {
         DropCache cache = DropCache.instance();
         List<Goal> targets = new ArrayList<>();
         for (Entity entity : level.entitiesForRendering()) {
-            if (entity instanceof ItemEntity dropped && dropped.onGround()
-                    && cache.wanted(dropped.getItem())) {
-                targets.add(new DroppedGoal(BlockPos.containing(dropped.getX(),
-                        dropped.getY() + 0.1D, dropped.getZ())));
+            if (!(entity instanceof ItemEntity dropped) || dropped.getItem().isEmpty()) {
+                continue;
+            }
+            if (!cache.wanted(dropped.getItem())) {
+                continue;
+            }
+            if (dropped.onGround()) {
+                targets.add(new DroppedGoal(where(dropped)));
+                continue;
+            }
+            if (afloat(dropped, level)) {
+                BlockPos where = where(dropped);
+                targets.add(new BesideGoal(where.getX(), where.getY(), where.getZ()));
             }
         }
         return targets;
+    }
+
+    private static boolean afloat(ItemEntity dropped, ClientLevel level) {
+        BlockPos pos = dropped.blockPosition();
+        return LiquidRules.water(level.getBlockState(pos))
+                || LiquidRules.water(level.getBlockState(pos.below()));
+    }
+
+    private static BlockPos where(ItemEntity dropped) {
+        return BlockPos.containing(dropped.getX(), dropped.getY() + 0.1D, dropped.getZ());
     }
 
     private static Goal block(BlockPos pos) {

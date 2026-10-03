@@ -1257,6 +1257,29 @@ item on the ground that is worth having, and the same check decides whether the
 item gets an outline. A drop that is still wanted is drawn glowing; one that has
 not been wanted, or has been forgotten, is drawn normally.
 
+### Drops that land in water
+
+An item that falls in water does not sink. The game nudges it very gently
+upwards every tick while it is in the fluid, so it rides on the surface instead of
+settling on the bottom, and it is not resting on a block while it does. That
+matters because a drop is only worth walking to if it is somewhere the bot can
+finish the job.
+
+A drop that is floating is treated differently from one lying on the ground. A
+drop on the ground is aimed at exactly, standing on it. A drop in water is aimed
+at the block next to it, so the bot walks to the bank rather than trying to stand
+on the surface, which it cannot do.
+
+Standing one block away is close enough. The area the game collects items from is
+the player's own box grown by one block sideways and half a block up and down, and
+one block away sits inside that, so the item is picked up on arrival.
+
+A drop in the middle of a wide pool stays out of reach. The path finder refuses to
+route through a water source block at all, so there is no swimming to it, and the
+drop is simply one of the targets that cannot be met while the others are. It
+does not end the farm, because a target that cannot be met is only ignored when
+something else can.
+
 Mining works the same way as soon as it breaks blocks of its own, because both
 go through the same breaking path. Nothing extra is needed for that.
 

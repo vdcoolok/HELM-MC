@@ -12,6 +12,7 @@
 - `farm` command harvesting ripe crops, replanting the empty ground and picking up the drops
 - Farm waiting on a field instead of giving up when the last ripe crop is taken
 - Farm planting aiming at the nearest reachable spot on the soil's top face
+- Farm walking to the bank to collect a crop drop that landed in water
 
 - `allowInventory` setting fetching tools, placement blocks and farm supplies from the whole inventory, with slots 0 and 8 kept stocked
 - `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle and a farm at once
