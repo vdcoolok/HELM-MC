@@ -1236,6 +1236,10 @@ at the cost of occasionally leaving a drop behind.
 When a drop of the right type is lying on the ground, its position becomes a target
 in its own right, so HELM walks over and picks it up rather than leaving it.
 
+A walk to a dropped item is never treated as a stale route and abandoned. That check
+is for routes to blocks that can be mined out from under you, and a drop lying on the
+ground is not one of them, so the walk runs to its end.
+
 Breaking a block and immediately moving on is a race the drop often loses, because
 it takes a moment to appear. So the position of a block that has just been broken is
 held as a target for `mining.dropWaitMillis` afterwards, giving the drop time to

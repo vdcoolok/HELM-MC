@@ -314,7 +314,7 @@ public final class MineTask {
         if (destination == null) {
             return;
         }
-        Trace.instance().pulse("mine-route", "mine", "the block the route was heading for at "
+        Trace.instance().event("mine", "the block the route was heading for at "
                 + destination[0] + " " + destination[1] + " " + destination[2]
                 + " has gone, stopping the walk there");
         pilot.halt();

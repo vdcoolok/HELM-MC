@@ -207,12 +207,9 @@ public final class MineJob {
             return null;
         }
         List<Goal> goals = new ArrayList<>(drops.size());
-        List<BlockPos> wanted = new ArrayList<>(drops.size());
         for (BlockPos pos : drops) {
             goals.add(SpotGoals.forPosition(pos, drops, filter, world, work, settings));
-            wanted.add(pos);
         }
-        routeFor = wanted.get(0);
         return AnyGoal.of(goals);
     }
 
