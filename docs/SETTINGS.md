@@ -193,7 +193,6 @@ If another mod already switches tools for you, turning
 | `mining.exposedRadius` | `1` | How far around a target to look for that air |
 | `mining.sightOnly` | `false` | Never act on a block you cannot see |
 | `mining.sightDiagonals` | `false` | With sight only, accept a block touching a visible one |
-| `mining.stripLevel` | `-59` | Level held while exploring for unknown blocks |
 | `mining.exploreWhenUnknown` | `true` | Walk away when no target is known |
 | `mining.skipUnreachable` | `true` | Mark an unreachable target and try the next |
 | `mining.rescanEveryTicks` | `5` | Ticks between looks, `0` looks once |

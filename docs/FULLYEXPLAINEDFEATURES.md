@@ -1102,14 +1102,13 @@ matters underground where you move away from ground quickly.
 | Setting | Default | What it does |
 | --- | --- | --- |
 | `mining.exploreWhenUnknown` | `true` | Walk away when no target is known |
-| `mining.stripLevel` | `-59` | Level held while doing so |
 | `mining.skipUnreachable` | `true` | Mark an unreachable target and try the next |
 
 When nothing is found anywhere it looks, and `mining.exploreWhenUnknown` is on, it
 walks away from where the job started and keeps its distance while it does, so new
 chunks load and something turns up. The route it takes is not aimed at a block at
-all: it is aimed away from the start and at `mining.stripLevel`, so it neither
-climbs nor digs while it wanders.
+all: it neither climbs nor digs while it wanders, and it has no particular depth in
+mind. It simply gets as far from where it started as it can.
 
 Turning exploration off does not necessarily mean giving up at once. When no route
 can be found to any known block, `mining.skipUnreachable` marks the closest one
@@ -1308,7 +1307,6 @@ blocks the route itself will break. Both are off independently, and
 | `mining.exposedRadius` | `1` | How far around a target to look for that air |
 | `mining.sightOnly` | `false` | Never act on a block you cannot see |
 | `mining.sightDiagonals` | `false` | With sight only, accept a block touching a visible one |
-| `mining.stripLevel` | `-59` | Level held while exploring |
 | `mining.exploreWhenUnknown` | `true` | Walk away when no target is known |
 | `mining.skipUnreachable` | `true` | Mark an unreachable target and try the next |
 | `mining.rescanEveryTicks` | `5` | Ticks between looks |

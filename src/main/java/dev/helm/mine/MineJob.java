@@ -272,7 +272,7 @@ public final class MineJob {
         if (startPoint == null) {
             startPoint = feet;
         }
-        return new ExploreAwayGoal(startPoint.getX(), startPoint.getZ(), settings.stripLevel());
+        return new ExploreAwayGoal(startPoint.getX(), startPoint.getZ());
     }
 
     public boolean routeTargetStillKnown() {

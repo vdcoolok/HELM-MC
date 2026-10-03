@@ -21,7 +21,6 @@ public final class MiningSettings extends SettingSection {
     public static final String EXPOSED_RADIUS = "mining.exposedRadius";
     public static final String SIGHT_ONLY = "mining.sightOnly";
     public static final String SIGHT_DIAGONALS = "mining.sightDiagonals";
-    public static final String STRIP_LEVEL = "mining.stripLevel";
     public static final String EXPLORE_WHEN_UNKNOWN = "mining.exploreWhenUnknown";
     public static final String SKIP_UNREACHABLE = "mining.skipUnreachable";
     public static final String RESCAN_EVERY = "mining.rescanEveryTicks";
@@ -79,8 +78,6 @@ public final class MiningSettings extends SettingSection {
         flag(SIGHT_DIAGONALS, "Sight diagonals",
                 "While sight only is on, also accept a target that only touches a target you "
                         + "can already see.", false);
-        count(STRIP_LEVEL, "Strip level",
-                "Level to hold while exploring for targets that are not known yet.", -59, -4096, 4096);
         flag(EXPLORE_WHEN_UNKNOWN, "Explore when unknown",
                 "Walk away from where you started when no target is known, so new chunks load "
                         + "and something turns up.", true);
@@ -199,10 +196,6 @@ public final class MiningSettings extends SettingSection {
 
     public boolean sightDiagonals() {
         return on(SIGHT_DIAGONALS);
-    }
-
-    public int stripLevel() {
-        return level(STRIP_LEVEL);
     }
 
     public boolean exploreWhenUnknown() {
