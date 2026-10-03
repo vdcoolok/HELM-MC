@@ -52,7 +52,7 @@ public final class Sweep {
                 return false;
             }
         }
-        if (encompassed()) {
+        if (encompassed() || (found.size() >= want.maxResults() && ring > 1)) {
             finished = true;
             return true;
         }

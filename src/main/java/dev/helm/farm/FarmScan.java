@@ -21,7 +21,8 @@ public final class FarmScan {
 
     public static Sweep begin(ClientLevel level, BlockPos from, FarmSettings settings) {
         return Sweep.around(level, from,
-                new ChunkScanRequest(watchedFor(settings), CHUNKS_OUT));
+                new ChunkScanRequest(watchedFor(settings), settings.maxTargets(),
+                CHUNKS_OUT));
     }
 
     public static Set<Block> watchedFor(FarmSettings settings) {
