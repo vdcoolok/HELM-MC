@@ -114,7 +114,13 @@ public final class Pilot {
         active = false;
         pending = null;
         route = Route.empty();
-        controls.clear();
+        controls.set(Control.SPRINT, false);
+        controls.set(Control.MOVE_FORWARD, false);
+        controls.set(Control.MOVE_BACK, false);
+        controls.set(Control.MOVE_LEFT, false);
+        controls.set(Control.MOVE_RIGHT, false);
+        controls.set(Control.JUMP, false);
+        controls.set(Control.SNEAK, false);
     }
 
     public void holdStill() {

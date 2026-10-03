@@ -115,7 +115,7 @@ public final class MineTask {
         Trace.instance().pulse("mine-known", "mine", "raw=[" + current.rawRequest()
                 + "] wanted=" + current.wanted() + " carrying=" + current.carried(player)
                 + " swept=" + current.sweptCount() + " known=" + current.known().size()
-                + " nearest=" + describe(current.known(), feet));
+                + " nearest=" + describe(current.known(), feet, world));
         List<BlockPos> drops = gatherDrops(current, level, player, settings);
 
         sweep(current, level, feet, world, work, settings, drops);
@@ -178,6 +178,7 @@ public final class MineTask {
         }
         overhead = held;
         BlockPos feet = player.blockPosition();
+        pilot().stopWalking();
         boolean aimed = OverheadMiner.work(pilot(),
                 new OverheadSpot(held, feet.getX(), feet.getY(), feet.getZ()), player,
                 Settings.holder().look());
@@ -188,7 +189,6 @@ public final class MineTask {
             blind = 0;
             return false;
         }
-        pilot().stopWalking();
         pilot().holdStill();
         Trace.instance().repeat("mine-overhead", "mine", "breaking the block above at "
                 + held.getX() + " " + held.getY() + " " + held.getZ() + " without moving");
@@ -241,7 +241,7 @@ public final class MineTask {
         return List.copyOf(held);
     }
 
-    private String describe(List<BlockPos> known, BlockPos feet) {
+    private String describe(List<BlockPos> known, BlockPos feet, BlockView world) {
         BlockPos closest = null;
         for (BlockPos pos : known) {
             if (closest == null || pos.distSqr(feet) < closest.distSqr(feet)) {
@@ -250,7 +250,9 @@ public final class MineTask {
         }
         return closest == null ? "nothing"
                 : closest.getX() + " " + closest.getY() + " " + closest.getZ()
-                    + " at " + (int) Math.sqrt(closest.distSqr(feet)) + " blocks";
+                    + " at " + (int) Math.sqrt(closest.distSqr(feet)) + " blocks holding "
+                    + world.stateAt(closest.getX(), closest.getY(), closest.getZ())
+                        .getBlock().getName().getString();
     }
 
     private BlockPos lookedAt(LocalPlayer player) {
