@@ -35,6 +35,8 @@ public final class MineJob {
     private final List<BlockPos> unreachable = new ArrayList<>();
     private final DropLedger ledger = new DropLedger();
 
+    private static final int COLLECT_RADIUS_SQUARED = 64;
+
     private BlockPos startPoint;
     private BlockPos routeFor;
     private List<BlockPos> working;
@@ -198,20 +200,26 @@ public final class MineJob {
             return AnyGoal.of(goals);
         }
         if (settings.waitForDrops() && !drops.isEmpty()) {
-            return hold(world, work, settings, drops);
+            Goal collecting = hold(world, work, settings, feet, drops);
+            if (collecting != null) {
+                return collecting;
+            }
         }
         working = null;
         return wander(settings, feet);
     }
 
     private Goal hold(BlockView world, WorkCosts work, MiningSettings settings,
-                      List<BlockPos> drops) {
+                      BlockPos feet, List<BlockPos> drops) {
         List<Goal> goals = new ArrayList<>(drops.size());
         for (BlockPos pos : drops) {
+            if (pos.distSqr(feet) > COLLECT_RADIUS_SQUARED) {
+                continue;
+            }
             goals.add(SpotGoals.forPosition(pos, drops, filter, world, work, settings));
         }
         routeFor = null;
-        return AnyGoal.of(goals);
+        return goals.isEmpty() ? null : AnyGoal.of(goals);
     }
 
     public List<BlockPos> committed(BlockView world) {

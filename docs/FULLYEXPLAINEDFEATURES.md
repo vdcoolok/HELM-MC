@@ -1226,6 +1226,11 @@ walking onto it.
 Positions where something dropped are kept out of the vein itself, so a drop lying on
 the ground is never mistaken for part of the seam and never chosen over it.
 
+Only drops close by are walked over. One left a long way off, or far below, is not
+something the vein just dropped and is not worth the walk: chasing it could send the
+job off down a shaft after a single stray block instead of carrying on with the
+seam in front of it.
+
 `mining.stopRouteWhenMined` stops a walk the moment the block it was heading for is
 gone, rather than finishing a route that no longer leads anywhere. It makes mining
 faster, since no time is spent walking into locations that no longer hold anything,
