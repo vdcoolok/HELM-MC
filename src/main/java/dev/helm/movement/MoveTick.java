@@ -46,7 +46,6 @@ public final class MoveTick {
     }
 
     public void reset() {
-        state = MoveState.PREPPING;
         inputs.clear();
         intent.clear();
     }

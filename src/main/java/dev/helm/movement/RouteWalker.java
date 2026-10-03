@@ -75,6 +75,7 @@ public final class RouteWalker {
         ticksOnStep = 0;
         budget = null;
         releasedControls = true;
+        state.state(MoveState.PREPPING);
         state.inputs().clear();
     }
 
