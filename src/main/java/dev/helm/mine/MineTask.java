@@ -36,14 +36,14 @@ import dev.helm.setting.Settings;
 public final class MineTask {
 
     private static final long SWEEP_BUDGET_NANOS = 4_000_000L;
-    private static final int BLIND_GRACE = 10;
+    private static final int SETTLE_TICKS = 20;
 
     private static final MineTask INSTANCE = new MineTask();
 
     private boolean installed;
     private MineJob job;
     private BlockPos overhead;
-    private int blind;
+    private int settling;
 
     private MineTask() {
     }
@@ -85,7 +85,7 @@ public final class MineTask {
     public void stop() {
         job = null;
         overhead = null;
-        blind = 0;
+        settling = 0;
         release();
     }
 
@@ -173,23 +173,23 @@ public final class MineTask {
         }
         if (held == null) {
             overhead = null;
-            blind = 0;
+            settling = 0;
             return false;
         }
         overhead = held;
         BlockPos feet = player.blockPosition();
         pilot().stopWalking();
-        boolean aimed = OverheadMiner.work(pilot(),
+        boolean striking = OverheadMiner.work(pilot(),
                 new OverheadSpot(held, feet.getX(), feet.getY(), feet.getZ()), player,
                 Settings.holder().look());
-        if (aimed) {
-            blind = 0;
-        } else if (++blind > BLIND_GRACE) {
+        pilot().holdStill();
+        if (striking) {
+            settling = 0;
+        } else if (++settling > SETTLE_TICKS) {
             overhead = null;
-            blind = 0;
+            settling = 0;
             return false;
         }
-        pilot().holdStill();
         Trace.instance().repeat("mine-overhead", "mine", "breaking the block above at "
                 + held.getX() + " " + held.getY() + " " + held.getZ() + " without moving");
         return true;
@@ -310,7 +310,7 @@ public final class MineTask {
     private void giveUp(MineJob current) {
         release();
         overhead = null;
-        blind = 0;
+        settling = 0;
         Trace.instance().event("mine", "stopped mining " + current.filter().describe());
         job = null;
     }

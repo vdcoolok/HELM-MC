@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import net.minecraft.core.BlockPos;
 
@@ -15,8 +14,6 @@ import dev.helm.setting.MiningSettings;
 
 public final class TargetPruner {
 
-    private static final int DROP_MATCH_RADIUS_SQUARED = 9;
-
     private TargetPruner() {
     }
 
@@ -25,10 +22,10 @@ public final class TargetPruner {
                                        BlockPos player, List<BlockPos> unreachable,
                                        List<BlockPos> drops, int cap) {
         List<BlockPos> unique = distinct(found);
-        Set<BlockPos> redundant = coveredByBlocks(unique, filter, world, work, drops);
+        List<BlockPos> loose = ShadowedDrops.by(drops, unique, filter, world, work);
         List<BlockPos> kept = new ArrayList<>();
         for (BlockPos pos : unique) {
-            if (unreachable.contains(pos) || redundant.contains(pos)) {
+            if (unreachable.contains(pos)) {
                 continue;
             }
             if (pos.getY() > settings.highestLevel()) {
@@ -37,7 +34,7 @@ public final class TargetPruner {
             if (pos.getY() < settings.lowestLevel() + world.lowestLevel()) {
                 continue;
             }
-            if (!stillWanted(world, filter, pos, drops)) {
+            if (!stillWanted(world, filter, pos, loose)) {
                 continue;
             }
             if (!Breakable.worthMining(world, work, pos)) {
@@ -59,29 +56,10 @@ public final class TargetPruner {
         return new ArrayList<>(new LinkedHashSet<>(found));
     }
 
-    private static Set<BlockPos> coveredByBlocks(List<BlockPos> found, TargetFilter filter,
-                                                 BlockView world, WorkCosts work,
-                                                 List<BlockPos> drops) {
-        Set<BlockPos> redundant = new LinkedHashSet<>();
-        for (BlockPos drop : drops) {
-            for (BlockPos pos : found) {
-                if (pos.distSqr(drop) > DROP_MATCH_RADIUS_SQUARED) {
-                    continue;
-                }
-                if (filter.wants(world.stateAt(pos.getX(), pos.getY(), pos.getZ()))
-                        && Breakable.worthMining(world, work, pos)) {
-                    redundant.add(drop);
-                    break;
-                }
-            }
-        }
-        return redundant;
-    }
-
     private static boolean stillWanted(BlockView world, TargetFilter filter, BlockPos pos,
-                                       List<BlockPos> drops) {
+                                       List<BlockPos> loose) {
         return !world.loaded(pos.getX(), pos.getZ())
                 || filter.wants(world.stateAt(pos.getX(), pos.getY(), pos.getZ()))
-                || drops.contains(pos);
+                || loose.contains(pos);
     }
 }

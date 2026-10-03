@@ -23,9 +23,10 @@ public final class OverheadMiner {
         }
         dev.helm.tools.ToolChooser.forBlock(spot.block());
         LookController.instance().aimAt(aim, true);
-        if (onBlock(player, spot.block(), look)) {
-            pilot.controls().set(Control.ATTACK, true);
+        if (!onBlock(player, spot.block(), look)) {
+            return false;
         }
+        pilot.controls().set(Control.ATTACK, true);
         return true;
     }
 
