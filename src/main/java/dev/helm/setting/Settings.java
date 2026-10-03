@@ -10,6 +10,7 @@ public final class Settings {
     private final PathSettings path = new PathSettings();
     private final CacheSettings cache = new CacheSettings();
     private final FarmSettings farm = new FarmSettings();
+    private final OutlineSettings outline = new OutlineSettings();
 
     public static Settings holder() {
         return CURRENT;
@@ -39,8 +40,12 @@ public final class Settings {
         return farm;
     }
 
+    public OutlineSettings outline() {
+        return outline;
+    }
+
     public SettingSection[] sections() {
-        return new SettingSection[] {movement, mining, look, path, cache, farm};
+        return new SettingSection[] {movement, mining, look, path, cache, farm, outline};
     }
 
     public void restoreDefaults() {

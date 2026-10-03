@@ -68,6 +68,8 @@ sent to the server, and every command is typed in your own chat box.
 | **Movement** | Continuous walking with no gap at a step boundary, real sprinting, jumps, gaps, diagonals and drops |
 | **World** | Breaks what is in the way, places what is missing, picks the right tool, all without a keypress |
 | **Aiming** | Free look, so mining and placing never drag the camera around |
+| **Farming** | Harvest ripe crops, replant the ground, and pick up the drops it broke its own crops into |
+| **Outlines** | Glowing silhouettes around blocks to mine, ripe crops and the drops worth collecting |
 | **Macros** | A readable script language for anything the commands do not already cover |
 | **Storage** | Everything you author lives in one readable folder inside your game directory |
 
@@ -186,11 +188,13 @@ something.
 | `command` | Command declaration, parsing, execution and dispatch |
 | `control` | What the player is pressing |
 | `diag` | The session log and its formatting |
+| `drops` | Which items came out of the blocks HELM broke, and whether they are wanted |
 | `input` | Key and button names |
 | `interaction` | Mining and placing |
 | `macro` | The macro language, its editor and its runtime |
 | `movement` | Step execution, route following and sprint decisions |
 | `navigate` | Goals, journeys and the walk loop |
+| `outline` | Glowing silhouettes around blocks and dropped items |
 | `pathfinding` | Search, costs, moves and world rules |
 | `render` | Drawing the route |
 | `rotation` | Applying and capturing rotations |

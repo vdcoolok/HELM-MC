@@ -11,6 +11,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.level.block.AirBlock;
 
+import dev.helm.drops.DropCache;
 import dev.helm.pathfinding.goal.AnyGoal;
 import dev.helm.pathfinding.goal.BesideGoal;
 import dev.helm.pathfinding.goal.BlockGoal;
@@ -58,10 +59,11 @@ public final class FarmGoals {
     }
 
     private static List<Goal> droppedWorthCollecting(ClientLevel level) {
+        DropCache cache = DropCache.instance();
         List<Goal> targets = new ArrayList<>();
         for (Entity entity : level.entitiesForRendering()) {
             if (entity instanceof ItemEntity dropped && dropped.onGround()
-                    && FarmItems.worthCollecting(dropped.getItem())) {
+                    && cache.wanted(dropped.getItem())) {
                 targets.add(new DroppedGoal(BlockPos.containing(dropped.getX(),
                         dropped.getY() + 0.1D, dropped.getZ())));
             }

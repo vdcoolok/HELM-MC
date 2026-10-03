@@ -1,5 +1,7 @@
 package dev.helm.setting;
 
+import java.util.Locale;
+
 public final class Setting<T> {
 
     private final String key;
@@ -46,6 +48,10 @@ public final class Setting<T> {
         return new Setting<>(key, label, detail, initial, SettingKind.BLOCKS, null, null);
     }
 
+    public static Setting<Integer> colour(String key, String label, String detail, int initial) {
+        return new Setting<>(key, label, detail, initial, SettingKind.COLOUR, 0, 0xFFFFFF);
+    }
+
     public String key() {
         return key;
     }
@@ -68,6 +74,13 @@ public final class Setting<T> {
 
     public T value() {
         return value;
+    }
+
+    public String written() {
+        if (kind == SettingKind.COLOUR && value instanceof Integer rgb) {
+            return String.format(Locale.ROOT, "#%06X", rgb);
+        }
+        return String.valueOf(value);
     }
 
     @SuppressWarnings("unchecked")

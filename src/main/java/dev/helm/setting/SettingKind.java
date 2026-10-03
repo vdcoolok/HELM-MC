@@ -6,5 +6,6 @@ public enum SettingKind {
     WHOLE,
     DECIMAL,
     TEXT,
-    BLOCKS
+    BLOCKS,
+    COLOUR
 }

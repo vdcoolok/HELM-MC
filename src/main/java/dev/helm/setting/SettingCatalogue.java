@@ -2,6 +2,7 @@ package dev.helm.setting;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 public final class SettingCatalogue {
 
@@ -33,6 +34,9 @@ public final class SettingCatalogue {
         }
 
         public String shown() {
+            if (setting.kind() == SettingKind.COLOUR && value() instanceof Integer rgb) {
+                return String.format(Locale.ROOT, "#%06X", rgb);
+            }
             Object current = value();
             return current == null ? "" : String.valueOf(current);
         }

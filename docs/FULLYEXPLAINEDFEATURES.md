@@ -1151,7 +1151,8 @@ Running out of ripe crops is not on that list, because it does not end anything.
 That case answers `Nothing to harvest right now. Still watching.` once, stands
 still, and carries on watching the field until `$stop`.
 
-Leaving the world ends a farm the same way `$stop` does, without a message.
+Leaving the world ends a farm the same way `$stop` does, without a message, and
+empties the dropped item cache.
 
 ### Settings
 
@@ -1161,8 +1162,42 @@ Leaving the world ends a farm the same way `$stop` does, without a message.
 | `farm.replantNetherWart` | `false` | Plant nether wart again |
 | `farm.rescanEveryTicks` | `5` | Ticks between scans |
 | `farm.maxTargets` | `256` | Cap on blocks found by one scan |
+| `farm.renderCropsESP` | `true` | Outline the ripe crops farming is working through |
+| `farm.renderItemsESP` | `true` | Outline the dropped items farming still wants |
 
 See [SETTINGS.md](SETTINGS.md) for what each one changes.
+
+### Dropped item cache
+
+Farming picks up what it broke. Which items that is, is worked out rather than
+guessed from a list, so anything a server, mod or config changes about a crop
+still gets collected.
+
+Whenever HELM breaks a block it writes the position into a ledger, at most 256
+positions, newest last. An entry is dropped once it is 200 ticks old, so a place
+stays watched for ten seconds after HELM stops mining it, and mining the same
+spot again refreshes it rather than adding a duplicate.
+
+Each tick, if the ledger has anything in it, every dropped item within two blocks
+of a watched position is looked at. An item that is not already known is checked
+against those positions, and if it is close enough to one, its item type is
+remembered as something HELM wants. Anything already known and still fresh is
+skipped without being checked against the positions, which is what keeps this
+cheap once a farm is running.
+
+An item type stays wanted for five minutes, and that is refreshed every time
+another one of that type turns up. The five minutes is the same lifetime a
+dropped item has in the game, so nothing is forgotten while it is still lying on
+the ground. The cache is emptied when the world is left, and it is not written to
+disk, so a new session starts knowing nothing until HELM breaks something.
+
+Two things feed off the same cache. Farming walks over and picks up any dropped
+item on the ground that is worth having, and the same check decides whether the
+item gets an outline. A drop that is still wanted is drawn glowing; one that has
+not been wanted, or has been forgotten, is drawn normally.
+
+Mining works the same way as soon as it breaks blocks of its own, because both
+go through the same breaking path. Nothing extra is needed for that.
 
 ### Known limitations
 
@@ -1170,6 +1205,8 @@ See [SETTINGS.md](SETTINGS.md) for what each one changes.
   other block is left bare.
 - Seeds, nether wart, cocoa beans and bone meal are only fetched from deeper in
   the inventory when `movement.allowInventory` is on. See [inventory](#inventory).
+- The cache watches two blocks around a broken position. An item thrown further
+  than that by the server, or teleported away, is not noticed.
 
 ## inventory
 
@@ -1306,6 +1343,10 @@ accepts. A flag offers `true` and `false`, with the opposite of the current
 value first, so it can be flipped with two presses. Anything else offers its
 current value, so it can be typed over rather than guessed at.
 
+A colour setting takes `#RRGGBB`, `0xRRGGBB`, six hex digits on their own such as
+`4CE0E0`, or a plain whole number. Colours are shown and stored as `#RRGGBB`, so
+the file stays readable.
+
 `$settings` remains only to reset everything, as `$settings reset`, which is also
 `$settings defaults`.
 
@@ -1343,6 +1384,77 @@ None.
 ### Known limitations
 
 None.
+
+## outline
+
+### What it is
+
+Glowing silhouettes around the things HELM is working on: the blocks a route is
+going to mine, the ripe crops farming is working through, and the dropped items
+those crops broke into and are still worth collecting.
+
+### How it looks
+
+These are not lines drawn around boxes. Each block and item is drawn as its own
+shape into the outline framebuffer the game already uses for glowing entities,
+and the game then edges, blurs and blends that back over the world. That is the
+same treatment a glowing mob gets, so a crop is a glowing crop and an ore block
+is a glowing block, with the shape of the block itself rather than a wireframe
+cube around it.
+
+Because it goes through the game's outline pass, terrain hides a silhouette the
+same way it hides a glowing mob. There is no through-walls version of this.
+`path.blocksIgnoreDepth` still applies to the separate line boxes.
+
+### What gets an outline
+
+| Target | Where it comes from | Colour |
+| --- | --- | --- |
+| Blocks to break | The blocks the route being walked has to mine | `outline.breakColour` |
+| Ripe crops | Every ripe crop the last farm scan found | `outline.cropColour` |
+| Dropped items | Items the dropped item cache wants | `outline.dropColour` |
+
+Each kind is asked separately, so a block that is both a path break and a ripe
+crop is only drawn once. A position is only drawn if the block is still there,
+and at most 512 are drawn in one frame.
+
+An entity the game has already made glow is left alone, so a spectator outline
+or a glowing mob keeps its own colour rather than being repainted.
+
+### Settings
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `outline.enabled` | `true` | Master switch for every silhouette |
+| `outline.blocksToBreak` | `true` | Outline the blocks the current path is going to mine |
+| `outline.breakColour` | `#E04C4C` | Colour around blocks that will be mined |
+| `outline.cropColour` | `#B4E04C` | Colour around ripe crops |
+| `outline.dropColour` | `#4CE0E0` | Colour around dropped items worth collecting |
+
+`farm.renderCropsESP` and `farm.renderItemsESP` gate the two farm outlines. See
+[SETTINGS.md](SETTINGS.md).
+
+### Interaction
+
+Turning `outline.enabled` off turns all of it off and leaves route drawing
+alone. Turning `outline.blocksToBreak` off stops the block silhouettes while
+`path.renderBlocksToBreak` keeps drawing line boxes, so the two can be used
+independently.
+
+### Cancellation and failure
+
+There is nothing to cancel. These are a rendering layer over whatever else is
+running, so `$stop` ends the walk or the farm and the silhouettes go with it
+because their targets are gone. Nothing fails and nothing is retried; a block
+that has already been broken, or is outside the loaded world, is simply not drawn.
+
+### Known limitations
+
+- Silhouettes are hidden by terrain, like glowing mobs are.
+- Block silhouettes use the block's own model, so a block drawn only by a special
+  renderer, such as a chest, contributes nothing.
+- The item outline is only ever asked about dropped items. Entities are not
+  outlined by this.
 
 ## macro
 

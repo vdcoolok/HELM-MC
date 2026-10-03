@@ -34,7 +34,7 @@ public final class SettingsFile {
         List<String> lines = new ArrayList<>();
         for (SettingSection section : Settings.holder().sections()) {
             for (Setting<?> setting : section.declared()) {
-                lines.add(setting.key() + " = " + setting.value());
+                lines.add(setting.key() + " = " + setting.written());
             }
         }
         try {

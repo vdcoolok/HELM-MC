@@ -43,6 +43,7 @@ public final class FarmTask {
     private long sweepingSince;
     private int sweepingSteps;
     private int ticks;
+    private FarmFindings latest = FarmFindings.none();
 
     public static FarmTask instance() {
         return INSTANCE;
@@ -74,10 +75,15 @@ public final class FarmTask {
         this.running = false;
         this.swept = List.of();
         this.sweeping = null;
+        this.latest = FarmFindings.none();
     }
 
     public boolean running() {
         return running;
+    }
+
+    public List<BlockPos> harvestable() {
+        return latest.harvestable();
     }
 
     public void onTick() {
@@ -95,6 +101,7 @@ public final class FarmTask {
         sweepInTime(level, player);
         List<BlockPos> seen = sweeping != null ? sweeping.found() : swept;
         FarmFindings findings = FarmSurvey.classify(level, seen, area);
+        latest = findings;
         if (tended(findings, player, level)) {
             return;
         }

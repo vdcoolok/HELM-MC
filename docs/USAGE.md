@@ -107,6 +107,11 @@ $stop
 `$farm` looks around for ripe crops and works through what it finds, one thing at
 a time. It keeps going until `$stop`, or until nothing it wants can be reached.
 
+Every ripe crop `$farm` finds is outlined, and so is every dropped item it broke
+its crops into and still wants to collect. Turn those off with
+`$set farm.renderCropsESP false` and `$set farm.renderItemsESP false`, or turn
+every glowing outline off at once with `$set outline.enabled false`.
+
 When it has harvested everything that is ripe, it does not stop. It says so once,
 stands where it is, and keeps checking the field as the rest grows. Anything that
 ripens is picked up as soon as it is ready, without typing the command again.
@@ -130,7 +135,14 @@ What it does, in the order it prefers:
 | 2 | Plant seeds on empty farmland, and nether wart on bare soul sand |
 | 3 | Plant cocoa beans on bare jungle logs |
 | 4 | Use bone meal on anything that would grow from it |
-| 5 | Walk over and pick up dropped crops |
+| 5 | Walk over and pick up the drops it broke its own crops into |
+
+Step 5 works off the dropped item cache rather than a fixed list. Whenever HELM
+breaks a block it notes where, and for the next few seconds it watches that spot
+for items. Whatever turns up there it treats as something worth collecting, for
+five minutes afterwards, so it will walk over and pick up wheat it just harvested
+without needing a table of what wheat drops. The cache is emptied when you leave
+a world.
 
 Ripe means fully grown wheat, carrots, potatoes and beetroot, any pumpkin or
 melon, nether wart at full age, and cocoa at full age. Sugar cane, bamboo and

@@ -1,11 +1,13 @@
 package dev.helm.mixin;
 
 import com.mojang.blaze3d.resource.GraphicsResourceAllocator;
-import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.buffers.GpuBufferSlice;
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.state.level.CameraRenderState;
+import net.minecraft.client.renderer.state.level.LevelRenderState;
 import org.joml.Matrix4fc;
 import org.joml.Vector4f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -13,10 +15,18 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import dev.helm.outline.Silhouettes;
 import dev.helm.render.RouteOverlay;
 
 @Mixin(LevelRenderer.class)
 public abstract class MixinLevelRenderer {
+
+    @Inject(method = "submitFeatures", at = @At("TAIL"))
+    private void helmSubmitSilhouettes(LevelRenderState levelRenderState,
+                                       SubmitNodeCollector submitNodeCollector,
+                                       boolean renderOutline, CallbackInfo callback) {
+        Silhouettes.draw(levelRenderState, submitNodeCollector);
+    }
 
     @Inject(method = "render", at = @At("RETURN"))
     private void helmDrawRoute(GraphicsResourceAllocator allocator,

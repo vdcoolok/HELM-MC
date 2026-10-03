@@ -1,7 +1,7 @@
 # Settings
 
 Every part of HELM that can be changed is a setting. Settings are grouped into
-six sections, and the name of a setting is its section, a dot, and the name
+seven sections, and the name of a setting is its section, a dot, and the name
 inside it.
 
 | Section | Covers |
@@ -12,6 +12,7 @@ inside it.
 | `path` | Drawing the route and search limits |
 | `cache` | Remembering chunks that are no longer loaded |
 | `farm` | What `$farm` harvests, replants and sweeps for |
+| `outline` | The glowing silhouettes drawn around blocks and dropped items |
 
 ## Reading and changing
 
@@ -31,6 +32,9 @@ set.
 `$set <name>` prints one setting and its value. `$set <name> <value>` changes it,
 taking the value as one word: `true` or `false`, a whole number, a decimal, or
 free text. A flag also accepts `yes`, `no`, `on`, `off` and `1` or `0`.
+
+A colour setting takes `#RRGGBB`, `0xRRGGBB`, six hex digits on their own such as
+`4CE0E0`, or a plain whole number. Colours are shown and stored as `#RRGGBB`.
 
 `$settings reset` puts every setting back to its default, and is also
 `$settings defaults`. `set` is also `setting`.
@@ -304,6 +308,8 @@ remembers and how it is read.
 | `farm.replantNetherWart` | `false` | Plant nether wart again |
 | `farm.rescanEveryTicks` | `5` | Ticks between looking around for crops again |
 | `farm.maxTargets` | `256` | Most blocks to look for in one sweep |
+| `farm.renderCropsESP` | `true` | Outline the ripe crops farming is working through |
+| `farm.renderItemsESP` | `true` | Outline the dropped items farming still wants |
 
 `farm.replantAfterHarvest` is what makes farming worth doing. With it on, the
 empty farmland and bare jungle logs the sweep finds become targets in their own
@@ -337,5 +343,34 @@ world cannot run away. The sweep stops as soon as it has this many, unless it is
 still finding crops at your own level, in which case it keeps going until it
 leaves that band or runs out of loaded chunks.
 
+`farm.renderCropsESP` outlines every ripe crop the last sweep found, whether or
+not HELM has walked to it yet, so the whole field is marked. Turning it off leaves
+the route and the blocks to break drawn, and the crops still harvested, just not
+glowing. `farm.renderItemsESP` outlines the dropped items HELM broke its own crops
+into and still wants to collect. Neither has any effect unless `outline.enabled` is
+also on.
+
 See [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for what farming
 harvests and in what order.
+
+## outline
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `outline.enabled` | `true` | Master switch for every glowing silhouette |
+| `outline.blocksToBreak` | `true` | Outline the blocks the current path is going to mine |
+| `outline.breakColour` | `#E04C4C` | Colour around blocks that will be mined |
+| `outline.cropColour` | `#B4E04C` | Colour around ripe crops |
+| `outline.dropColour` | `#4CE0E0` | Colour around dropped items worth collecting |
+
+`outline.enabled` off turns off every silhouette at once, including the two farm
+toggles, and leaves the route drawing untouched.
+
+`outline.blocksToBreak` draws the outline for the path the navigator is walking.
+It is separate from `path.renderBlocksToBreak`, which draws a line box around the
+same blocks and can be seen through walls, so both can be on at once or either
+can be turned off.
+
+The three colours are ordinary `#RRGGBB` values, and only the silhouette changes.
+Silhouettes are drawn through the same outline pass the game uses for glowing
+entities, so they are hidden by terrain rather than showing through it.

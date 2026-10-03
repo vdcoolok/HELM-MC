@@ -11,6 +11,7 @@
     "MixinLocalPlayer",
     "MixinRotationCapture",
     "MixinLevelRenderer",
+    "MixinEntityRenderer",
     "MixinEntityMovementRotation",
     "MixinLivingEntityJumpRotation",
     "accessor.GameModeAccess"

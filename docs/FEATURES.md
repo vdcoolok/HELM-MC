@@ -27,6 +27,10 @@
 - Direction control driving forward, back, strafe, jump, sneak and sprint
 - Continuous movement between steps, with no gap at a step boundary
 - Path line drawn on the world, plus outlines of blocks to break and place
+- Glowing silhouette outlines around blocks to mine, ripe crops and the dropped items worth collecting
+- Silhouettes drawn through the game's own outline pass, so they match how glowing entities look
+- `outline.enabled`, `outline.blocksToBreak`, `farm.renderCropsESP` and `farm.renderItemsESP` toggles, with a colour per outline kind
+- Dropped item cache that learns which items came out of the blocks HELM broke, and collects them
 - Walking follows the route's direction, with the body turning and the camera left alone
 - Settings stored as text in `.minecraft/HELM/settings.conf`
 - Session log at `.minecraft/HELM/debuglogs.log` recording what HELM did and why

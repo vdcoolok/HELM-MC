@@ -1,6 +1,7 @@
 package dev.helm.navigate;
 
 import dev.helm.aim.LookController;
+import dev.helm.drops.DropCache;
 import dev.helm.inventory.HotbarStocker;
 import dev.helm.inventory.SlotSwapper;
 import dev.helm.movement.RouteWalker;
@@ -53,6 +54,7 @@ public final class NavigatorAgent {
         SlotSwapper.instance().onTick();
         HotbarStocker.instance().onTick();
         pilot.tick();
+        DropCache.instance().onTick();
     }
 
     public void onDisconnect() {

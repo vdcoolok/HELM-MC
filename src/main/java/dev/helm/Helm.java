@@ -5,8 +5,10 @@ import dev.helm.aim.MouseScale;
 import dev.helm.command.CommandSystem;
 import dev.helm.diag.Trace;
 import dev.helm.diag.WorldReport;
+import dev.helm.drops.DropCache;
 import dev.helm.macro.runtime.MacroController;
 import dev.helm.navigate.NavigatorAgent;
+import dev.helm.outline.Silhouettes;
 import dev.helm.setting.Settings;
 import dev.helm.setting.SettingsFile;
 import dev.helm.storage.HelmStorage;
@@ -46,7 +48,8 @@ public final class Helm implements ClientModInitializer {
 
         CommandSystem.start();
         MacroController.instance().install();
-        Trace.instance().event("startup", "commands and macros installed");
+        Silhouettes.install();
+        Trace.instance().event("startup", "commands, macros and outlines installed");
 
         ClientPlayConnectionEvents.JOIN.register((handler, sender, game) -> {
             Trace.instance().barrier("join");
@@ -60,6 +63,7 @@ public final class Helm implements ClientModInitializer {
         ClientPlayConnectionEvents.DISCONNECT.register((handler, game) -> {
             Trace.instance().event("join", "world left");
             WorldCache.close();
+            DropCache.instance().clear();
             NavigatorAgent.instance().onDisconnect();
         });
     }

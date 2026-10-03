@@ -14,6 +14,7 @@ import dev.helm.aim.Aim;
 import dev.helm.aim.AimTrace;
 import dev.helm.aim.LookController;
 import dev.helm.diag.Trace;
+import dev.helm.drops.DropCache;
 import dev.helm.setting.Settings;
 
 public final class BlockBreaker {
@@ -52,6 +53,7 @@ public final class BlockBreaker {
         }
         BlockPos pos = trace.getBlockPos();
         Direction face = trace.getDirection();
+        DropCache.instance().remember(pos);
         boolean accepted;
 
         GameModeControl.setHitting(mode, wasHitting);

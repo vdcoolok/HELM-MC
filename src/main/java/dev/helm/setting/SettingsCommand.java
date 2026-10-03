@@ -102,10 +102,37 @@ public final class SettingsCommand {
                 case WHOLE -> Integer.valueOf(value);
                 case DECIMAL -> Double.valueOf(value);
                 case TEXT, BLOCKS -> value;
+                case COLOUR -> parseColour(value);
             };
         } catch (NumberFormatException invalid) {
             throw new CommandException(CommandFeedback.invalidArgument(entry.key(), value));
         }
+    }
+
+    private static Integer parseColour(String value) {
+        String trimmed = value.trim();
+        String digits = null;
+        if (trimmed.startsWith("#")) {
+            digits = trimmed.substring(1);
+        } else if (trimmed.regionMatches(true, 0, "0x", 0, 2)) {
+            digits = trimmed.substring(2);
+        } else if (trimmed.length() == 6 && isHexDigits(trimmed)) {
+            digits = trimmed;
+        }
+        if (digits == null) {
+            return Integer.valueOf(Integer.parseInt(trimmed));
+        }
+        return Integer.valueOf(Math.max(0,
+                Math.min(0xFFFFFF, (int) Long.parseLong(digits, 16))));
+    }
+
+    private static boolean isHexDigits(String value) {
+        for (int index = 0; index < value.length(); index++) {
+            if (Character.digit(value.charAt(index), 16) < 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static Boolean parseBoolean(SettingCatalogue.Entry entry, String value) {

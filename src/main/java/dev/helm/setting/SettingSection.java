@@ -32,6 +32,10 @@ public abstract class SettingSection {
         return register(Setting.blocks(key, label, detail, initial));
     }
 
+    protected final Setting<Integer> colour(String key, String label, String detail, int initial) {
+        return register(Setting.colour(key, label, detail, initial));
+    }
+
     @SuppressWarnings("unchecked")
     protected final void apply(String key, String value) {
         Setting<?> setting = byKey.get(key);
@@ -44,6 +48,7 @@ public abstract class SettingSection {
             case DECIMAL -> setting.accept(parseDecimal(value, setting.initial()));
             case TEXT -> setting.accept(value);
             case BLOCKS -> setting.accept(BlockNames.knownOnly(value));
+            case COLOUR -> setting.accept(parseColour(value, setting.initial()));
         }
     }
 
@@ -61,6 +66,35 @@ public abstract class SettingSection {
         } catch (NumberFormatException malformed) {
             return (Double) fallback;
         }
+    }
+
+    private static int parseColour(String value, Object fallback) {
+        String trimmed = value.trim();
+        String digits = null;
+        if (trimmed.startsWith("#")) {
+            digits = trimmed.substring(1);
+        } else if (trimmed.regionMatches(true, 0, "0x", 0, 2)) {
+            digits = trimmed.substring(2);
+        } else if (trimmed.length() == 6 && isHexDigits(trimmed)) {
+            digits = trimmed;
+        }
+        if (digits == null) {
+            return parseWhole(trimmed, fallback);
+        }
+        try {
+            return Math.max(0, Math.min(0xFFFFFF, (int) Long.parseLong(digits, 16)));
+        } catch (NumberFormatException notHex) {
+            return (Integer) fallback;
+        }
+    }
+
+    private static boolean isHexDigits(String value) {
+        for (int index = 0; index < value.length(); index++) {
+            if (Character.digit(value.charAt(index), 16) < 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private <T> Setting<T> register(Setting<T> setting) {
@@ -97,6 +131,10 @@ public abstract class SettingSection {
 
     protected final String words(String key) {
         return require(key, String.class);
+    }
+
+    protected final int tint(String key) {
+        return require(key, Integer.class);
     }
 
     private <T> T require(String key, Class<T> type) {
