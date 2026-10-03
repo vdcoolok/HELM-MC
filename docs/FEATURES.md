@@ -10,6 +10,7 @@
 - `autogoto` and `autogotohere` commands anchoring a position and walking back if moved off it
 - `autolookat` and `autolookathere` commands locking the camera to an angle until stopped
 - `farm` command harvesting ripe crops, replanting the empty ground and picking up the drops
+- Farm planting aimed at the nearest reachable spot on the soil's top face, so farmland just inside reach is still planted
 - Farm waiting on a field instead of giving up when the last ripe crop is taken
 
 - `allowInventory` setting fetching tools, placement blocks and farm supplies from the whole inventory, with slots 0 and 8 kept stocked

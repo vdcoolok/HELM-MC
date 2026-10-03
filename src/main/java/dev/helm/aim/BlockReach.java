@@ -1,11 +1,11 @@
 package dev.helm.aim;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.BaseFireBlock;
-import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
@@ -51,18 +51,30 @@ public final class BlockReach {
         Vec3 eyes = eyePosition(viewer, sneaking);
         Aim wanted = Aiming.lookFrom(eyes.x, eyes.y, eyes.z, point.x, point.y, point.z);
         HitResult trace = trace(viewer, wanted, settings, sneaking);
-        if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
-            return null;
-        }
-        BlockPos hit = ((BlockHitResult) trace).getBlockPos();
-        if (hit.equals(pos)) {
-            return wanted;
-        }
-        if (hit.equals(pos.below())
-                && viewer.level().getBlockState(pos).getBlock() instanceof BaseFireBlock) {
-            return wanted;
+        return lands(trace, pos, viewer) ? wanted : null;
+    }
+
+    public static Aim onFace(Entity viewer, BlockPos pos, Direction face,
+                             LookSettings settings, boolean sneaking) {
+        Vec3 eyes = eyePosition(viewer, sneaking);
+        for (Vec3 point : FacePoints.on(pos, face, eyes)) {
+            Aim wanted = Aiming.lookFrom(eyes.x, eyes.y, eyes.z, point.x, point.y, point.z);
+            HitResult trace = trace(viewer, wanted, settings, sneaking);
+            if (lands(trace, pos, viewer) && ((BlockHitResult) trace).getDirection() == face) {
+                return wanted;
+            }
         }
         return null;
+    }
+
+    private static boolean lands(HitResult trace, BlockPos pos, Entity viewer) {
+        if (trace == null || trace.getType() != HitResult.Type.BLOCK) {
+            return false;
+        }
+        BlockPos hit = ((BlockHitResult) trace).getBlockPos();
+        return hit.equals(pos)
+                || hit.equals(pos.below())
+                && viewer.level().getBlockState(pos).getBlock() instanceof BaseFireBlock;
     }
 
     private static Aim held(Entity viewer, BlockPos pos, LookSettings settings, boolean sneaking) {
@@ -89,19 +101,19 @@ public final class BlockReach {
     }
 
     private static Vec3 cornerOf(BlockPos pos, double[] corner) {
-        double x;
-        BlockState state = Minecraft.getInstance().level == null
-                ? null
-                : Minecraft.getInstance().level.getBlockState(pos);
-        VoxelShape shape = state == null
+        ClientLevel level = Minecraft.getInstance().level;
+        VoxelShape shape = level == null
                 ? Shapes.block()
-                : state.getCollisionShape(Minecraft.getInstance().level, pos);
+                : level.getBlockState(pos).getCollisionShape(level, pos);
         if (shape.isEmpty()) {
             shape = Shapes.block();
         }
-        x = shape.min(Direction.Axis.X) * corner[0] + shape.max(Direction.Axis.X) * (1 - corner[0]);
-        double y = shape.min(Direction.Axis.Y) * corner[1] + shape.max(Direction.Axis.Y) * (1 - corner[1]);
-        double z = shape.min(Direction.Axis.Z) * corner[2] + shape.max(Direction.Axis.Z) * (1 - corner[2]);
+        double x = shape.min(Direction.Axis.X) * corner[0]
+                + shape.max(Direction.Axis.X) * (1 - corner[0]);
+        double y = shape.min(Direction.Axis.Y) * corner[1]
+                + shape.max(Direction.Axis.Y) * (1 - corner[1]);
+        double z = shape.min(Direction.Axis.Z) * corner[2]
+                + shape.max(Direction.Axis.Z) * (1 - corner[2]);
         return new Vec3(pos.getX() + x, pos.getY() + y, pos.getZ() + z);
     }
 

@@ -1118,13 +1118,45 @@ The first reachable candidate in that order is the one that is worked on.
 | --- | --- |
 | Harvest | Aims at the crop, switches to the right tool, then mines |
 | Plant on soil | Aims at the top face, so the seed lands on the farmland not beside it |
-| Plant on a log | Aims at the middle of the open side, so the beans stick to the face |
+| Plant on a log | Aims at the open side, so the beans stick to the face |
 | Bone meal | Aims at the plant and uses it |
 
 Aiming is not assumed to have worked. Before using anything, HELM checks that the
 line from the player's eyes would actually strike the face it needs: upward for
 soil, and the chosen open side for a log. If it would miss, that candidate is
 skipped and the next one is tried.
+
+### Aiming at a face, not just its middle
+
+Planting, and planting on a log, both need a particular face of a block, so HELM
+aims at a face rather than at the block. A face is not a single spot, and the
+middle of one is often not the spot that is closest.
+
+The middle of the top face of a block of farmland is half a block away from the
+player on each horizontal axis. A block that is within reach on its near edge can
+be well outside reach at its middle, so aiming only at the middle makes HELM give
+up on farmland it could have planted. The same applies to a log.
+
+So a face is treated as nine spots, near the corners, the middle of each edge, and
+the middle of the face, and they are tried in the order of their distance from
+the player's eyes. The nearest spot on the face is tried first, which is the one
+most likely to be in reach, and the middle of the face is among the nine, so
+nothing that used to work stops working.
+
+A spot only counts if the line to it really does strike the required face of the
+right block. A spot on the far edge of a face can be caught by the side of the
+block instead, and that spot is passed over rather than used, which is what stops
+HELM from planting on the side of the farmland.
+
+Because the required face is the same whichever spot on it is struck, the seed
+lands on the same block it did before.
+
+### Where the reach limit comes from
+
+Whether a block is close enough is first decided from the block the player is
+standing on to the corner of the target block. That is a cheap test and is only
+used to rule blocks out early. What actually decides is the line from the
+player's eyes, measured against the reach setting and re-checked for each spot.
 
 Mining and using go through the same aiming and control path a walk uses, so
 free look, smoothing and the reach setting all apply to farming exactly as they

@@ -149,6 +149,10 @@ melon, nether wart at full age, and cocoa at full age. Sugar cane, bamboo and
 cactus are only harvested from the top of a stalk while
 `farm.replantAfterHarvest` is on, so the rest is left to grow.
 
+When planting, HELM aims at the top of the soil rather than at the middle of the
+block, and where a block is reachable only near its edge it aims there, so farmland
+just inside reach is still planted.
+
 Seeds, nether wart, cocoa beans and bone meal are taken from the hotbar, or from
 the off hand. Seeds are only planted while one is actually held, so HELM does
 not walk across a field to stand on bare dirt it cannot plant.

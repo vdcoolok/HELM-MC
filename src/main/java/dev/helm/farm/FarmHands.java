@@ -5,7 +5,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
 
 import dev.helm.aim.Aim;
 import dev.helm.aim.BlockReach;
@@ -27,17 +26,12 @@ public final class FarmHands {
     }
 
     public static Aim atTopOf(LocalPlayer player, BlockPos target, LookSettings look) {
-        return BlockReach.towardsPoint(player, target,
-                new Vec3(target.getX() + 0.5D, target.getY() + 1.0D, target.getZ() + 0.5D),
-                look, false);
+        return BlockReach.onFace(player, target, Direction.UP, look, false);
     }
 
     public static Aim atSideOf(LocalPlayer player, BlockPos target, Direction side,
                                LookSettings look) {
-        return BlockReach.towardsPoint(player, target,
-                BlockReach.centre(target).add(side.getStepX() * 0.5D, side.getStepY() * 0.5D,
-                        side.getStepZ() * 0.5D),
-                look, false);
+        return BlockReach.onFace(player, target, side, look, false);
     }
 
     public static boolean facingSide(Aim aim, Direction face, LocalPlayer player,
