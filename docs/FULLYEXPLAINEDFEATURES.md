@@ -1212,6 +1212,10 @@ on with the pillar block still spent.
 
 ### Waiting for drops
 
+Mining commits to one vein at a time rather than taking whatever is nearest. A vein
+is the run of touching blocks around the target it started on, so a coal seam is
+worked end to end instead of the job drifting off to a different seam between blocks.
+
 A vein is finished before anything is picked up. Having broken a block, HELM carries
 on through the rest of the vein rather than turning back for each block or two, so
 underground mining works its way through a seam in one pass instead of stopping to

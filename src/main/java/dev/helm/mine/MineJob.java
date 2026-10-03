@@ -17,6 +17,7 @@ import dev.helm.mine.goal.SpotGoals;
 import dev.helm.mine.shaft.ColumnRise;
 import dev.helm.mine.shaft.ColumnRiser;
 import dev.helm.mine.target.TargetFilter;
+import dev.helm.mine.vein.Vein;
 import dev.helm.pathfinding.goal.AnyGoal;
 import dev.helm.pathfinding.goal.Goal;
 import dev.helm.pathfinding.world.BlockView;
@@ -36,6 +37,7 @@ public final class MineJob {
 
     private BlockPos startPoint;
     private BlockPos routeFor;
+    private List<BlockPos> working;
     private Sweep sweep;
     private List<BlockPos> swept = List.of();
     private long sweepBegan;
@@ -186,7 +188,7 @@ public final class MineJob {
             routeFor = rise.target();
             return rise.stand();
         }
-        List<BlockPos> solid = solid(world);
+        List<BlockPos> solid = committed(world);
         if (!solid.isEmpty()) {
             List<Goal> goals = new ArrayList<>(solid.size());
             for (BlockPos pos : solid) {
@@ -195,14 +197,43 @@ public final class MineJob {
             routeFor = solid.get(0);
             return AnyGoal.of(goals);
         }
-        Goal waiting = collectGoal(world, work, settings, feet, drops);
-        if (waiting != null) {
-            return waiting;
+        if (settings.waitForDrops() && !drops.isEmpty()) {
+            working = null;
+            return hold(world, work, settings, drops);
         }
+        working = null;
         return wander(settings, feet);
     }
 
-    public List<BlockPos> solid(BlockView world) {
+    private Goal hold(BlockView world, WorkCosts work, MiningSettings settings,
+                      List<BlockPos> drops) {
+        List<Goal> goals = new ArrayList<>(drops.size());
+        for (BlockPos pos : drops) {
+            goals.add(SpotGoals.forPosition(pos, drops, filter, world, work, settings));
+        }
+        routeFor = null;
+        return AnyGoal.of(goals);
+    }
+
+    private List<BlockPos> committed(BlockView world) {
+        List<BlockPos> standing = vein(world);
+        if (standing.isEmpty()) {
+            return standing;
+        }
+        BlockPos seed = standing.get(0);
+        if (working == null || !working.contains(seed)) {
+            working = Vein.around(standing, world, filter, seed);
+        }
+        List<BlockPos> left = new ArrayList<>();
+        for (BlockPos pos : working) {
+            if (filter.wants(world.stateAt(pos.getX(), pos.getY(), pos.getZ()))) {
+                left.add(pos);
+            }
+        }
+        return left;
+    }
+
+    public List<BlockPos> vein(BlockView world) {
         List<BlockPos> found = new ArrayList<>();
         for (BlockPos pos : known) {
             if (filter.wants(world.stateAt(pos.getX(), pos.getY(), pos.getZ()))) {
@@ -210,18 +241,6 @@ public final class MineJob {
             }
         }
         return found;
-    }
-
-    private Goal collectGoal(BlockView world, WorkCosts work, MiningSettings settings,
-                             BlockPos feet, List<BlockPos> drops) {
-        if (!settings.waitForDrops() || drops.isEmpty()) {
-            return null;
-        }
-        List<Goal> goals = new ArrayList<>(drops.size());
-        for (BlockPos pos : drops) {
-            goals.add(SpotGoals.forPosition(pos, drops, filter, world, work, settings));
-        }
-        return AnyGoal.of(goals);
     }
 
     private ColumnRise rising(BlockView world, MiningSettings settings, BlockPos feet,
