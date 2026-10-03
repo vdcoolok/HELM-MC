@@ -1,5 +1,6 @@
 package dev.helm.farm;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -43,6 +44,9 @@ public final class FarmTask {
     private long sweepingSince;
     private int sweepingSteps;
     private int ticks;
+    private int[] waited;
+    private int searched = -1;
+    private boolean rescanned;
     private FarmFindings latest = FarmFindings.none();
 
     public static FarmTask instance() {
@@ -63,6 +67,9 @@ public final class FarmTask {
         this.sweeping = null;
         this.sweepingSteps = 0;
         this.ticks = 0;
+        this.waited = null;
+        this.searched = -1;
+        this.rescanned = false;
         this.announced = false;
         this.running = true;
         Trace.instance().barrier("farm");
@@ -75,6 +82,9 @@ public final class FarmTask {
         this.running = false;
         this.swept = List.of();
         this.sweeping = null;
+        this.waited = null;
+        this.searched = -1;
+        this.rescanned = false;
         this.latest = FarmFindings.none();
     }
 
@@ -99,10 +109,11 @@ public final class FarmTask {
         }
 
         sweepInTime(level, player);
-        List<BlockPos> seen = sweeping != null ? sweeping.found() : swept;
+        List<BlockPos> seen = visible();
         FarmFindings findings = FarmSurvey.classify(level, seen, area);
         latest = findings;
         if (tended(findings, player, level)) {
+            waited = null;
             return;
         }
         if (sweeping != null && seen.isEmpty()) {
@@ -115,11 +126,19 @@ public final class FarmTask {
         headFor(findings, player, level);
     }
 
+    private List<BlockPos> visible() {
+        if (sweeping == null) {
+            return swept;
+        }
+        return swept.isEmpty() ? sweeping.found() : swept;
+    }
+
     private void sweepInTime(ClientLevel level, LocalPlayer player) {
         if (sweeping != null) {
             sweepingSteps++;
             if (sweeping.step(SWEEP_BUDGET_NANOS)) {
                 swept = sweeping.found();
+                rescanned = true;
                 Trace.instance().event("farm", "swept and found " + swept.size()
                         + " blocks worth looking at in " + millisSince(sweepingSince)
                         + "ms over " + sweepingSteps + " ticks");
@@ -246,6 +265,15 @@ public final class FarmTask {
         if (pilot.isWalking() || pilot.searching()) {
             return;
         }
+        var feet = pilot.feet();
+        if (feet == null) {
+            giveUp("the player is not in a world");
+            return;
+        }
+        if (settled(feet, findings)) {
+            outOfWork();
+            return;
+        }
         long started = System.nanoTime();
         AnyGoal goal = FarmGoals.from(findings, player, level);
         Trace.instance().event("farm", "built a goal of " + goal.count() + " targets in "
@@ -254,11 +282,9 @@ public final class FarmTask {
             outOfWork();
             return;
         }
-        var feet = pilot().feet();
-        if (feet == null) {
-            giveUp("the player is not in a world");
-            return;
-        }
+        waited = feet.clone();
+        searched = sizeOf(findings);
+        rescanned = false;
         SearchJob job = NavigatorAgent.instance().navigator()
                 .searchFor(goal, feet[0], feet[1], feet[2]);
         if (job == null) {
@@ -267,6 +293,26 @@ public final class FarmTask {
         }
         announced = false;
         pilot.await(job, new Objective(goal, "the next farm job"));
+    }
+
+    private boolean settled(int[] feet, FarmFindings findings) {
+        if (waited == null || !Arrays.equals(waited, feet)) {
+            return false;
+        }
+        if (rescanned && sizeOf(findings) != searched) {
+            Trace.instance().event("farm", "the field changed from " + searched
+                    + " targets to " + sizeOf(findings) + ", looking again");
+            return false;
+        }
+        Trace.instance().pulse("farm-waiting", "farm", "standing on " + feet[0] + " "
+                + feet[1] + " " + feet[2] + " with nothing it can do there");
+        return true;
+    }
+
+    private int sizeOf(FarmFindings findings) {
+        return findings.harvestable().size() + findings.bareFarmland().size()
+                + findings.bareSoulSand().size() + findings.bareLogs().size()
+                + findings.wantsBoneMeal().size();
     }
 
     private void outOfWork() {

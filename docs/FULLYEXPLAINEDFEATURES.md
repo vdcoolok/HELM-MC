@@ -1012,6 +1012,12 @@ finishes, so `$farm` starts working almost immediately and keeps discovering mor
 as the scan widens. Nothing is decided until the scan has found something, so
 `$farm` cannot report a field as empty before it has looked at it.
 
+Once one scan has finished, the positions it found stay in use while the next one
+runs. A scan starts empty and fills up over a few ticks, so using its part-finished
+result instead would drop most of the known field from the outlines and from the
+targets every time a rescan began. A new scan is used as it grows only when there
+is nothing to lose, which is the very first scan of a farm.
+
 Building the list of things to walk to is also not free, since it has to look
 at every dropped crop in the level to decide what is worth picking up. That only
 happens when a route is actually needed, not on every tick.
@@ -1113,6 +1119,29 @@ never walking at all.
 It always prefers to work on the first thing it can reach in its own order, so a
 ripe crop within reach is taken before a bare field ten blocks away is planted.
 The first reachable candidate in that order is the one that is worked on.
+
+### Standing on a job it cannot do
+
+The bot walks to a job and then cannot do it, usually because it is standing on the
+very block it meant to work on and the thing it is holding does not suit it. That
+is a normal situation, not a failure, and it must not send it round in circles.
+
+So when it arrives and still finds nothing it can do, it stays where it is and
+waits. It looks again when one of these happens:
+
+| What changed | What it does |
+| --- | --- |
+| The player moved | Looks again from the new spot |
+| It worked something | Looks again for what is now nearest |
+| A rescan finished and found a different amount of work | Looks again for the new work |
+
+Anything else, including the case where a rescan finished and found exactly the
+same work as before, leaves it waiting. Searching again for the same work from the
+same spot could only reach the same answer, and doing it once per tick printed a
+line in chat and rebuilt every target on every tick.
+
+While it waits it says `Nothing to harvest right now. Still watching.` once, and
+says nothing further until it has something to do.
 
 | Work | What it does |
 | --- | --- |
