@@ -66,6 +66,11 @@ public final class PopupGate {
         return namesBlocks(chatValue, cursor) ? Mode.BLOCKS : Mode.NONE;
     }
 
+    public static boolean typingBlockName(String chatValue, int cursor) {
+        return BlockArguments.typing(typedArguments(chatValue, cursor),
+                partial(chatValue, cursor));
+    }
+
     public static boolean mentionsSetting(String chatValue) {
         List<String> words = tokens(body(chatValue));
         if (words.isEmpty() || !words.get(0).equalsIgnoreCase(SET)) {
@@ -91,6 +96,9 @@ public final class PopupGate {
             if (mentionsSetting(chatValue)) {
                 return BlockPicker.rows(namedSetting(chatValue, cursor),
                         blockFilter(chatValue, cursor, namedSetting(chatValue, cursor)));
+            }
+            if (!typingBlockName(chatValue, cursor)) {
+                return List.of();
             }
             return BlockPicker.rows(partial(chatValue, cursor), blockNames(chatValue, cursor));
         }

@@ -978,17 +978,29 @@ all is reported the same way.
 
 ### The block picker
 
-Typing anything after `$mine` opens a picker of every block in the game, in two
-columns. The left is every block, narrowed live as the last word is typed, and
-shown by its full name so there is no guessing about whether a space belongs in
-it. The right is the blocks already named on the line, in order, and it does not
-change as you type.
+Typing anything after `$mine` opens a picker of blocks, in two columns. The left is
+every block in the game, narrowed live as the last word is typed, and shown by its
+full name so there is no guessing about whether a space belongs in it. The right is
+the blocks already named on the line, in order, and it does not change as you type.
+
+A count comes first, and the picker stays out of the way while it is being typed. It
+opens once you start a block name:
+
+```
+$mine 30        count, no picker
+$mine 30 oak    picker, filtered on "oak"
+```
+
+Pressing space at the end of a block name closes the picker again, because there is
+nothing to filter and listing every block in the game is no help. Typing the next
+name brings it straight back.
 
 `Tab` completes the highlighted block into the command and `Space` types a space,
 so a list can be built without spelling anything out in full:
 
 ```
 $mine oak_[Tab] [Space] oak_[Tab]
+$mine 30 [Space] oak_[Tab]
 ```
 
 Inside the square brackets the picker completes property names, then their values,

@@ -124,6 +124,16 @@ With no count it mines every one it can find. With a count it stops once that ma
 of the matching items are carried. More than one block name mines all of them,
 nearest first.
 
+The picker of every block in the game opens once you start a block name. A count
+comes first and the picker stays closed while it is typed. Pressing space at the end
+of a block name closes it again, since there is nothing to narrow down, and typing
+the next name brings it back:
+
+```
+$mine 30
+$mine 30 oak
+```
+
 Block names are the game's own, with or without the `minecraft:` prefix. A single
 state can be picked out with square brackets, and more than one at a time separated
 by commas:
@@ -133,9 +143,9 @@ $mine oak_log[axis=x]
 $mine oak_log[axis=x,waterlogged=false]
 ```
 
-Those work the same way as they do in vanilla commands. Typing the name after
-`$mine` opens a picker of every block in the game, narrowed as you type, and `Tab`
-completes the highlighted block. An unreadable name is reported and nothing changes.
+Those work the same way as they do in vanilla commands. `Tab` completes the
+highlighted block into the command, and an unreadable name is reported without
+changing anything.
 
 ```
 $mine oak_[Tab] [Space] oak_[Tab]

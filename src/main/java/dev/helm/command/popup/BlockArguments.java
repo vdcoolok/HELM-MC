@@ -18,6 +18,10 @@ public final class BlockArguments {
         return !isCount(arguments.get(0));
     }
 
+    public static boolean typing(List<String> arguments, String partial) {
+        return atBlockName(arguments) && !partial.isEmpty();
+    }
+
     public static List<String> alreadyNamed(List<String> arguments) {
         int first = !arguments.isEmpty() && isCount(arguments.get(0)) ? 1 : 0;
         List<String> named = new ArrayList<>();
