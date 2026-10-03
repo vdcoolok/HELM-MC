@@ -64,13 +64,13 @@ public final class MineTask {
         return job == null ? List.of() : List.copyOf(job.known());
     }
 
-    public void start(TargetFilter filter, int wanted) {
+    public void start(TargetFilter filter, int wanted, String rawRequest) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
             return;
         }
         FarmTask.instance().stop();
-        job = new MineJob(filter, wanted);
+        job = new MineJob(filter, wanted, rawRequest);
         Trace.instance().barrier("mine");
         Trace.instance().event("mine", "mining " + filter.describe()
                 + (wanted > 0 ? " until " + wanted + " are carried" : " with no limit"));
@@ -106,11 +106,16 @@ public final class MineTask {
             return;
         }
 
+        Trace.instance().pulse("mine-known", "mine", "raw=[" + current.rawRequest()
+                + "] wanted=" + current.wanted() + " carrying=" + current.carried(player)
+                + " swept=" + current.sweptCount() + " known=" + current.known().size()
+                + " nearest=" + describe(current.known(), feet));
         List<BlockPos> drops = gatherDrops(current, level, player, settings);
 
         sweep(current, level, feet, world, work, settings, drops);
         if (settings.sightOnly()) {
             VisibleTargets.refresh(current, level, world, work, settings, player, feet);
+            current.markSearched();
         }
         current.prune(world, work, settings, feet, drops);
 
@@ -197,6 +202,18 @@ public final class MineTask {
         return List.copyOf(held);
     }
 
+    private String describe(List<BlockPos> known, BlockPos feet) {
+        BlockPos closest = null;
+        for (BlockPos pos : known) {
+            if (closest == null || pos.distSqr(feet) < closest.distSqr(feet)) {
+                closest = pos;
+            }
+        }
+        return closest == null ? "nothing"
+                : closest.getX() + " " + closest.getY() + " " + closest.getZ()
+                    + " at " + (int) Math.sqrt(closest.distSqr(feet)) + " blocks";
+    }
+
     private BlockPos lookedAt(LocalPlayer player) {
         Aim aim = LookController.instance().effective();
         if (aim == null) {
@@ -211,26 +228,17 @@ public final class MineTask {
     }
 
     private void dropStaleRoute(Pilot pilot, MineJob current, MiningSettings settings) {
-        if (!settings.stopRouteWhenMined()) {
+        if (!settings.stopRouteWhenMined() || current.routeTargetStillKnown()) {
             return;
         }
         int[] destination = pilot.route().destination();
         if (destination == null) {
             return;
         }
-        BlockPos end = new BlockPos(destination[0], destination[1], destination[2]);
-        if (stillWanted(current, end)) {
-            return;
-        }
         Trace.instance().pulse("mine-route", "mine", "the block the route was heading for at "
                 + destination[0] + " " + destination[1] + " " + destination[2]
                 + " has gone, stopping the walk there");
         pilot.halt();
-    }
-
-    private boolean stillWanted(MineJob current, BlockPos end) {
-        List<BlockPos> known = current.known();
-        return known.contains(end) || known.contains(end.above()) || known.contains(end.above(2));
     }
 
     private boolean unreachable(MineJob current, BlockPos feet, MiningSettings settings) {

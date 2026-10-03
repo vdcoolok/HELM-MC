@@ -32,7 +32,8 @@ public final class Sweep {
         this.want = want;
         this.lowest = level.getMinY();
         this.standingLevel = from.getY() - this.lowest;
-        this.sectionOrder = LevelOrder.nearestFirst(level.getHeight() / 16, this.standingLevel);
+        this.sectionOrder = LevelOrder.nearestFirst(level.getHeight() / 16,
+                this.standingLevel >> 4);
         this.originX = from.getX() >> 4;
         this.originZ = from.getZ() >> 4;
         this.furthest = want.chunkRadius() * want.chunkRadius();

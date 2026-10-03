@@ -52,7 +52,8 @@ public final class MineCommand {
             ClientNotice.warn("Not in a world yet.");
             return CommandResult.FAILURE;
         }
-        Requested requested = request(call.arguments().requireString(BLOCKS));
+        String raw = call.arguments().requireString(BLOCKS);
+        Requested requested = request(raw);
         TargetFilter filter = Allowed.of(requested.filter(), Settings.holder().mining(),
                 Settings.holder().movement());
         if (filter == null) {
@@ -61,7 +62,7 @@ public final class MineCommand {
             return CommandResult.FAILURE;
         }
         rememberNearbyChunks(filter);
-        MineTask.instance().start(filter, requested.wanted());
+        MineTask.instance().start(filter, requested.wanted(), raw);
         ClientNotice.warn("Mining " + filter.describe() + ".");
         return CommandResult.SUCCESS;
     }

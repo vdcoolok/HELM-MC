@@ -33,14 +33,28 @@ public final class MineJob {
     private final DropLedger ledger = new DropLedger();
 
     private BlockPos startPoint;
+    private BlockPos routeFor;
     private Sweep sweep;
+    private List<BlockPos> swept = List.of();
     private long sweepBegan;
     private int sweepTicks;
     private int sinceRescan;
+    private boolean searched;
 
-    public MineJob(TargetFilter filter, int wanted) {
+    private final String rawRequest;
+
+    public MineJob(TargetFilter filter, int wanted, String rawRequest) {
         this.filter = filter;
         this.wanted = wanted;
+        this.rawRequest = rawRequest;
+    }
+
+    public int wanted() {
+        return wanted;
+    }
+
+    public String rawRequest() {
+        return rawRequest;
     }
 
     public TargetFilter filter() {
@@ -92,6 +106,7 @@ public final class MineJob {
         }
         sweep = Sweep.around(level, feet, new ChunkScanRequest(filter.blocks(),
                 settings.maxTargets(), settings.scanRadius(), settings.scanLevelWindow()));
+        swept = List.of();
         sweepBegan = System.nanoTime();
         sweepTicks = 0;
     }
@@ -102,8 +117,13 @@ public final class MineJob {
         }
         sweepTicks++;
         if (sweep.step(budgetNanos)) {
+            swept = sweep.found();
             sweep = null;
         }
+    }
+
+    public int sweptCount() {
+        return swept.size();
     }
 
     public long sweepMillis() {
@@ -125,11 +145,17 @@ public final class MineJob {
 
     public void compose(ClientLevel level, BlockPos feet, BlockView world, WorkCosts work,
                         MiningSettings settings, List<BlockPos> drops) {
-        List<BlockPos> found = new ArrayList<>(CacheTargets.around(filter, feet,
+        List<BlockPos> found = new ArrayList<>(swept);
+        found.addAll(CacheTargets.around(filter, feet,
                 settings.cacheScanLimit(), settings.cacheScanRadius()));
         found.addAll(known);
         found.addAll(drops);
         replace(found, world, work, settings, feet, drops);
+        searched = true;
+    }
+
+    public void markSearched() {
+        searched = true;
     }
 
     public void prune(BlockView world, WorkCosts work, MiningSettings settings, BlockPos feet,
@@ -151,12 +177,21 @@ public final class MineJob {
     }
 
     public Goal goal(BlockView world, WorkCosts work, MiningSettings settings, BlockPos feet) {
-        if (!known.isEmpty()) {
-            List<Goal> goals = new ArrayList<>(known.size());
-            for (BlockPos pos : known) {
-                goals.add(SpotGoals.forPosition(pos, known, filter, world, work, settings));
-            }
-            return AnyGoal.of(goals);
+        routeFor = null;
+        if (known.isEmpty()) {
+            return wander(settings, feet);
+        }
+        List<Goal> goals = new ArrayList<>(known.size());
+        for (BlockPos pos : known) {
+            goals.add(SpotGoals.forPosition(pos, known, filter, world, work, settings));
+        }
+        routeFor = known.get(0);
+        return AnyGoal.of(goals);
+    }
+
+    private Goal wander(MiningSettings settings, BlockPos feet) {
+        if (!searched) {
+            return null;
         }
         if (!settings.sightOnly() && !settings.exploreWhenUnknown()) {
             return null;
@@ -165,6 +200,10 @@ public final class MineJob {
             startPoint = feet;
         }
         return new ExploreAwayGoal(startPoint.getX(), startPoint.getZ(), settings.stripLevel());
+    }
+
+    public boolean routeTargetStillKnown() {
+        return routeFor == null || known.contains(routeFor);
     }
 
     public boolean forgetClosest(BlockPos feet) {

@@ -80,10 +80,8 @@ public final class TargetPruner {
 
     private static boolean stillWanted(BlockView world, TargetFilter filter, BlockPos pos,
                                        List<BlockPos> drops) {
-        if (drops.contains(pos)) {
-            return false;
-        }
         return !world.loaded(pos.getX(), pos.getZ())
-                || filter.wants(world.stateAt(pos.getX(), pos.getY(), pos.getZ()));
+                || filter.wants(world.stateAt(pos.getX(), pos.getY(), pos.getZ()))
+                || drops.contains(pos);
     }
 }
