@@ -1181,12 +1181,33 @@ takes a tree down.
 | Setting | Default | What it does |
 | --- | --- | --- |
 | `mining.breakOverhead` | `true` | Break a block directly above without moving |
+| `mining.pillarToReach` | `true` | Step up on a placed block when a block straight above is too high to break |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 
 Overhead breaking needs a block that can actually be broken from where you stand, so
 it falls back to walking when the block is out of reach or would release something.
 Turning it off makes `$mine oak_log` approach each log from the side, the same way
 as anything else.
+
+### Pillaring to reach
+
+Reach runs out before a tall trunk does. A block roughly four and a half blocks above
+your eyes can be broken; one higher cannot, however hard you look at it.
+
+`mining.pillarToReach` covers what is left over. When the lowest target still
+standing in your own column is too high to break, HELM places a block under itself
+and steps up, then looks again. One level at a time, checking after each, until the
+rest of the vein is within reach or there is nothing left above you. The check is
+made against real reach, not against where you happen to be looking, so a block that
+is out of range is never mistaken for one you can hit.
+
+It costs one block per level, taken from whatever `movement.placementBlocks` prefers,
+and falls back to any placeable block in the hotbar. It needs both
+`movement.allowPlace` and `movement.allowBreak`; with either off, HELM will not
+pillar and simply leaves the rest of the vein alone.
+
+Blocks placed this way are not given back. The job mines the vein out and then moves
+on with the pillar block still spent.
 
 `mining.stopRouteWhenMined` stops a walk the moment the block it was heading for is
 gone, rather than finishing a route that no longer leads anywhere. It makes mining
@@ -1271,6 +1292,7 @@ blocks the route itself will break. Both are off independently, and
 | `mining.digIntoVein` | `true` | Aim into the vein rather than at its edge |
 | `mining.digThroughAir` | `true` | Count air beside a block as part of the vein |
 | `mining.breakOverhead` | `true` | Break a block directly above without moving |
+| `mining.pillarToReach` | `true` | Step up on a placed block when a block straight above is too high to break |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 | `mining.repackRadius` | `40` | Chunks remembered before mining starts |
 | `mining.scanRadius` | `32` | Chunks around you read when looking |

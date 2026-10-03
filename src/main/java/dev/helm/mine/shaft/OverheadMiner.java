@@ -17,6 +17,10 @@ public final class OverheadMiner {
 
     public static boolean work(Pilot pilot, OverheadSpot spot, LocalPlayer player,
                                LookSettings look) {
+        if (BlockReach.reachableFrom(player, spot.block(), look.blockReachDistance(),
+                player.isCrouching()) == null) {
+            return false;
+        }
         Aim aim = BlockReach.towards(player, spot.block(), look, false);
         if (aim == null) {
             return false;

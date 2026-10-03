@@ -203,6 +203,7 @@ If another mod already switches tools for you, turning
 | `mining.digIntoVein` | `true` | Path into the block behind a target in the same vein |
 | `mining.digThroughAir` | `true` | Count air beside a target as part of the vein |
 | `mining.breakOverhead` | `true` | Break a block directly above without moving |
+| `mining.pillarToReach` | `true` | Place a block under yourself and step up when a block straight above is too high to break |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 | `mining.repackRadius` | `40` | Chunks remembered before mining starts |
 | `mining.scanRadius` | `32` | Chunks around you read when looking |
@@ -228,6 +229,12 @@ so `$mine diamond_ore` will not chase one down below bedrock or up in the sky.
 `mining.breakOverhead` is what takes a tree down without walking anywhere. With it
 off, `$mine oak_log` approaches each log from the side and mines it the same way as
 anything else.
+
+Reach runs out before a tall trunk does. `mining.pillarToReach` covers the rest: when
+the lowest target still standing in your own column is too high to break, HELM places
+a block under itself and steps up, then looks again, one level at a time, until the
+rest of the vein is within reach. It spends a block per level and is skipped entirely
+when `movement.allowPlace` or `movement.allowBreak` is off.
 
 `mining.sightOnly` forces mining to behave as a player would: only blocks that can
 actually be seen from where you are standing become targets. It always keeps

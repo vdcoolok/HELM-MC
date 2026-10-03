@@ -142,12 +142,12 @@ public final class MineTask {
         if (pilot.unreachable() && !unreachable(current, feet, settings)) {
             return;
         }
-        headForNext(current, world, work, settings, feet);
+        headForNext(current, world, work, settings, feet, player);
     }
 
     private void headForNext(MineJob current, BlockView world, WorkCosts work,
-                             MiningSettings settings, BlockPos feet) {
-        Goal goal = current.goal(world, work, settings, feet);
+                             MiningSettings settings, BlockPos feet, LocalPlayer player) {
+        Goal goal = current.goal(world, work, settings, feet, player);
         if (goal == null) {
             if (!current.sweeping()) {
                 outOfWork(current);

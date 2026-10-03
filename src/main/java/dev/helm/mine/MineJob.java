@@ -14,6 +14,8 @@ import dev.helm.mine.find.CacheTargets;
 import dev.helm.mine.find.TargetPruner;
 import dev.helm.mine.goal.ExploreAwayGoal;
 import dev.helm.mine.goal.SpotGoals;
+import dev.helm.mine.shaft.ColumnRise;
+import dev.helm.mine.shaft.ColumnRiser;
 import dev.helm.mine.target.TargetFilter;
 import dev.helm.pathfinding.goal.AnyGoal;
 import dev.helm.pathfinding.goal.Goal;
@@ -176,8 +178,14 @@ public final class MineJob {
         known.addAll(kept);
     }
 
-    public Goal goal(BlockView world, WorkCosts work, MiningSettings settings, BlockPos feet) {
+    public Goal goal(BlockView world, WorkCosts work, MiningSettings settings, BlockPos feet,
+                     LocalPlayer player) {
         routeFor = null;
+        ColumnRise rise = rising(world, settings, feet, player);
+        if (rise != null) {
+            routeFor = rise.target();
+            return rise.stand();
+        }
         if (known.isEmpty()) {
             return wander(settings, feet);
         }
@@ -187,6 +195,18 @@ public final class MineJob {
         }
         routeFor = known.get(0);
         return AnyGoal.of(goals);
+    }
+
+    private ColumnRise rising(BlockView world, MiningSettings settings, BlockPos feet,
+                              LocalPlayer player) {
+        if (!settings.pillarToReach() || known.isEmpty()) {
+            return null;
+        }
+        if (!Settings.holder().movement().allowPlace()
+                || !Settings.holder().movement().allowBreak()) {
+            return null;
+        }
+        return ColumnRiser.find(known, world, feet, player, Settings.holder().look());
     }
 
     private Goal wander(MiningSettings settings, BlockPos feet) {
