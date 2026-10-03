@@ -1072,6 +1072,27 @@ column. Everything either source turns up is then sorted by distance, and
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
 | `mining.scanWhenCacheThin` | `false` | Also read loaded chunks when the cache is thin |
+| `mining.includeDeepslateVariants` | `false` | Also mine the deepslate version of any ore asked for |
+
+### Ores have two names
+
+Almost every ore exists as two different blocks. Diamond ore is
+`minecraft:diamond_ore` above level 0 and `minecraft:deepslate_diamond_ore` below it,
+and the same is true of coal, copper, gold, iron, lapis, redstone and emerald. They
+generate in the same band, roughly y = −64 to 16, and which one appears is decided by
+whether the stone or the deepslate is what gets replaced.
+
+A block name therefore matches exactly one block and nothing else. `$mine diamond_ore`
+mines `minecraft:diamond_ore`, which can only exist in y = 0 to 16, so it will not
+notice the deepslate diamond ore that makes up most of the band.
+
+Turning on `mining.includeDeepslateVariants` fixes that. Each ore asked for then also
+brings in its other name, so `$mine diamond_ore` finds diamonds across the whole band,
+and asking for `deepslate_diamond_ore` brings in `diamond_ore` as well. The rule only
+ever pairs a block whose name ends in `_ore` with a `deepslate_` block of that name, and
+only when both actually exist, so nothing else is ever added and no table has to be
+kept up to date. Blocks with no twin, such as `stone` or `nether_gold_ore`, are left
+alone either way.
 
 The walk ends once it has reached `mining.scanRadius`, or sooner once it has found
 `mining.maxTargets` places, whichever comes first. Chunks that are not loaded are
@@ -1085,6 +1106,10 @@ untouched when none of those blocks is one you asked for. Most layers undergroun
 hold nothing but stone and a little deepslate, so almost every layer is passed over
 this way. A layer made entirely of one wanted block is taken whole without reading
 its positions at all.
+
+The order the layers of a column are visited in is worked out once per look and then
+reused for every chunk in that look, so every chunk is read whole rather than only the
+first one.
 
 Because a layer is never read one block at a time unless it actually holds something
 you asked for, a look touches very little of the world. It still spends a small
@@ -1337,6 +1362,7 @@ blocks the route itself will break. Both are off independently, and
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found before the cache search stops widening |
 | `mining.renderTargets` | `true` | Outline every block the job has found |
+| `mining.includeDeepslateVariants` | `false` | Also mine the deepslate version of any ore asked for |
 
 See [SETTINGS.md](SETTINGS.md) for what each one changes.
 

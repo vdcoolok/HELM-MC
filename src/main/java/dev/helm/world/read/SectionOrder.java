@@ -2,28 +2,36 @@ package dev.helm.world.read;
 
 final class SectionOrder {
 
-    private final int count;
-    private int up;
-    private int down;
-    private boolean upFirst = true;
+    private final int[] indices;
 
     SectionOrder(int sectionCount, int standingSection) {
-        this.count = sectionCount;
-        int standing = Math.min(Math.max(standingSection, 0), Math.max(sectionCount - 1, 0));
-        this.up = standing;
-        this.down = standing - 1;
+        this.indices = around(sectionCount, standingSection);
     }
 
-    boolean hasNext() {
-        return down >= 0 || up < count;
+    int length() {
+        return indices.length;
     }
 
-    int next() {
-        boolean goingUp = upFirst;
-        upFirst = !upFirst;
-        if (goingUp) {
-            return up < count ? up++ : down--;
+    int at(int index) {
+        return indices[index];
+    }
+
+    private static int[] around(int sectionCount, int standingSection) {
+        int count = Math.max(sectionCount, 0);
+        int standing = Math.min(Math.max(standingSection, 0), Math.max(count - 1, 0));
+        int[] order = new int[count];
+        int up = standing;
+        int down = standing - 1;
+        boolean upFirst = true;
+        for (int at = 0; at < count; at++) {
+            boolean goingUp = upFirst;
+            upFirst = !upFirst;
+            if (goingUp) {
+                order[at] = up < count ? up++ : down--;
+            } else {
+                order[at] = down >= 0 ? down-- : up++;
+            }
         }
-        return down >= 0 ? down-- : up++;
+        return order;
     }
 }

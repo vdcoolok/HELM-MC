@@ -3,7 +3,6 @@ package dev.helm.world.read;
 import java.util.List;
 
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunkSection;
 
 import dev.helm.world.read.section.PaletteFilter;
@@ -15,12 +14,10 @@ final class ColumnScan {
     private ColumnScan() {
     }
 
-    public static void into(ChunkAccess chunk, int chunkX, int chunkZ, SectionOrder order,
-                            PaletteFilter filter, List<BlockPos> found) {
-        LevelChunkSection[] sections = chunk.getSections();
-        int lowest = chunk.getMinY();
-        while (order.hasNext()) {
-            int index = order.next();
+    public static void into(LevelChunkSection[] sections, int lowest, int chunkX, int chunkZ,
+                            SectionOrder order, PaletteFilter filter, List<BlockPos> found) {
+        for (int at = 0; at < order.length(); at++) {
+            int index = order.at(at);
             if (index >= sections.length) {
                 continue;
             }

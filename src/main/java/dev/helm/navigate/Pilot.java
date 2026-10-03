@@ -281,12 +281,12 @@ public final class Pilot {
             return;
         }
         Trace.instance().event("walk", "still short of " + target.label()
-                + ", nearest target " + nearest(target) + " blocks away"
+                + ", the goal rates this spot at " + cost(target)
                 + ", searching again from where the player actually is");
         replan(target);
     }
 
-    private String nearest(Objective target) {
+    private String cost(Objective target) {
         var player = Minecraft.getInstance().player;
         if (player == null || context == null) {
             return "an unknown";

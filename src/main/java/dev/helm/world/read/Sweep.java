@@ -63,6 +63,7 @@ public final class Sweep {
             return;
         }
         chunksRead++;
-        ColumnScan.into(chunk, chunkX << 4, chunkZ << 4, sections, filter, found);
+        ColumnScan.into(chunk.getSections(), chunk.getMinY(), chunkX << 4, chunkZ << 4,
+                sections, filter, found);
     }
 }
