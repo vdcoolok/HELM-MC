@@ -1261,24 +1261,25 @@ not been wanted, or has been forgotten, is drawn normally.
 
 An item that falls in water does not sink. The game nudges it very gently
 upwards every tick while it is in the fluid, so it rides on the surface instead of
-settling on the bottom, and it is not resting on a block while it does. That
-matters because a drop is only worth walking to if it is somewhere the bot can
-finish the job.
+settling on the bottom, and it is not resting on a block while it does.
 
-A drop that is floating is treated differently from one lying on the ground. A
-drop on the ground is aimed at exactly, standing on it. A drop in water is aimed
-at the block next to it, so the bot walks to the bank rather than trying to stand
-on the surface, which it cannot do.
+Where HELM aims at a floating drop is therefore not where the drop is. The drop
+rests on top of the water, so the block directly above it is air. Air is not a
+place the bot can be, so aiming there would leave the drop unreachable and the
+bot would quietly move on to the next job. Instead the drop is aimed at the water
+block it is floating on, which is exactly the block a swimmer occupies.
 
-Standing one block away is close enough. The area the game collects items from is
-the player's own box grown by one block sideways and half a block up and down, and
-one block away sits inside that, so the item is picked up on arrival.
+That is the same block the path finder already treats as swimmable, so the route
+runs out across the surface of the water and the bot swims. A drop in the middle
+of a wide pool is reached the same way as one at the edge.
 
-A drop in the middle of a wide pool stays out of reach. The path finder refuses to
-route through a water source block at all, so there is no swimming to it, and the
-drop is simply one of the targets that cannot be met while the others are. It
-does not end the farm, because a target that cannot be met is only ignored when
-something else can.
+Aiming one block lower does not put the bot out of reach of the item. The area
+the game collects from is the player's own box grown by half a block above and
+below and a block to the sides, and a swimmer standing in the water block under a
+drop is inside that.
+
+A drop that is neither on the ground nor on water is left alone for now. That is
+one still falling through the air, which would only be a moving target.
 
 Mining works the same way as soon as it breaks blocks of its own, because both
 go through the same breaking path. Nothing extra is needed for that.

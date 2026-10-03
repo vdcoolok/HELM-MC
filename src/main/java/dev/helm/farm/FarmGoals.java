@@ -73,18 +73,20 @@ public final class FarmGoals {
                 targets.add(new DroppedGoal(where(dropped)));
                 continue;
             }
-            if (afloat(dropped, level)) {
-                BlockPos where = where(dropped);
-                targets.add(new BesideGoal(where.getX(), where.getY(), where.getZ()));
+            if (swimsAt(dropped, level) != null) {
+                targets.add(new DroppedGoal(swimsAt(dropped, level)));
             }
         }
         return targets;
     }
 
-    private static boolean afloat(ItemEntity dropped, ClientLevel level) {
-        BlockPos pos = dropped.blockPosition();
-        return LiquidRules.water(level.getBlockState(pos))
-                || LiquidRules.water(level.getBlockState(pos.below()));
+    private static BlockPos swimsAt(ItemEntity dropped, ClientLevel level) {
+        BlockPos floating = dropped.blockPosition();
+        if (LiquidRules.water(level.getBlockState(floating))) {
+            return floating;
+        }
+        BlockPos rests = floating.below();
+        return LiquidRules.water(level.getBlockState(rests)) ? rests : null;
     }
 
     private static BlockPos where(ItemEntity dropped) {
