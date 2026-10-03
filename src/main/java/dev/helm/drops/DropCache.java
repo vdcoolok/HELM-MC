@@ -9,7 +9,7 @@ import net.minecraft.world.item.ItemStack;
 
 public final class DropCache {
 
-    private static final long SITE_TICKS = 200L;
+    private static final long SITE_TICKS = 6L;
     private static final long KEEP_TICKS = 6000L;
 
     private static final DropCache INSTANCE = new DropCache();

@@ -1648,11 +1648,11 @@ guessed from a list, so anything a server, mod or config changes about a crop
 still gets collected.
 
 Whenever HELM breaks a block it writes the position into a ledger, at most 256
-positions, newest last. An entry is dropped once it is 200 ticks old, so a place
-stays watched for ten seconds after HELM stops mining it, and mining the same
+positions, newest last. An entry is dropped once it is 6 ticks old, so a place is
+only watched while the break it came from is still happening, and mining the same
 spot again refreshes it rather than adding a duplicate.
 
-Each tick, if the ledger has anything in it, every dropped item within two blocks
+Each tick, if the ledger has anything in it, every dropped item within one block
 of a watched position is looked at. An item that is not already known is checked
 against those positions, and if it is close enough to one, its item type is
 remembered as something HELM wants. Anything already known and still fresh is
@@ -1668,7 +1668,12 @@ disk, so a new session starts knowing nothing until HELM breaks something.
 Two things feed off the same cache. Farming walks over and picks up any dropped
 item on the ground that is worth having, and the same check decides whether the
 item gets an outline. A drop that is still wanted is drawn glowing; one that has
-not been wanted, or has been forgotten, is drawn normally.
+not been learned is left alone. Learning is deliberately confined to the moment
+of a break. Watching a spot for a long time afterwards would sweep up items that
+had nothing to do with HELM, such as sticks and apples from leaves that rotted on
+their own once a trunk was mined, and then go chasing them round the world.
+
+One thing that has not been wanted, or has been forgotten, is drawn normally.
 
 ### Drops that land in water
 

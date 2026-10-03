@@ -8,7 +8,7 @@ import net.minecraft.world.item.ItemStack;
 
 public final class DropScan {
 
-    private static final double REACH = 2.0D;
+    private static final double REACH = 1.0D;
 
     private DropScan() {
     }
