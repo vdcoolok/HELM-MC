@@ -6,8 +6,10 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.AirBlock;
 
+import dev.helm.aim.BlockDistance;
 import dev.helm.pathfinding.world.BlockView;
 import dev.helm.pathfinding.world.block.WorkCosts;
+import dev.helm.setting.Settings;
 
 public final class OverheadFinder {
 
@@ -35,6 +37,10 @@ public final class OverheadFinder {
             }
             if (work.avoidBreaking(pos.getX(), pos.getY(), pos.getZ(),
                     world.stateAt(pos.getX(), pos.getY(), pos.getZ()))) {
+                continue;
+            }
+            if (BlockDistance.nearest(player, pos, player.isCrouching())
+                    > Settings.holder().look().blockReachDistance()) {
                 continue;
             }
             double distance = pos.distSqr(eye);
