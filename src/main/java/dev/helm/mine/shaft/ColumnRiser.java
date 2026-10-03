@@ -6,7 +6,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.AirBlock;
 
-import dev.helm.aim.BlockReach;
+import dev.helm.aim.BlockDistance;
 import dev.helm.pathfinding.world.BlockView;
 import dev.helm.setting.LookSettings;
 
@@ -21,8 +21,8 @@ public final class ColumnRiser {
         if (above == null) {
             return null;
         }
-        if (BlockReach.reachableFrom(player, above, look.blockReachDistance(),
-                player.isCrouching()) != null) {
+        if (BlockDistance.nearest(player, above, player.isCrouching())
+                <= look.blockReachDistance()) {
             return null;
         }
         return new ColumnRise(above, feet.getX(), feet.getY() + 1, feet.getZ());

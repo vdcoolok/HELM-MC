@@ -4,6 +4,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
 
 import dev.helm.aim.Aim;
+import dev.helm.aim.BlockDistance;
 import dev.helm.aim.BlockReach;
 import dev.helm.aim.LookController;
 import dev.helm.control.Control;
@@ -17,8 +18,8 @@ public final class OverheadMiner {
 
     public static boolean work(Pilot pilot, OverheadSpot spot, LocalPlayer player,
                                LookSettings look) {
-        if (BlockReach.reachableFrom(player, spot.block(), look.blockReachDistance(),
-                player.isCrouching()) == null) {
+        if (BlockDistance.nearest(player, spot.block(), player.isCrouching())
+                > look.blockReachDistance()) {
             return false;
         }
         Aim aim = BlockReach.towards(player, spot.block(), look, false);
