@@ -28,6 +28,7 @@ public final class MineCommand {
     private static final String BLOCKS = "blocks";
     private static final String COUNT = "count";
     private static final int NOT_A_COUNT = -1;
+    private static final String LAST = "last";
 
     private record Requested(int wanted, TargetFilter filter) {
     }
@@ -41,7 +42,7 @@ public final class MineCommand {
                 .describedAs("Searches for and mines blocks until they run out.")
                 .pickingBlocks()
                 .taking(ArgumentDefinition.required(BLOCKS, ArgumentType.STRING,
-                        "optional count, then the blocks to mine")
+                        "blocks to mine, then an optional count")
                         .offering(MineCommand::suggest));
     }
 
@@ -67,11 +68,12 @@ public final class MineCommand {
 
     private static Requested request(String written) {
         List<String> tokens = dev.helm.command.chat.LineTokenizer.tokenize(written);
-        boolean counted = leadsWithCount(tokens);
-        int wanted = counted ? leadingCount(tokens.get(0)) : 0;
+        int wanted = trailingCount(tokens);
         List<TargetSelector> selectors = new ArrayList<>();
-        for (int index = counted ? 1 : 0; index < tokens.size(); index++) {
-            selectors.add(select(tokens.get(index)));
+        for (String token : tokens) {
+            if (count(token) == NOT_A_COUNT) {
+                selectors.add(select(token));
+            }
         }
         if (selectors.isEmpty()) {
             throw new CommandException(CommandFeedback.missingArgument(BLOCKS));
@@ -79,16 +81,18 @@ public final class MineCommand {
         return new Requested(wanted, TargetFilter.of(selectors));
     }
 
-    private static boolean leadsWithCount(List<String> tokens) {
-        return !tokens.isEmpty() && count(tokens.get(0)) != NOT_A_COUNT;
-    }
-
-    private static int leadingCount(String lead) {
-        int wanted = count(lead);
-        if (wanted < 0) {
-            throw new CommandException(CommandFeedback.invalidArgument(COUNT, lead));
+    private static int trailingCount(List<String> tokens) {
+        if (tokens.isEmpty()) {
+            return 0;
         }
-        return wanted;
+        String last = tokens.get(tokens.size() - 1);
+        if (count(last) == NOT_A_COUNT) {
+            return 0;
+        }
+        if (last.equals(LAST)) {
+            throw new CommandException(CommandFeedback.invalidArgument(COUNT, last));
+        }
+        return count(last);
     }
 
     private static int count(String token) {

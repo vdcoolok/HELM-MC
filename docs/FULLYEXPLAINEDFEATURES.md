@@ -950,7 +950,7 @@ Searches for blocks of a given type and mines them until they run out. Available
 
 ```
 $mine oak_log
-$mine 64 diamond_ore
+$mine diamond_ore 64
 $mine oak_log birch_log
 $mine oak_log[axis=x]
 ```
@@ -962,7 +962,8 @@ when `$stop` is typed, or when nothing it wants can be reached.
 ### Naming blocks
 
 A block name is the game's own identifier, written with or without the
-`minecraft:` prefix. More than one name mines all of them, nearest first.
+`minecraft:` prefix. More than one name mines all of them, nearest first. The count
+comes after every block name, not before them.
 
 A single block state is picked out with square brackets, and several at once
 separated by commas:
@@ -970,6 +971,7 @@ separated by commas:
 ```
 $mine oak_log[axis=x]
 $mine oak_log[axis=x,waterlogged=false]
+$mine oak_log[axis=x] 30
 ```
 
 The property name and its value must both be real for that block, or the command
@@ -983,15 +985,21 @@ every block in the game, narrowed live as the last word is typed, and shown by i
 full name so there is no guessing about whether a space belongs in it. The right is
 the blocks already named on the line, in order, and it does not change as you type.
 
-A count comes first, and the picker stays out of the way while it is being typed. It
-opens once you start a block name:
+The picker is driven by the last word on the line, and that word decides what is
+offered:
 
-```
-$mine 30        count, no picker
-$mine 30 oak    picker, filtered on "oak"
-```
+| Last word | Offered |
+| --- | --- |
+| A block name being typed | Blocks matching it |
+| A count being typed | Nothing, the picker closes |
+| Empty, right after a space | Nothing, the picker closes |
+| Part of a block state | That block's property names or values |
 
-Pressing space at the end of a block name closes the picker again, because there is
+Putting the count last is what makes this unambiguous. There is never a moment where
+a number on the line could be read as either a count or a block, because a bare
+integer after block names can only be a count.
+
+Pressing space at the end of a block name closes the picker, because there is
 nothing to filter and listing every block in the game is no help. Typing the next
 name brings it straight back.
 
@@ -1000,12 +1008,13 @@ so a list can be built without spelling anything out in full:
 
 ```
 $mine oak_[Tab] [Space] oak_[Tab]
-$mine 30 [Space] oak_[Tab]
+$mine oak_[Tab] [Space] 30
 ```
 
 Inside the square brackets the picker completes property names, then their values,
-instead of block names. Once the closing bracket is typed the picker stops, because
-there is nothing left to complete.
+instead of block names. Properties already named in the same bracket are left out,
+so the second property starts from the ones still free. Once the closing bracket is
+typed the picker stops, because there is nothing left to complete.
 
 Clicking a row in the picker does nothing to the command, so the cursor can still
 be put where it is wanted. Nothing is chosen until the command is sent.
@@ -1208,12 +1217,15 @@ correctly. See [dropped item cache](#dropped-item-cache).
 ### Stopping on a count
 
 ```
-$mine 64 diamond_ore
+$mine diamond_ore 64
 ```
 
 With a count, mining stops once that many matching items are carried. The count is
 taken across the whole inventory rather than the hotbar, and it counts anything the
 block drops, not the block itself.
+
+A count of `0`, or no count at all, means there is no limit and mining continues
+until something else stops it.
 
 The count is checked before anything else each tick, so it stops immediately when
 the count is already reached, without walking anywhere first.

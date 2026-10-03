@@ -100,7 +100,12 @@ public final class PopupGate {
             if (!typingBlockName(chatValue, cursor)) {
                 return List.of();
             }
-            return BlockPicker.rows(partial(chatValue, cursor), blockNames(chatValue, cursor));
+            String typed = partial(chatValue, cursor);
+            if (typed.indexOf('[') >= 0) {
+                return stateRows(dev.helm.mine.target.TargetCompletions.forToken(typed),
+                        blockNames(chatValue, cursor));
+            }
+            return BlockPicker.rows(typed, blockNames(chatValue, cursor));
         }
         if (mode == Mode.VALUES) {
             return SettingPicker.values(namedSetting(chatValue, cursor),
@@ -128,6 +133,17 @@ public final class PopupGate {
     private static boolean wantsBlocks(String head) {
         var found = dev.helm.command.CommandTree.instance().root(head);
         return found.isPresent() && found.get().picksBlocks();
+    }
+
+    private static List<PopupRow> stateRows(List<String> values, List<String> alreadyNamed) {
+        List<PopupRow> rows = new ArrayList<>();
+        for (String value : values) {
+            rows.add(new PopupRow(value, "", BlockPicker.SEARCH_COLUMN, value));
+        }
+        for (String name : alreadyNamed) {
+            rows.add(new PopupRow(name, "", BlockPicker.CHOSEN_COLUMN, name));
+        }
+        return rows;
     }
 
     private static String blockFilter(String chatValue, int cursor,

@@ -15,7 +15,7 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `$autolookat <pitch>/<yaw>` | `alookat` | one angle |
 | `$autolookathere` | `alookathere` | none |
 | `$farm [<range>]` | `farming`, `harvest` | optional whole number of blocks |
-| `$mine [<count>] <blocks>...` | `dig`, `excavate` | optional whole number, then one or more block names |
+| `$mine <blocks>... [<count>]` | `dig`, `excavate` | one or more block names, then an optional whole number |
 | `$stop` | `cancel`, `abort`, `halt` | none |
 | `$set` | `setting` | none, opens the picker |
 | `$set <name>` | `setting` | one setting name |
@@ -115,21 +115,21 @@ a count is reached, or until `$stop`.
 
 ```
 $mine oak_log
-$mine 64 diamond_ore
+$mine diamond_ore 64
 $mine oak_log birch_log
-$mine 128 iron_ore gold_ore
+$mine iron_ore gold_ore 128
 ```
 
 With no count it mines every one it can find. With a count it stops once that many
 of the matching items are carried. More than one block name mines all of them,
-nearest first.
+nearest first. The count goes last.
 
-The picker of every block in the game opens once you start a block name. A count
-comes first and the picker stays closed while it is typed:
+The picker of every block in the game opens once you start a block name, and stays
+closed once you type the count:
 
 ```
-$mine 30
-$mine 30 oak
+$mine oak_
+$mine oak_log 30
 ```
 
 Block names are the game's own, with or without the `minecraft:` prefix. A single
@@ -142,10 +142,12 @@ $mine oak_log[axis=x,waterlogged=false]
 ```
 
 `Tab` completes the highlighted block, and an unreadable name is reported without
-changing anything:
+changing anything. Inside the brackets the picker completes property names and then
+their values:
 
 ```
 $mine oak_[Tab] [Space] oak_[Tab]
+$mine oak_log[axis=[Tab]
 ```
 
 Every block it has found is outlined while it works, and so is the block it is

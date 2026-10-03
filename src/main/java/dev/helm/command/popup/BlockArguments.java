@@ -9,13 +9,7 @@ public final class BlockArguments {
     }
 
     public static boolean atBlockName(List<String> arguments) {
-        if (arguments.isEmpty()) {
-            return false;
-        }
-        if (arguments.size() > 1) {
-            return true;
-        }
-        return !isCount(arguments.get(0));
+        return !arguments.isEmpty() && !isCount(last(arguments));
     }
 
     public static boolean typing(List<String> arguments, String partial) {
@@ -23,12 +17,18 @@ public final class BlockArguments {
     }
 
     public static List<String> alreadyNamed(List<String> arguments) {
-        int first = !arguments.isEmpty() && isCount(arguments.get(0)) ? 1 : 0;
         List<String> named = new ArrayList<>();
-        for (int index = first; index < arguments.size(); index++) {
-            named.add(blockOf(arguments.get(index)));
+        for (int index = 0; index < arguments.size(); index++) {
+            String token = arguments.get(index);
+            if (!isCount(token)) {
+                named.add(blockOf(token));
+            }
         }
         return named;
+    }
+
+    private static String last(List<String> arguments) {
+        return arguments.get(arguments.size() - 1);
     }
 
     private static String blockOf(String token) {
