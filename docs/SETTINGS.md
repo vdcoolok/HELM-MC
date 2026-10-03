@@ -415,7 +415,7 @@ harvests and in what order.
 | Name | Default | What it does |
 | --- | --- | --- |
 | `outline.enabled` | `true` | Master switch for every glowing silhouette |
-| `outline.blocksToBreak` | `true` | Outline the blocks the current path is going to mine |
+| `outline.blocksToBreak` | `true` | Outline the blocks the current path is going to mine, and the one being mined straight above you |
 | `outline.breakColour` | `#E04C4C` | Colour around blocks that will be mined |
 | `outline.cropColour` | `#B4E04C` | Colour around ripe crops |
 | `outline.dropColour` | `#4CE0E0` | Colour around dropped items worth collecting |

@@ -8,6 +8,7 @@ import net.minecraft.client.renderer.state.level.LevelRenderState;
 
 import dev.helm.outline.block.BlockSilhouetteDraw;
 import dev.helm.outline.block.BlockSilhouetteFeeds;
+import dev.helm.outline.block.BreakingSilhouette;
 import dev.helm.outline.block.MineTargetSilhouette;
 import dev.helm.outline.block.RipeCropSilhouette;
 import dev.helm.outline.block.RouteBreakSilhouette;
@@ -26,6 +27,7 @@ public final class Silhouettes {
         }
         installed = true;
         BlockSilhouetteFeeds.add(RouteBreakSilhouette.instance());
+        BlockSilhouetteFeeds.add(BreakingSilhouette.instance());
         BlockSilhouetteFeeds.add(RipeCropSilhouette.instance());
         BlockSilhouetteFeeds.add(MineTargetSilhouette.instance());
     }

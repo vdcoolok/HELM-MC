@@ -1211,7 +1211,8 @@ looking at it extends the wait rather than cutting it short.
 
 Looking at a block only ever lengthens that wait. It never takes the block off the
 job, so a target you are aiming at keeps its outline and stays the thing being
-mined.
+mined. Once the block is gone, the spot is only worth keeping while that wait lasts,
+so standing and staring at an empty spot does not hold the job open.
 
 Which items count as belonging to a block is worked out rather than listed. The
 dropped item cache learns what actually came out of the blocks HELM broke, so

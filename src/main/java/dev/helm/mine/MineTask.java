@@ -68,6 +68,10 @@ public final class MineTask {
         return job == null ? List.of() : List.copyOf(job.known());
     }
 
+    public BlockPos breaking() {
+        return overhead;
+    }
+
     public void start(TargetFilter filter, int wanted, String rawRequest) {
         LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) {
@@ -116,7 +120,7 @@ public final class MineTask {
                 + "] wanted=" + current.wanted() + " carrying=" + current.carried(player)
                 + " swept=" + current.sweptCount() + " known=" + current.known().size()
                 + " nearest=" + describe(current.known(), feet, world));
-        List<BlockPos> drops = gatherDrops(current, level, player, settings);
+        List<BlockPos> drops = gatherDrops(current, level, world, player, settings);
 
         sweep(current, level, feet, world, work, settings, drops);
         if (settings.sightOnly()) {
@@ -228,17 +232,23 @@ public final class MineTask {
         current.compose(level, feet, world, work, settings, drops);
     }
 
-    private List<BlockPos> gatherDrops(MineJob current, ClientLevel level, LocalPlayer player,
-                                    MiningSettings settings) {
+    private List<BlockPos> gatherDrops(MineJob current, ClientLevel level, BlockView world,
+                                    LocalPlayer player, MiningSettings settings) {
         current.expireDrops();
         Set<BlockPos> held = new LinkedHashSet<>(current.ledger().positions());
         BlockPos looked = lookedAt(player);
         if (looked != null && current.known().contains(looked)) {
             current.hold(looked, settings);
-            held.add(looked);
+            if (standing(world, looked)) {
+                held.add(looked);
+            }
         }
         held.addAll(current.dropsIn(level));
         return List.copyOf(held);
+    }
+
+    private boolean standing(BlockView world, BlockPos pos) {
+        return !(world.stateAt(pos.getX(), pos.getY(), pos.getZ()).getBlock() instanceof AirBlock);
     }
 
     private String describe(List<BlockPos> known, BlockPos feet, BlockView world) {
