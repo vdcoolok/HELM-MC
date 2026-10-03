@@ -62,6 +62,14 @@ public final class LookController {
         }
     }
 
+    public void watch(Aim wanted) {
+        if (wanted == null || lock != null) {
+            return;
+        }
+        this.target = wanted;
+        this.mode = LookMode.CLIENT;
+    }
+
     public void release() {
         this.lock = null;
     }

@@ -63,6 +63,7 @@ public final class FarmTask {
 
     public void start(FarmArea around) {
         dev.helm.mine.MineTask.instance().stop();
+        dev.helm.follow.FollowTask.instance().stop();
         this.area = around;
         this.swept = List.of();
         this.sweeping = null;

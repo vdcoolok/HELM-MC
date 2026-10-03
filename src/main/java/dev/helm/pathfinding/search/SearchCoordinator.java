@@ -1,6 +1,7 @@
 package dev.helm.pathfinding.search;
 
 import java.util.Set;
+import java.util.function.UnaryOperator;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
@@ -37,6 +38,12 @@ public final class SearchCoordinator {
 
     public SearchJob submit(Goal goal, int fromX, int fromY, int fromZ,
                             Set<Block> doNotBreak) {
+        return submit(goal, fromX, fromY, fromZ, doNotBreak, tunables -> tunables);
+    }
+
+    public SearchJob submit(Goal goal, int fromX, int fromY, int fromZ,
+                            Set<Block> doNotBreak,
+                            UnaryOperator<Tunables> adjustTunables) {
         cancel();
 
         Minecraft client = Minecraft.getInstance();
@@ -47,7 +54,7 @@ public final class SearchCoordinator {
         }
 
         BlockView frozen = frozenView(level, doNotBreak);
-        Tunables tuning = TunablesFactory.fromSettings();
+        Tunables tuning = TunablesFactory.fromSettings(adjustTunables);
         WalkRules walk = new WalkRules(frozen, tuning);
         var strength = new dev.helm.tools.MinedToolStrength(new PlayerInventory(player),
                 dev.helm.setting.Settings.holder().mining(),

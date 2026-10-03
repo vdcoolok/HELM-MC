@@ -1,7 +1,7 @@
 # Settings
 
 Every part of HELM that can be changed is a setting. Settings are grouped into
-seven sections, and the name of a setting is its section, a dot, and the name
+eight sections, and the name of a setting is its section, a dot, and the name
 inside it.
 
 | Section | Covers |
@@ -12,6 +12,7 @@ inside it.
 | `path` | Drawing the route and search limits |
 | `cache` | Remembering chunks that are no longer loaded |
 | `farm` | What `$farm` harvests, replants and sweeps for |
+| `follow` | What `$follow` walks after, and how close it stands |
 | `outline` | The glowing silhouettes drawn around blocks and dropped items |
 
 ## Reading and changing
@@ -414,6 +415,128 @@ also on.
 
 See [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for what farming
 harvests and in what order.
+
+## follow
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `follow.radius` | `3` | Blocks across from the spot that count as having arrived |
+| `follow.verticalRadius` | `2` | Blocks up or down from the spot that count as having arrived |
+| `follow.offsetDistance` | `0.0` | Stand this far from the target instead of on it |
+| `follow.offsetDirection` | `0.0` | Which side of the target that offset sits on, in degrees |
+| `follow.verticalOffset` | `0.0` | How far up or down from the target the spot sits |
+| `follow.maxTargetDistance` | `0` | Ignore targets further than this, `0` has no limit |
+| `follow.minTargetDistance` | `0` | Ignore targets nearer than this, `0` has no minimum |
+| `follow.waitTicks` | `20` | Ticks to keep waiting when nothing matches |
+| `follow.retryTicks` | `20` | Ticks to wait before looking again after no path was found |
+| `follow.replanTicks` | `2` | Ticks to wait after the target moves before searching again |
+| `follow.holdWhenClose` | `true` | Stand still once arrived instead of shuffling |
+| `follow.sprint` | `true` | Allow sprinting on the way to the target |
+| `follow.breakBlocks` | `true` | Allow breaking blocks that stand in the way |
+| `follow.placeBlocks` | `true` | Allow placing blocks to bridge a gap on the way |
+| `follow.keepTarget` | `false` | Stay on the target already being followed |
+| `follow.closestOnly` | `false` | Work towards the single closest match only |
+| `follow.ignoreSameKind` | `false` | Skip closer matches of the kind already being followed |
+| `follow.lookAtTarget` | `false` | Turn the camera onto the target while standing still |
+| `follow.maxLookPitch` | `80.0` | How far up or down the camera may tilt while watching |
+
+### Where it stands
+
+`follow.radius` is how far across the player's feet may be from the spot, and
+`follow.verticalRadius` is how far up or down. They are separate, so a target on
+a ledge can be followed without needing to be on the same level. Setting both to
+`0` means standing on the exact block, which is rarely what you want while
+following something that moves.
+
+`follow.offsetDistance` and `follow.offsetDirection` put the spot somewhere other
+than under the target. Distance `0` leaves the spot on the target's own column.
+Otherwise the spot is placed that many blocks away in the given direction, where
+`0` is south, `90` is west, `180` is north and `270` is east.
+`follow.verticalOffset` moves the spot up or down the same way, and negative
+stands below the target. Holding an exact gap of five blocks with nothing else
+allowed:
+
+```
+$set follow.offsetDistance 5
+$set follow.radius 0
+$set follow.verticalRadius 0
+```
+
+### Which target
+
+`follow.maxTargetDistance` and `follow.minTargetDistance` are measured from the
+player to the target, and anything outside either one is not considered at all. A
+minimum is what stops a mob that has walked into you from still being a target.
+`0` on either means no limit.
+
+`follow.keepTarget` stays on the target already being followed rather than
+switching to a closer one, so a crowd of the same mob does not pull the follow
+between them. `follow.closestOnly` goes the other way and works towards the
+single closest match, ignoring every other match entirely. `follow.ignoreSameKind`
+sits between the two: it keeps following everything, but skips anything of the
+same kind as the current target that would otherwise be closer.
+
+The three are independent, so the usual setups are `keepTarget` on for a crowd,
+`closestOnly` on for a single mob, or neither for the default of working towards
+whatever is nearest.
+
+### Timing
+
+`follow.waitTicks` is how long HELM keeps running when nothing matches, in case
+the target has stepped behind a wall, gone into an unloaded chunk, or respawned
+just out of sight. When the count runs out HELM says `Nothing left to follow.`
+and stops. `0` gives up the first tick nothing matches.
+
+`follow.retryTicks` is how long HELM waits after a search finds no walkable way to
+the spot, before looking again. Without it a target across a chasm would start a
+fresh search every tick.
+
+`follow.replanTicks` is the delay before reacting to the target having moved. It
+is what stops a target that drifts continuously from restarting the search on
+every single tick. `0` reacts immediately.
+
+### Getting there
+
+`follow.sprint`, `follow.breakBlocks` and `follow.placeBlocks` control what
+HELM may do on the way. They only ever narrow what
+[movement](#movement) allows, so turning one off here cannot make HELM break
+blocks or place them when `movement` has those off. All three are on by default,
+matching the movement defaults.
+
+```
+$set follow.breakBlocks false
+$set follow.placeBlocks false
+$set follow.sprint false
+```
+
+With `follow.breakBlocks` off, a wall between you and the target ends the search
+rather than tunnelling through. With `follow.placeBlocks` off, a gap ends the
+search rather than bridging it.
+
+### Standing still and looking
+
+`follow.holdWhenClose` is what stops HELM pacing back and forth once it has
+arrived. With it on, reaching the radius ends the walk and HELM stands still
+until the target moves out of range again. With it off, the walk is only stopped
+when the target leaves the radius.
+
+`follow.lookAtTarget` is off by default, so following never moves your camera
+unless you ask it to. Turn it on and the camera is turned onto the target
+whenever HELM is standing still, so you can watch what you are following. It is
+not applied while HELM is walking, because the walk already decides which way to
+face. It is also not applied while `$autolookat` is holding an angle.
+
+```
+$set follow.lookAtTarget true
+$set follow.lookAtTarget false
+```
+
+`follow.maxLookPitch` caps how far the camera tilts up or down while watching, so
+a target directly overhead does not flip the view. `0` watches with the camera
+level, `90` allows looking straight up or down.
+
+See [FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for how following
+behaves tick by tick.
 
 ## outline
 

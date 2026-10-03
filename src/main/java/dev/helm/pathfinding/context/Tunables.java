@@ -34,4 +34,24 @@ public record Tunables(boolean sprintAllowed,
         return placeAllowed ? placePenalty : Double.POSITIVE_INFINITY;
     }
 
+    public Tunables allowingSprint(boolean allowed) {
+        return new Tunables(allowed, breakAllowed, placeAllowed, parkourAllowed,
+                parkourPlaceAllowed, parkourAscendAllowed, jumpAtBuildLimit,
+                diagonalAscendAllowed, diagonalDescendAllowed, downwardAllowed,
+                magmaWalkAllowed, vinesWalkAllowed, bottomSlabWalkAllowed, assumeStep,
+                assumeWalkOnWater, allowFallIntoLava, frostWalkerLevel, minFallHeight,
+                maxFallHeightNoWater, maxBuildLevel, waterWalkSpeed, placePenalty,
+                breakAdditionalCost, jumpPenalty, waterWalkPenalty);
+    }
+
+    public Tunables allowingWork(boolean breakBlocks, boolean placeBlocks) {
+        return new Tunables(sprintAllowed, breakAllowed && breakBlocks,
+                placeAllowed && placeBlocks, parkourAllowed,
+                parkourPlaceAllowed && placeBlocks, parkourAscendAllowed, jumpAtBuildLimit,
+                diagonalAscendAllowed, diagonalDescendAllowed, downwardAllowed,
+                magmaWalkAllowed, vinesWalkAllowed, bottomSlabWalkAllowed, assumeStep,
+                assumeWalkOnWater, allowFallIntoLava, frostWalkerLevel, minFallHeight,
+                maxFallHeightNoWater, maxBuildLevel, waterWalkSpeed, placePenalty,
+                breakAdditionalCost, jumpPenalty, waterWalkPenalty);
+    }
 }

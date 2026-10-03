@@ -10,13 +10,14 @@
 - `autogoto` and `autogotohere` commands anchoring a position and walking back if moved off it
 - `autolookat` and `autolookathere` commands locking the camera to an angle until stopped
 - `mine` command searching for blocks and mining them until they run out
+- `follow` command walking after a player, a mob, or a named entity type
 - `farm` command harvesting ripe crops, replanting the empty ground and picking up the drops
 - Farm waiting on a field instead of giving up when the last ripe crop is taken
 - Farm planting aiming at the nearest reachable spot on the soil's top face
 - Farm swimming across water to collect a crop drop that landed in it
 
 - `allowInventory` setting fetching tools, placement blocks and farm supplies from the whole inventory, with slots 0 and 8 kept stocked
-- `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle, a farm and a mine at once
+- `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle, a farm, a mine and a follow at once
 - Walking to a goal as a journey, searching again from wherever a route ran out
 - Steady walking over farmland and other short blocks, without jumping at every crop
 - Swimming up through water to reach something, instead of building towards it
@@ -47,5 +48,6 @@
 - `press` macro statement
 - `$exitEditMode` to close the editor, as `$exit`, `$stopEdit` or `$exitEdit`
 - Two column editing popup: macro syntaxes on the left, macro tools on the right
+- Two column picker for `follow`: every mob in the game on the left, players in the world on the right
 - Editing popup in the game's own popup style, which replaces it rather than stacking on it
 - Editing popup filtering, keyboard navigation, click to apply and screen fitting

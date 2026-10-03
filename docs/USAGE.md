@@ -16,6 +16,7 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `$autolookathere` | `alookathere` | none |
 | `$farm [<range>]` | `farming`, `harvest` | optional whole number of blocks |
 | `$mine <blocks>... [<count>]` | `dig`, `excavate` | one or more block names, then an optional whole number |
+| `$follow <names>...` | `chase`, `stalk` | one or more mob and player names |
 | `$stop` | `cancel`, `abort`, `halt` | none |
 | `$set` | `setting` | none, opens the picker |
 | `$set <name>` | `setting` | one setting name |
@@ -62,6 +63,12 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `Have N of <blocks>.` | The count was reached, so mining stopped |
 | `No <blocks> left to mine.` | Nothing left that was worth mining, so mining stopped |
 | `No way to reach any of <blocks>.` | Every known place was unreachable and skipping is off |
+| `Following <names>.` | `$follow` started |
+| `Nothing left to follow.` | Nothing matched for `follow.waitTicks`, so following stopped |
+| `Following stopped.` | `$stop` caught a running follow |
+| `Expected at least one mob or player name.` | `$follow` was typed with no names |
+| `Not a mob: name.` | An entity type was something other than a mob, so nothing changed |
+| `Nothing here called name.` | No mob or player by that name, so nothing changed |
 | `Stopped.` | `$stop` caught a walk |
 | `Stopped searching.` | `$stop` caught an unfinished search |
 | `Nothing to stop.` | Nothing was walking, held or running |
@@ -250,6 +257,97 @@ $stop
 $macro list
 $macro edit
 ```
+
+## Following
+
+`$follow` walks after mobs and players, and keeps going until `$stop` or until
+nothing matches for long enough.
+
+Type `$follow` and the picker opens straight away. The left column is every mob
+in the game with its kind beside it, and the right column is the players in the
+world. Typing narrows both at once, `←` and `→` move between the columns, `↑` and
+`↓` move within one, and clicking or pressing `Tab` writes the highlighted name
+in. Press `Space` and pick again to add another:
+
+```
+$follow [Tab]
+$follow zom[Tab] [Space] ske[Tab] [Space] Notch[Tab]
+```
+
+There is no keyword and no mode to choose. A name is either a mob or a player
+and HELM works out which.
+
+```
+$follow zombie
+$follow zombie skeleton
+$follow Notch
+$follow Notch Steve zombie
+```
+
+Mob names are the game's own, with or without the `minecraft:` prefix. Only mobs
+are listed: anything the game itself files as not being a mob, such as a boat, an
+armour stand, an arrow or a dropped item, is not a thing you can walk after, so it
+is not offered. Writing one by hand is refused by name. Player names have to be
+someone who is in the world right now, and are matched without regard to
+capitalisation.
+
+Every name you write is followed at once.
+
+While following, HELM works towards the closest match. As the target moves, the
+spot it wants to stand on moves with it, and the walk is dropped and searched
+again whenever the spot it was heading for stops counting.
+
+How close HELM tries to stand is `follow.radius` across and
+`follow.verticalRadius` up or down. `follow.offsetDistance` with
+`follow.offsetDirection` and `follow.verticalOffset` move the spot away from the
+target. Holding a fixed gap of exactly five blocks:
+
+```
+$set follow.radius 0
+$set follow.verticalRadius 0
+$set follow.offsetDistance 5
+$set follow.offsetDirection 180
+$set follow.maxTargetDistance 64
+$follow Notch
+```
+
+`follow.maxTargetDistance` and `follow.minTargetDistance` stop anything outside
+that range from being considered at all. `follow.waitTicks` is how long HELM
+keeps going when nothing matches, which covers a target briefly out of sight.
+When it runs out HELM says `Nothing left to follow.` and stops by itself.
+
+In a crowd, `follow.keepTarget` stops the follow switching between every mob of
+the same kind, and `follow.closestOnly` goes the other way and works towards the
+single nearest:
+
+```
+$set follow.keepTarget true
+$set follow.closestOnly true
+$set follow.ignoreSameKind true
+```
+
+What HELM may do on the way is `follow.sprint`, `follow.breakBlocks` and
+`follow.placeBlocks`. Turning the last two off means it never modifies the world
+to reach the target:
+
+```
+$set follow.breakBlocks false
+$set follow.placeBlocks false
+$set follow.sprint false
+```
+
+Following never turns your camera by default. Turn it on to watch the target
+while HELM is standing still, and `follow.maxLookPitch` stops the camera tilting
+too far when the target is above or below:
+
+```
+$set follow.lookAtTarget true
+$set follow.maxLookPitch 60
+```
+
+`$follow` drives HELM for as long as it lasts. `$goto`, `$autogoto`,
+`$autolookat`, `$farm`, `$mine` and starting a macro each end the follow first,
+and `$stop` ends it on its own.
 
 ## Anchoring and locking
 

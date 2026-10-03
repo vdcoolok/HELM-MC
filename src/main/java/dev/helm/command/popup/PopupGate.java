@@ -12,12 +12,16 @@ public final class PopupGate {
 
     private static final String MACRO = "macro";
     private static final String SET = "set";
+    private static final String FOLLOW = "follow";
 
     private PopupGate() {
     }
 
     public static boolean owns(String chatValue) {
         if (mentionsSetting(chatValue)) {
+            return true;
+        }
+        if (pickingTarget(chatValue)) {
             return true;
         }
         if (!MacroEditing.isActive()) {
@@ -42,7 +46,22 @@ public final class PopupGate {
         return mode(chatValue, cursor) == Mode.NAMES;
     }
 
+    public static boolean pickingTarget(String chatValue) {
+        if (!DollarPrefix.isCommand(chatValue)) {
+            return false;
+        }
+        List<String> words = tokens(body(chatValue));
+        if (words.isEmpty()) {
+            return false;
+        }
+        var found = dev.helm.command.CommandTree.instance().root(words.get(0));
+        return found.isPresent() && found.get().name().equalsIgnoreCase(FOLLOW);
+    }
+
     public static Mode mode(String chatValue, int cursor) {
+        if (pickingTarget(chatValue)) {
+            return Mode.TARGETS;
+        }
         if (mentionsSetting(chatValue)) {
             SettingCatalogue.Entry entry = namedSetting(chatValue, cursor);
             if (entry == null) {
@@ -91,6 +110,9 @@ public final class PopupGate {
         Mode mode = mode(chatValue, cursor);
         if (mode == Mode.SETTINGS) {
             return SettingPicker.rows(partial(chatValue, cursor));
+        }
+        if (mode == Mode.TARGETS) {
+            return TargetPicker.rows(partial(chatValue, cursor));
         }
         if (mode == Mode.BLOCKS) {
             if (mentionsSetting(chatValue)) {

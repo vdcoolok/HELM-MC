@@ -891,10 +891,10 @@ anchored position and a locked angle.
 Ends everything at once. Available as `$stop`, with the aliases `cancel`,
 `abort` and `halt`.
 
-It stops all four things HELM can be doing: a walk, a search, a running macro, an
-anchored position, a locked angle and a farm. The reply names what it actually
-caught, so `Walking stopped. Look released.` means both of those were live, and
-`Nothing to stop.` means none of them were.
+It stops all the things HELM can be doing: a walk, a search, a running macro, an
+anchored position, a locked angle, a farm, a mine and a follow. The reply names
+what it actually caught, so `Walking stopped. Look released.` means both of those
+were live, and `Nothing to stop.` means none of them were.
 
 It also ends the goal itself, so HELM does not search again for a destination
 that was just cancelled.
@@ -1750,6 +1750,303 @@ go through the same breaking path. Nothing extra is needed for that.
 - The cache watches two blocks around a broken position. An item thrown further
   than that by the server, or teleported away, is not noticed.
 
+## follow
+
+Walks after mobs and players and keeps going until told to stop. Available as
+`$follow`, with the aliases `chase` and `stalk`.
+
+```
+$follow zombie
+$follow zombie skeleton
+$follow Notch
+$follow Notch Steve zombie
+$stop
+```
+
+### What it follows
+
+Everything after the command name is read as the names to follow, including
+spaces. There is no keyword and no mode to choose: a name is either a mob or a
+player and HELM works out which, so mobs and players can be mixed freely in one
+command. At least one name is needed.
+
+Mob names are the game's own. The `minecraft:` prefix may be left off, so `zombie`
+and `minecraft:zombie` mean the same thing. A name that is in the game but is
+not a mob is refused by name, because there is nothing to walk after. A name that
+is in neither is refused the same way, rather than the follow starting and then
+never matching anything.
+
+Player names are matched without regard to capitalisation, and they have to name
+someone who is in the world at the moment the command is typed. A name nobody
+has is refused and nothing changes. Player matching is done by name every tick
+rather than by remembering who was standing there when the command was typed, so
+a player who logs out and comes back is picked up again.
+
+Every name written is followed at once:
+
+```
+$follow zombie skeleton
+$follow Notch Steve
+$follow Notch zombie
+```
+
+### The picker
+
+Typing `$follow` opens the two column picker straight away, with no keyword to
+pick first. The mobs are in the left column and the players in the world are in
+the right column.
+
+Typing narrows both columns at once, on any part of the name or the mob's kind.
+`←` and `→` move between columns, `↑` and `↓` move within one, and clicking or
+pressing `Tab` writes the highlighted name into the command without sending
+anything. The picker stays open as the line changes, so `Space` and a second pick
+adds another name the same way.
+
+The aliases `chase` and `stalk` open the same picker.
+
+### Only mobs
+
+The left column lists mobs and nothing else. The game files every entity type
+into a category, and everything that is not a living creature is filed as
+`misc`, so the picker takes every category except that one. In practice that
+leaves the 86 mobs, creatures, monsters and water creatures of the game, and
+leaves out the 72 things you cannot meaningfully walk after:
+
+| Excluded | Why |
+| --- | --- |
+| `boat`, `chest_boat`, `raft` and every wood variant | Vehicles, not mobs |
+| `armor_stand` | Placed decoration |
+| `arrow`, `trident`, `snowball`, `ender_pearl` and other projectiles | Thrown, not walked after |
+| `item`, `falling_block`, `tnt`, `fireball`, `lightning_bolt` | Effects and objects |
+| `experience_orb`, `firework_rocket`, `painting`, `item_frame` | Pickups and decoration |
+| `minecart` and its variants | Vehicles |
+| `player` | Listed by name instead |
+
+`player` itself is `misc` too, which is why players are chosen by name rather than
+by type.
+
+The kind shown beside each mob is the game's own category, so `zombie` is a
+`monster`, `cow` is a `creature` and `squid` is a `water_creature`. Searching
+matches on that as well as on the name, so `monster` narrows to every hostile
+mob at once.
+
+### What counts as a match
+
+Every tick, HELM goes over the entities the client is currently rendering, which
+is the set the game itself keeps for drawing. Something is a candidate when all
+of the following hold:
+
+- it is not the player
+- it is alive, so a mob that is dying is left alone
+- it is a mob that was named, or a player that was named
+- it is at least `follow.minTargetDistance` blocks away, when that is not `0`
+- it is at most `follow.maxTargetDistance` blocks away, when that is not `0`
+
+Entities the client is not rendering are not considered at all. That includes
+anything beyond the view distance, anything in a chunk that is not loaded, and
+anything the server has stopped sending updates for. There is no separate way to
+find those, so a target that leaves the loaded area stops being a target.
+
+`follow.minTargetDistance` is what stops a mob that has walked into you from
+staying a target, which matters when the radius is `0` and otherwise the only
+thing being asked is whether you are on its exact block.
+
+By default every candidate is a target at once, and HELM works towards whichever
+one is cheapest to reach. Three settings change that:
+
+| Setting | What it does |
+| --- | --- |
+| `follow.keepTarget` | Stays on the target already being followed, ignoring closer ones |
+| `follow.closestOnly` | Works towards the single closest candidate, ignoring the rest |
+| `follow.ignoreSameKind` | Keeps every candidate but skips those of the current target's kind |
+
+`follow.keepTarget` is the one for a crowd. Ten zombies wandering around should
+not make the follow switch between all ten, so it commits to one and stays until
+that one dies or stops matching. `follow.closestOnly` is the opposite and is for
+when any match will do and you want the nearest. `follow.ignoreSameKind` is the
+middle ground: it keeps tracking everything, but a zombie standing next to the
+zombie being followed is not treated as closer, so unrelated mobs elsewhere can
+still be worked towards.
+
+The three are independent and can be combined. The default is none of them, which
+is the same closest-wins behaviour the path finder would produce anyway.
+
+### Where it stands
+
+The spot HELM wants its feet in is worked out from the target every tick.
+
+With `follow.offsetDistance` at `0`, the spot is on the column the target is
+standing in. Above `0`, the spot is that many blocks away in the direction given
+by `follow.offsetDirection`, measured from the target's own position.
+`follow.verticalOffset` moves the spot up or down from the target's own height,
+and negative values stand below it.
+
+Directions follow the same convention as the rest of the game: `0` is south,
+`90` is west, `180` is north, `270` is east. Negative and values past `360` are
+allowed and wrap around the same way.
+
+`follow.radius` is how far across the player's feet may be from the spot, and
+`follow.verticalRadius` is how far up or down. They are separate because a target
+standing on a ledge should be followable without being on the same level. `0` on
+both means standing on the exact block.
+
+Standing an exact distance away is both radii at `0` with an offset distance:
+
+```
+$set follow.radius 0
+$set follow.verticalRadius 0
+$set follow.offsetDistance 5
+```
+
+Following something that flies is a negative vertical offset, which puts the spot
+underneath it rather than in the air where it is:
+
+```
+$set follow.verticalOffset -4
+```
+
+### Re-searching
+
+The spot moves every tick, because the target does. HELM keeps walking towards
+the spot it planned for, and checks that spot against the current one every
+tick. When the spot it was walking to is no longer inside the radius of the
+current spot, the walk is abandoned and a new one is searched from wherever the
+player actually is. When the target walks in the opposite direction this happens
+every tick or two; when it stays still the walk runs to the end untouched.
+
+While the spot is still good enough, the walk is left alone. This is what stops
+a moving target from restarting the search continuously, and it is why a target
+that drifts slowly is followed smoothly rather than chased.
+
+`follow.replanTicks` is the delay before reacting to the spot having moved. It
+defaults to `2`, which means a target walking steadily away is re-searched about
+once every tenth of a second rather than every tick. `0` reacts immediately,
+which is more responsive but starts a search on almost every tick of a moving
+target.
+
+Only one search runs at a time. While a search is in progress no new one is
+started, so a target that keeps moving does not stack up searches.
+
+### Arriving
+
+When the player's own block is inside the radius of the current spot, HELM has
+arrived. With `follow.holdWhenClose` on, which is the default, any walk or
+search in progress is dropped and HELM stands still until the target moves out
+of the radius again. With it off, an arriving player keeps whatever walk is in
+progress, which is only useful when the target is passing through and HELM
+should follow on rather than stop dead.
+
+### Nothing to follow
+
+A target that has stepped out of range does not end the follow straight away.
+HELM keeps running for `follow.waitTicks` ticks, which is twenty by default, in
+case it is only briefly out of sight: behind a wall, across an unloaded chunk
+boundary, or respawning. Each tick nothing matches is logged to the session log
+so it is clear what is being waited for.
+
+When the count runs out, HELM says `Nothing left to follow.` and stops itself.
+The command is not left armed, so it has to be typed again.
+
+`follow.maxTargetDistance` is what most often causes this. It is a hard cut-off
+rather than a hint: a target further away than the limit is not a candidate at
+all, so a slow target that walks out of range ends the follow even though it is
+still visible.
+
+### Standing still and looking
+
+By default following never touches your camera. `follow.lookAtTarget` is off, so
+the view is entirely yours while HELM walks after something, and nothing has to
+be turned off to get that back.
+
+With it on, the camera is turned onto the target every tick HELM is standing
+still, which is while it has arrived and while it is waiting. While HELM is
+walking, the walk decides which way to face, and the camera is left to that,
+because looking somewhere else mid-step breaks jumps, mining and placing.
+
+The camera is not turned while `$autolookat` is holding an angle, because a held
+angle is the more specific instruction.
+
+`follow.maxLookPitch` caps how far the camera tilts up or down, so a target
+directly overhead or underfoot does not flip the view past vertical. It defaults
+to `80` degrees. `0` watches with the camera level whatever the target is doing.
+It only has an effect while `follow.lookAtTarget` is on.
+
+```
+$set follow.lookAtTarget true
+$set follow.maxLookPitch 60
+```
+
+### When no path exists
+
+If a search finds no walkable way to the spot, HELM does not give up. It waits
+`follow.retryTicks` ticks, twenty by default, and searches again. A target across
+a chasm, up a cliff, or inside a building HELM cannot path into therefore does
+not end the follow, and neither does it start a search every single tick while it
+waits.
+
+The search is dropped and started again as soon as the target moves far enough
+that the spot changes, so a retry is never held onto past the point where it is
+worthless.
+
+### Getting there
+
+Three settings decide what HELM is allowed to do on the way, and all three only
+ever narrow what [movement](#movement) already allows:
+
+| Setting | Off means |
+| --- | --- |
+| `follow.sprint` | HELM walks rather than sprints towards the target |
+| `follow.breakBlocks` | A block in the way ends the search instead of being mined |
+| `follow.placeBlocks` | A gap ends the search instead of being bridged |
+
+Each is combined with the matching `movement` setting rather than replacing it,
+so `follow.breakBlocks` on with `movement.allowBreak` off still breaks nothing.
+
+```
+$set follow.breakBlocks false
+$set follow.placeBlocks false
+$set follow.sprint false
+```
+
+Turning breaking and placing off is what makes following non-destructive. It
+cannot follow a target through a wall or over a gap, but it will never modify the
+world to do it, which is what you want anywhere that matters.
+
+### Interaction with other features
+
+`$follow` drives HELM for as long as it lasts. Starting another walk or look,
+`$farm`, `$mine`, or a macro each end the follow first, because each of those
+needs control of where the player goes or which way they face, and following has
+both. `$stop` ends the follow on its own and says `Following stopped.` when the
+follow was the only thing running.
+
+Following ends by itself only when nothing has matched for `follow.waitTicks`.
+It does not end when the target dies: a dead mob stops matching and the follow
+runs out its wait like anything else that has gone.
+
+Leaving the world ends the follow, and the walk, along with every other task.
+
+### Known limitations
+
+- Only entities the client is rendering are considered. There is no way to
+  follow something beyond the view distance or in an unloaded chunk.
+- A target must have been in the world when `$follow` was typed. A player name
+  for someone who is not there yet is refused rather than remembered.
+- By default the follow is not sticky. It re-reads the world every tick rather
+  than holding onto one entity, so two mobs of the same type standing equally
+  close can swap places between ticks. `follow.keepTarget` and
+  `follow.ignoreSameKind` both stop that happening.
+- The offset spot is a fixed point in the world, not a follow-the-leader trail.
+  A target that is moving fast through uneven ground makes the spot jump around,
+  and `follow.replanTicks` is what keeps that affordable.
+- Following is not combat. Nothing is attacked, and the walk is only concerned
+  with reaching the spot, not with what is standing in the way beyond the normal
+  breaking and placing any route uses.
+- Only the horizontal offset is a true circle. The spot is placed with the
+  game's own sine and cosine on a single angle, so a large
+  `follow.offsetDistance` rounds to whole blocks rather than tracing a smooth
+  curve.
+
 ## inventory
 
 Moves items between the inventory and the hotbar while HELM is walking, so tools,
@@ -2052,10 +2349,14 @@ things.
 A row's description is the arguments only, never the full syntax, so a name is
 never printed twice in a row.
 
-There are two popup modes. `NAMES` is the two column list of everything a line
-typed there could become. `INPUTS` is a list of every key and mouse button, shown
-when the line has reached an argument that wants an input, which is what `hold`,
-`release` and `press` take.
+There are two popup modes for the macro editor. `NAMES` is the two column list of
+everything a line typed there could become. `INPUTS` is a list of every key and
+mouse button, shown when the line has reached an argument that wants an input,
+which is what `hold`, `release` and `press` take.
+
+`$follow` has its own popup mode outside the macro editor. `TARGETS` shows the mob
+and player columns, and is drawn by the same popup and navigated the same way as
+the others. See [follow](#follow).
 
 The input list is generated from the same table the parser uses to resolve an
 input, so everything offered is guaranteed to be accepted. Nothing can appear in

@@ -7,5 +7,6 @@ public enum Mode {
     INPUTS,
     SETTINGS,
     VALUES,
-    BLOCKS
+    BLOCKS,
+    TARGETS
 }

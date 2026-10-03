@@ -81,6 +81,7 @@ public final class MineTask {
             return;
         }
         FarmTask.instance().stop();
+        dev.helm.follow.FollowTask.instance().stop();
         job = new MineJob(filter, wanted, rawRequest);
         Trace.instance().barrier("mine");
         Trace.instance().event("mine", "mining " + filter.describe()

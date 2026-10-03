@@ -25,6 +25,10 @@ public final class TokenArguments implements ArgumentAccess {
         int firstOptional = definitions.size();
 
         for (int index = 0; index < definitions.size(); index++) {
+            if (definitions.get(index).variadic()) {
+                firstOptional = index;
+                break;
+            }
             if (!definitions.get(index).required()) {
                 firstOptional = index;
                 break;
@@ -43,32 +47,36 @@ public final class TokenArguments implements ArgumentAccess {
         for (int index = firstOptional; index < definitions.size(); index++) {
             ArgumentDefinition definition = definitions.get(index);
             boolean last = index == definitions.size() - 1;
-            if (last) {
-                StringBuilder remaining = new StringBuilder();
-                while (cursor < tokens.size()) {
-                    if (remaining.length() > 0) {
-                        remaining.append(' ');
-                    }
-                    remaining.append(tokens.get(cursor));
-                    cursor++;
-                }
-                if (remaining.length() > 0 && definition.type() == ArgumentType.STRING) {
-                    values.put(definition.name(), remaining.toString());
+            if (definition.variadic() || (last && definition.type() == ArgumentType.STRING)) {
+                String remaining = join(tokens, cursor);
+                cursor = tokens.size();
+                if (!remaining.isEmpty()) {
+                    values.put(definition.name(), remaining);
+                } else if (definition.variadic()) {
+                    throw new CommandException(
+                            CommandFeedback.missingArgument(definition.name()));
                 }
                 continue;
             }
             if (cursor >= tokens.size()) {
                 continue;
             }
-            if (definition.type() == ArgumentType.STRING) {
-                values.put(definition.name(), tokens.get(cursor));
-            } else {
-                values.put(definition.name(), coerce(definition, tokens.get(cursor)));
-            }
+            values.put(definition.name(), coerce(definition, tokens.get(cursor)));
             cursor++;
         }
 
         return new TokenArguments(values);
+    }
+
+    private static String join(List<String> tokens, int from) {
+        StringBuilder remaining = new StringBuilder();
+        for (int index = from; index < tokens.size(); index++) {
+            if (remaining.length() > 0) {
+                remaining.append(' ');
+            }
+            remaining.append(tokens.get(index));
+        }
+        return remaining.toString();
     }
 
     private static Object coerce(ArgumentDefinition definition, String token) {

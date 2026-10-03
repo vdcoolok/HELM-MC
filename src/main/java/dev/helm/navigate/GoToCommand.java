@@ -47,6 +47,7 @@ public final class GoToCommand {
         Trace.instance().barrier("goto");
         FarmTask.instance().stop();
         dev.helm.mine.MineTask.instance().stop();
+        dev.helm.follow.FollowTask.instance().stop();
         Trace.instance().event("goto", "requested " + x + " " + y + " " + z
                 + " from " + position.getX() + " " + position.getY() + " " + position.getZ()
                 + " facing " + String.format("%.1f/%.1f", player.getYRot(), player.getXRot()));

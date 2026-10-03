@@ -13,6 +13,10 @@ public final class TunablesFactory {
         return from(Settings.holder().movement());
     }
 
+    public static Tunables fromSettings(java.util.function.UnaryOperator<Tunables> adjust) {
+        return adjust.apply(fromSettings());
+    }
+
     public static Tunables from(MovementSettings settings) {
         return new Tunables(settings.sprintAllowed(),
                 settings.allowBreak(),

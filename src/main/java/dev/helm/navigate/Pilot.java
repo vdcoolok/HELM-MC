@@ -245,21 +245,25 @@ public final class Pilot {
         if (result.arrived()) {
             Trace.instance().event("goto", "already standing on the goal " + target.label());
             halt();
-            ClientNotice.warn("Already at " + target.label() + ".");
+            if (!target.quiet()) {
+                ClientNotice.warn("Already at " + target.label() + ".");
+            }
             return;
         }
         if (!result.usable()) {
             outOfReach = true;
             Trace.instance().event("goto", "nothing usable came back, giving up on "
                     + target.label());
-            ClientNotice.warn("No path to " + target.label() + ".");
+            if (!target.quiet()) {
+                ClientNotice.warn("No path to " + target.label() + ".");
+            }
             return;
         }
         RouteTrace.describe(result.route());
         travel(result.route());
         Trace.instance().event("walk", "walking " + result.route().length() + " steps to "
                 + target.label() + whereAmI());
-        if (announce) {
+        if (announce && !target.quiet()) {
             ClientNotice.warn((result.reached() ? "Path found: " : "Partial path: ")
                     + result.route().length() + " steps.");
         }
@@ -275,9 +279,16 @@ public final class Pilot {
             Trace.instance().event("walk", "no goal recorded, so nothing more is searched");
             return;
         }
+        if (target.quiet()) {
+            Trace.instance().event("walk", "the objective is looked after elsewhere, "
+                    + "so nothing is searched from here");
+            return;
+        }
         if (satisfiedBy(target, Minecraft.getInstance().player)) {
             Trace.instance().event("walk", "arrived at " + target.label());
-            ClientNotice.warn("Arrived at " + target.label() + ".");
+            if (!target.quiet()) {
+                ClientNotice.warn("Arrived at " + target.label() + ".");
+            }
             return;
         }
         Trace.instance().event("walk", "still short of " + target.label()

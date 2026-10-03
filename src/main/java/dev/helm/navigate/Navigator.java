@@ -142,6 +142,11 @@ public final class Navigator implements MoveEnvironment {
         return searches.submit(goal, fromX, fromY, fromZ, doNotBreak);
     }
 
+    public SearchJob searchFor(Goal goal, int fromX, int fromY, int fromZ,
+                               java.util.function.UnaryOperator<Tunables> adjustTunables) {
+        return searches.submit(goal, fromX, fromY, fromZ, doNotBreak, adjustTunables);
+    }
+
     public boolean cancelSearch() {
         return searches.cancel();
     }

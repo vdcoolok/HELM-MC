@@ -11,6 +11,8 @@ import dev.helm.command.builtin.VersionCommand;
 import dev.helm.command.chat.DollarPrefix;
 import dev.helm.farm.FarmCommand;
 import dev.helm.farm.FarmTask;
+import dev.helm.follow.FollowCommand;
+import dev.helm.follow.FollowTask;
 import dev.helm.mine.MineCommand;
 import dev.helm.mine.MineTask;
 import dev.helm.navigate.AutoCommands;
@@ -37,12 +39,14 @@ public final class CommandSystem {
         commands.addAll(Arrays.asList(AutoCommands.all()));
         commands.add(FarmCommand.build());
         commands.add(MineCommand.build());
+        commands.add(FollowCommand.build());
         commands.add(StopCommand.build());
         commands.add(SettingsCommand.build());
         commands.add(SettingsCommand.changeCommand());
         CommandTree.instance().install(commands.toArray(new Command[0]));
         FarmTask.instance().install();
         MineTask.instance().install();
+        FollowTask.instance().install();
         ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> HelmStorage.prepare()
                 .ifPresent(problem -> new SystemMessageOutput(client)
                         .error(CommandFeedback.error(problem))));

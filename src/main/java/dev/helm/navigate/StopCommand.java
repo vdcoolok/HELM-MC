@@ -4,6 +4,7 @@ import dev.helm.aim.LookController;
 import dev.helm.command.Command;
 import dev.helm.command.CommandResult;
 import dev.helm.farm.FarmTask;
+import dev.helm.follow.FollowTask;
 import dev.helm.macro.runtime.MacroController;
 import dev.helm.mine.MineTask;
 import dev.helm.setting.ClientNotice;
@@ -23,6 +24,7 @@ public final class StopCommand {
             boolean macro = MacroController.instance().active().isPresent();
             boolean farm = FarmTask.instance().running();
             boolean mining = MineTask.instance().running();
+            boolean following = FollowTask.instance().running();
 
             agent.pilot().halt();
             agent.pilot().forgetObjective();
@@ -37,6 +39,9 @@ public final class StopCommand {
             if (mining) {
                 MineTask.instance().stop();
             }
+            if (following) {
+                FollowTask.instance().stop();
+            }
 
             StringBuilder what = new StringBuilder();
             append(what, searching || walking || anchored, "Walking stopped");
@@ -44,6 +49,7 @@ public final class StopCommand {
             append(what, macro, "Macro stopped");
             append(what, farm, "Farming stopped");
             append(what, mining, "Mining stopped");
+            append(what, following, "Following stopped");
             if (what.isEmpty()) {
                 ClientNotice.warn("Nothing to stop.");
                 return CommandResult.FAILURE;

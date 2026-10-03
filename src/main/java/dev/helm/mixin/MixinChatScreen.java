@@ -67,7 +67,8 @@ public abstract class MixinChatScreen {
         PopupState state = PopupState.instance();
         String value = inputValue();
         int cursor = input == null ? 0 : input.getCursorPosition();
-        boolean columns = PopupGate.mode(value, cursor) == Mode.NAMES;
+        Mode mode = PopupGate.mode(value, cursor);
+        boolean columns = mode == Mode.NAMES || mode == Mode.TARGETS;
 
         if (PopupKeys.isUp(event)) {
             helmMove(-1);
@@ -186,7 +187,7 @@ public abstract class MixinChatScreen {
         }
         List<PopupRow> offered = switch (mode) {
             case INPUTS -> PopupRows.inputs();
-            case SETTINGS, VALUES, BLOCKS -> PopupGate.rows(value, cursor);
+            case SETTINGS, VALUES, BLOCKS, TARGETS -> PopupGate.rows(value, cursor);
             default -> PopupRows.build();
         };
         helmDetail = mode == Mode.SETTINGS;
