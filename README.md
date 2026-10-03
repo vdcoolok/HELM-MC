@@ -128,7 +128,7 @@ each command gives.
 ## Building
 
 The build produces `HELM<version>-<minecraft version>.jar`, for example
-`HELM0.1.0-26.2.jar`, and copies it to the repository root.
+`HELM0.1.1-26.2.jar`, and copies it to the repository root.
 
 | Platform | Command |
 | --- | --- |
