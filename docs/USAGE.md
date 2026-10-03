@@ -125,9 +125,7 @@ of the matching items are carried. More than one block name mines all of them,
 nearest first.
 
 The picker of every block in the game opens once you start a block name. A count
-comes first and the picker stays closed while it is typed. Pressing space at the end
-of a block name closes it again, since there is nothing to narrow down, and typing
-the next name brings it back:
+comes first and the picker stays closed while it is typed:
 
 ```
 $mine 30
@@ -143,9 +141,8 @@ $mine oak_log[axis=x]
 $mine oak_log[axis=x,waterlogged=false]
 ```
 
-Those work the same way as they do in vanilla commands. `Tab` completes the
-highlighted block into the command, and an unreadable name is reported without
-changing anything.
+`Tab` completes the highlighted block, and an unreadable name is reported without
+changing anything:
 
 ```
 $mine oak_[Tab] [Space] oak_[Tab]
@@ -160,14 +157,6 @@ $set outline.blocksToBreak false
 $set outline.enabled false
 ```
 
-There are three ways it mines, and it uses whichever reaches the block first:
-
-| Way | What it does |
-| --- | --- |
-| Break what is overhead | When the block is straight above you, stand still and break it |
-| Walk to it | Search for a route, breaking and placing as needed, then mine on the way |
-| Follow a drop | Walk over a dropped item of the right type and pick it up |
-
 Overhead breaking is what takes a tree down. Turn it off with:
 
 ```
@@ -175,57 +164,22 @@ $set mining.breakOverhead false
 ```
 
 `$mine` drives HELM for as long as it lasts. `$goto`, `$autogoto`, `$autolookat`,
-`$farm` and starting a macro each end the mine first, because they need control of
-where you walk and which way you face.
-
-```
-$set mining.maxTargets 32
-$set mining.onlyExposed true
-$set mining.sightOnly true
-$set mining.exploreWhenUnknown false
-```
-
-### Where it looks
-
-Remembered chunks are searched first, since they cover ground you have already
-been to. Anything they do not hold is looked for in the chunks around you.
-
-| Setting | Default | What it does |
-| --- | --- | --- |
-| `mining.maxTargets` | `64` | Most places remembered at once |
-| `mining.rescanEveryTicks` | `5` | Ticks between looking again, `0` looks once |
-| `mining.scanRadius` | `32` | Chunks around you that are read |
-| `mining.scanLevelWindow` | `10` | How far from your level the scan keeps looking |
-| `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
-| `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
-| `mining.repackRadius` | `40` | Chunks remembered before mining starts |
-
-When nothing is found anywhere it looks, and `mining.exploreWhenUnknown` is on, it
-walks away from where you started and keeps its distance while it does, so new
-chunks load and something turns up. `mining.stripLevel` is the level it holds while
-doing that, and `mining.exploreWhenUnknown false` stops it entirely.
-
-Turning it off does not mean giving up at once. `mining.skipUnreachable` is on by
-default, so when no route can be found the closest block is marked unreachable and
-the next one is tried. Turn that off and the first failure ends the job.
+`$farm` and starting a macro each end the mine first.
 
 ```
 $set mining.lowestLevel -59
 $set mining.highestLevel 64
+$set mining.maxTargets 32
+$set mining.sightOnly true
+$set mining.onlyExposed true
+$set mining.exploreWhenUnknown false
 ```
 
-Levels are absolute, not relative to the bottom of the world, and
-`mining.lowestLevel 0` means the bottom of whatever dimension you are in.
+Levels are absolute, and `mining.lowestLevel 0` means the bottom of whatever
+dimension you are in.
 
-`mining.sightOnly` never acts on a block you cannot actually see, which reads much
-less like seeing through stone. It keeps looking rather than giving up when nothing
-turns up, and `mining.sightDiagonals` lets it also accept a block that only touches
-one it can already see.
-
-`mining.onlyExposed` requires air or liquid touching the block, within
-`mining.exposedRadius`. Higher radii are much slower to check.
-
-See [SETTINGS.md](SETTINGS.md) for the rest.
+See [SETTINGS.md](SETTINGS.md) for every setting and
+[FULLYEXPLAINEDFEATURES.md](FULLYEXPLAINEDFEATURES.md) for how it behaves.
 
 ## Farming
 
