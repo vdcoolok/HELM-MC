@@ -37,6 +37,7 @@ public final class MineTask {
 
     private static final long SWEEP_BUDGET_NANOS = 4_000_000L;
     private static final int SETTLE_TICKS = 20;
+    private static final int SEARCH_GRACE_TICKS = 120;
 
     private static final MineTask INSTANCE = new MineTask();
 
@@ -44,6 +45,7 @@ public final class MineTask {
     private MineJob job;
     private BlockPos overhead;
     private int settling;
+    private int awaiting;
 
     private MineTask() {
     }
@@ -90,6 +92,7 @@ public final class MineTask {
         job = null;
         overhead = null;
         settling = 0;
+        awaiting = 0;
         release();
     }
 
@@ -137,8 +140,15 @@ public final class MineTask {
             return;
         }
         if (pilot.searching()) {
+            if (++awaiting > SEARCH_GRACE_TICKS) {
+                awaiting = 0;
+                pilot().halt();
+                Trace.instance().event("mine", "a search made no progress for "
+                        + SEARCH_GRACE_TICKS + " ticks, dropping it and looking again");
+            }
             return;
         }
+        awaiting = 0;
         if (pilot.unreachable() && !unreachable(current, feet, settings)) {
             return;
         }
@@ -319,6 +329,7 @@ public final class MineTask {
         release();
         overhead = null;
         settling = 0;
+        awaiting = 0;
         Trace.instance().event("mine", "stopped mining " + current.filter().describe());
         job = null;
     }
