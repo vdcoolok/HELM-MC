@@ -27,6 +27,7 @@ public final class MineCommand {
 
     private static final String BLOCKS = "blocks";
     private static final String COUNT = "count";
+    private static final int NOT_A_COUNT = -1;
 
     private record Requested(int wanted, TargetFilter filter) {
     }
@@ -66,22 +67,23 @@ public final class MineCommand {
 
     private static Requested request(String written) {
         List<String> tokens = dev.helm.command.chat.LineTokenizer.tokenize(written);
-        int first = leadingCount(tokens);
+        boolean counted = leadsWithCount(tokens);
+        int wanted = counted ? leadingCount(tokens.get(0)) : 0;
         List<TargetSelector> selectors = new ArrayList<>();
-        for (int index = first; index < tokens.size(); index++) {
+        for (int index = counted ? 1 : 0; index < tokens.size(); index++) {
             selectors.add(select(tokens.get(index)));
         }
         if (selectors.isEmpty()) {
             throw new CommandException(CommandFeedback.missingArgument(BLOCKS));
         }
-        return new Requested(first, TargetFilter.of(selectors));
+        return new Requested(wanted, TargetFilter.of(selectors));
     }
 
-    private static int leadingCount(List<String> tokens) {
-        if (tokens.isEmpty()) {
-            return 0;
-        }
-        String lead = tokens.get(0);
+    private static boolean leadsWithCount(List<String> tokens) {
+        return !tokens.isEmpty() && count(tokens.get(0)) != NOT_A_COUNT;
+    }
+
+    private static int leadingCount(String lead) {
         int wanted = count(lead);
         if (wanted < 0) {
             throw new CommandException(CommandFeedback.invalidArgument(COUNT, lead));
@@ -90,10 +92,18 @@ public final class MineCommand {
     }
 
     private static int count(String token) {
+        if (token.isEmpty()) {
+            return NOT_A_COUNT;
+        }
+        for (int index = 0; index < token.length(); index++) {
+            if (!Character.isDigit(token.charAt(index))) {
+                return NOT_A_COUNT;
+            }
+        }
         try {
             return Integer.parseInt(token);
-        } catch (NumberFormatException notACount) {
-            return 0;
+        } catch (NumberFormatException tooLarge) {
+            return NOT_A_COUNT;
         }
     }
 
