@@ -191,6 +191,10 @@ public final class MineJob {
             return rise.stand();
         }
         List<BlockPos> solid = committed(world);
+        if (solid.isEmpty() && !vein(world).isEmpty()) {
+            working = null;
+            solid = committed(world);
+        }
         if (!solid.isEmpty()) {
             List<Goal> goals = new ArrayList<>(solid.size());
             for (BlockPos pos : solid) {

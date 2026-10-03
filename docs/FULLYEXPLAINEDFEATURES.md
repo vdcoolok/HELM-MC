@@ -1104,6 +1104,10 @@ matters underground where you move away from ground quickly.
 | `mining.exploreWhenUnknown` | `true` | Walk away when no target is known |
 | `mining.skipUnreachable` | `true` | Mark an unreachable target and try the next |
 
+Exploring only happens when there is genuinely nothing left standing anywhere it knows
+about. Running out of one vein while others are still in reach simply moves it on to
+the next.
+
 When nothing is found anywhere it looks, and `mining.exploreWhenUnknown` is on, it
 walks away from where the job started and keeps its distance while it does, so new
 chunks load and something turns up. The route it takes is not aimed at a block at
