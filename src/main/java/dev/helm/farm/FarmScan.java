@@ -9,8 +9,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 
 import dev.helm.setting.FarmSettings;
-import dev.helm.world.read.ChunkScanRequest;
 import dev.helm.world.read.Sweep;
+import dev.helm.world.read.SweepRequest;
 
 public final class FarmScan {
 
@@ -21,8 +21,7 @@ public final class FarmScan {
 
     public static Sweep begin(ClientLevel level, BlockPos from, FarmSettings settings) {
         return Sweep.around(level, from,
-                new ChunkScanRequest(watchedFor(settings), settings.maxTargets(),
-                CHUNKS_OUT));
+                new SweepRequest(watchedFor(settings), settings.maxTargets(), CHUNKS_OUT));
     }
 
     public static Set<Block> watchedFor(FarmSettings settings) {

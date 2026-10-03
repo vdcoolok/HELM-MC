@@ -1057,30 +1057,40 @@ would refuse to dig into either.
 
 ### Where it looks
 
-Remembered chunks are searched first. Those cover ground you have already been
-to, including chunks that are no longer loaded, which is why they are worth reading
-before anything else. Whatever they do not hold is looked for in the chunks around
-you, widening outwards, and inside each chunk the layers nearest your own level are
-read first.
+Targets come from two places. Remembered chunks are read for the ground you have
+already been to, including chunks that are no longer loaded. The loaded chunks around
+you are then walked outwards from the chunk you are standing in, one ring at a time,
+until `mining.scanRadius` chunks away. Inside each chunk the layers are read from
+your own level, then one below it, then one above it, and so on down and up the whole
+column. Everything either source turns up is then sorted by distance, and
+`mining.maxTargets` of the nearest are kept.
 
 | Setting | Default | What it does |
 | --- | --- | --- |
 | `mining.rescanEveryTicks` | `5` | Ticks between looks, `0` looks once |
-| `mining.scanRadius` | `32` | Chunks around you read when looking |
+| `mining.scanRadius` | `32` | Chunks either side of you read when looking |
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
 | `mining.scanWhenCacheThin` | `false` | Also read loaded chunks when the cache is thin |
 
-The scan stops when a whole ring of chunks around you is unloaded, when the target
-limit is reached and it has left your level band, or when it is still turning up
-targets at your own level. That last rule is what lets a player standing in a tall
-column of ore sweep all of it, while a huge flat field stops at the limit.
+The walk ends once it has reached `mining.scanRadius`, or sooner once it has found
+`mining.maxTargets` places, whichever comes first. Chunks that are not loaded are
+stepped over rather than fetched, so a view distance shorter than the scan radius
+costs nothing beyond a lookup.
 
-A scan does not finish in one tick. Reading every block in that many chunks is slow
-enough to be felt as a hitch, so it spends a small slice of each tick and carries on
-from where it left off, starting with the chunk you are standing in and widening
-from there. Positions found so far are used as soon as they exist, so mining starts
-almost immediately and keeps discovering more as the scan widens.
+Inside a chunk, work is skipped in whole layers rather than one block at a time. A
+layer of a world is stored as a short list of the distinct blocks it holds plus one
+packed number per position, so the list is read first and the layer is passed over
+untouched when none of those blocks is one you asked for. Most layers underground
+hold nothing but stone and a little deepslate, so almost every layer is passed over
+this way. A layer made entirely of one wanted block is taken whole without reading
+its positions at all.
+
+Because a layer is never read one block at a time unless it actually holds something
+you asked for, a look touches very little of the world. It still spends a small
+slice of each tick and carries on from where it left off, so even a large radius
+cannot be felt as a hitch, and the positions found so far are used as soon as they
+exist.
 
 With `mining.rescanEveryTicks 0` the world is looked at once when mining starts and
 never again. Anything that turns up later is not noticed.
@@ -1323,7 +1333,7 @@ blocks the route itself will break. Both are off independently, and
 | `mining.waitForDrops` | `true` | Finish the vein first, then collect what it dropped |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 | `mining.repackRadius` | `40` | Chunks remembered before mining starts |
-| `mining.scanRadius` | `32` | Chunks around you read when looking |
+| `mining.scanRadius` | `32` | Chunks either side of you read when looking |
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found before the cache search stops widening |
 | `mining.renderTargets` | `true` | Outline every block the job has found |
@@ -1398,22 +1408,21 @@ for as long as it lasts.
 
 ### Looking around
 
-The world is scanned outwards from the player in widening rings of chunks, and
-inside each chunk the sections are visited nearest the player's own level
-first. The scan looks for every crop that can be harvested, plus farmland and
+The world is scanned outwards from the player in widening rings of chunks, ten
+chunks out in every direction, and inside each chunk the layers are visited from
+the player's own level, then one below, then one above, and so on down and up the
+whole column. The scan looks for every crop that can be harvested, plus farmland and
 jungle logs when `farm.replantAfterHarvest` is on, plus soul sand when
 `farm.replantNetherWart` is also on.
 
-The scan stops in one of three ways:
+The scan ends once it has walked out to ten chunks, or sooner once it has found
+`farm.maxTargets` places. Chunks that are not loaded are stepped over rather than
+fetched.
 
-| Why it stopped | What that means |
-| --- | --- |
-| A whole ring was unloaded | Everything it can see is done |
-| The target cap was reached and it left the player's level band | The cap is what stopped it |
-| The target cap was reached and it is still finding crops at the player's level | It keeps going until it stops finding them near you |
-
-That last rule is what stops a huge flat farm at the cap while still letting a
-player standing in a tall column of crops sweep all of it.
+As in mining, work is skipped a whole layer at a time. A layer is passed over
+untouched when none of the distinct blocks it holds is one the farm is looking for,
+which is the case for every layer that is solid stone, deepslate or dirt. That is
+why the scan is quick enough to run every few ticks.
 
 The scan is the expensive part, and it is the only part that is spaced out.
 `farm.rescanEveryTicks` controls how often, and `farm.maxTargets` controls the
@@ -1425,10 +1434,8 @@ No scan happens while a route is being walked, because the targets on that route
 are already known. The next scan runs on the first tick after the route ends, so
 walking a long route defers the scan rather than skipping it.
 
-A scan does not finish in one tick. Reading every block in that many chunks is
-slow enough to be felt as a hitch, so the scan spends a small slice of each tick
-instead and carries on from where it left off, starting with the chunk the player
-is standing in and widening from there.
+A scan spends a small slice of each tick and carries on from where it left off,
+starting with the chunk the player is standing in and widening from there.
 
 The positions found so far are used as soon as they exist, not when the scan
 finishes, so `$farm` starts working almost immediately and keeps discovering more

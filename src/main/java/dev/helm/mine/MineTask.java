@@ -257,8 +257,9 @@ public final class MineTask {
         if (current.sweeping()) {
             return;
         }
-        Trace.instance().event("mine", "looked around over " + current.sweepTicks()
-                + " ticks and " + current.sweepMillis() + "ms");
+        Trace.instance().event("mine", "looked around " + current.sweptChunks() + " chunks over "
+                + current.sweepTicks() + " ticks and " + current.sweepMillis() + "ms and found "
+                + current.sweptCount() + " places");
         current.compose(level, feet, world, work, settings, drops);
     }
 

@@ -24,8 +24,8 @@ import dev.helm.pathfinding.world.BlockView;
 import dev.helm.pathfinding.world.block.WorkCosts;
 import dev.helm.setting.MiningSettings;
 import dev.helm.setting.Settings;
-import dev.helm.world.read.ChunkScanRequest;
 import dev.helm.world.read.Sweep;
+import dev.helm.world.read.SweepRequest;
 
 public final class MineJob {
 
@@ -42,6 +42,7 @@ public final class MineJob {
     private List<BlockPos> working;
     private Sweep sweep;
     private List<BlockPos> swept = List.of();
+    private int sweptChunks;
     private long sweepBegan;
     private int sweepTicks;
     private int sinceRescan;
@@ -111,7 +112,7 @@ public final class MineJob {
             return;
         }
         sweep = Sweep.around(level, feet,
-                new ChunkScanRequest(filter.blocks(), settings.maxTargets(),
+                new SweepRequest(filter.blocks(), settings.maxTargets(),
                         settings.scanRadius()));
         swept = List.of();
         sweepBegan = System.nanoTime();
@@ -125,8 +126,13 @@ public final class MineJob {
         sweepTicks++;
         if (sweep.step(budgetNanos)) {
             swept = sweep.found();
+            sweptChunks = sweep.chunksRead();
             sweep = null;
         }
+    }
+
+    public int sweptChunks() {
+        return sweptChunks;
     }
 
     public int sweptCount() {

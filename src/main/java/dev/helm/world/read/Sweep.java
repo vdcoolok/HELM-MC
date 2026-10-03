@@ -6,86 +6,63 @@ import java.util.List;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
+
+import dev.helm.world.read.section.PaletteFilter;
 
 public final class Sweep {
 
     private final ClientLevel level;
-    private final ChunkScanRequest want;
-    private final int lowest;
-    private final int standingLevel;
-    private final int[] sectionOrder;
-    private final int originX;
-    private final int originZ;
-    private final int furthest;
+    private final ChunkWalk chunks;
+    private final SectionOrder sections;
+    private final PaletteFilter filter;
+    private final int resultsWanted;
     private final List<BlockPos> found = new ArrayList<>();
 
-    private int ring;
-    private List<int[]> offsets = Ring.at(0);
-    private int cursor;
-    private boolean considered;
-    private boolean allUnloaded = true;
-    private boolean withinLevel;
-    private boolean finished;
+    private int chunksRead;
 
-    private Sweep(ClientLevel level, BlockPos from, ChunkScanRequest want) {
+    private Sweep(ClientLevel level, BlockPos from, SweepRequest request) {
         this.level = level;
-        this.want = want;
-        this.lowest = level.getMinY();
-        this.standingLevel = from.getY() - this.lowest;
-        this.sectionOrder = LevelOrder.nearestFirst(level.getHeight() / 16,
-                this.standingLevel >> 4);
-        this.originX = from.getX() >> 4;
-        this.originZ = from.getZ() >> 4;
-        this.furthest = want.chunkRadius() * want.chunkRadius();
-        this.finished = want.wanted().isEmpty();
+        this.filter = new PaletteFilter(request.wanted());
+        this.resultsWanted = request.resultsWanted();
+        this.chunks = new ChunkWalk(from.getX() >> 4, from.getZ() >> 4, request.chunkRadius());
+        this.sections = new SectionOrder(level.getSectionsCount(),
+                (from.getY() - level.getMinY()) >> 4);
     }
 
-    public static Sweep around(ClientLevel level, BlockPos from, ChunkScanRequest want) {
-        return new Sweep(level, from, want);
+    public static Sweep around(ClientLevel level, BlockPos from, SweepRequest request) {
+        return new Sweep(level, from, request);
     }
 
     public boolean step(long budgetNanos) {
         long deadline = System.nanoTime() + budgetNanos;
-        while (cursor < offsets.size()) {
-            visit(offsets.get(cursor++));
+        while (chunks.next()) {
+            read(chunks.chunkX(), chunks.chunkZ());
+            if (found.size() >= resultsWanted) {
+                return true;
+            }
             if (System.nanoTime() >= deadline) {
                 return false;
             }
         }
-        if (encompassed() || (found.size() >= want.maxResults() && ring > 1)) {
-            finished = true;
-            return true;
-        }
-        ring++;
-        offsets = Ring.at(ring);
-        cursor = 0;
-        considered = false;
-        allUnloaded = true;
-        return false;
-    }
-
-    public boolean finished() {
-        return finished;
+        return true;
     }
 
     public List<BlockPos> found() {
         return found;
     }
 
-    private boolean encompassed() {
-        return considered && allUnloaded;
+    public int chunksRead() {
+        return chunksRead;
     }
 
-    private void visit(int[] offset) {
-        considered = true;
-        int chunkX = originX + offset[0];
-        int chunkZ = originZ + offset[1];
-        LevelChunk chunk = level.getChunkSource().getChunk(chunkX, chunkZ, null, false);
-        if (chunk == null) {
+    private void read(int chunkX, int chunkZ) {
+        LevelChunk chunk = level.getChunkSource()
+                .getChunk(chunkX, chunkZ, ChunkStatus.FULL, false);
+        if (chunk == null || chunk.isEmpty()) {
             return;
         }
-        allUnloaded = false;
-        withinLevel |= ChunkScan.into(chunkX << 4, chunkZ << 4, lowest, chunk,
-                sectionOrder, want.wanted(), found);
+        chunksRead++;
+        ColumnScan.into(chunk, chunkX << 4, chunkZ << 4, sections, filter, found);
     }
 }

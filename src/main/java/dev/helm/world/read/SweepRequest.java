@@ -4,5 +4,5 @@ import java.util.Set;
 
 import net.minecraft.world.level.block.Block;
 
-public record ChunkScanRequest(Set<Block> wanted, int maxResults, int chunkRadius) {
+public record SweepRequest(Set<Block> wanted, int resultsWanted, int chunkRadius) {
 }

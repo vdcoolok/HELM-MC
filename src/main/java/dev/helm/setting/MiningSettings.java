@@ -119,8 +119,8 @@ public final class MiningSettings extends SettingSection {
                 "Chunks around you remembered before mining starts, so routes can cross ground "
                         + "that is no longer loaded.", 40, 0, 64);
         count(SCAN_RADIUS, "Scan radius",
-                "Chunks around you read when looking for targets that the remembered chunks "
-                        + "do not hold.", 32, 1, 64);
+                "Chunks either side of you read when looking for targets that the remembered "
+                        + "chunks do not hold. The whole area is read once per look.", 32, 1, 64);
         count(CACHE_SCAN_RADIUS, "Cache scan radius",
                 "How far around you the remembered chunks are searched for targets.", 2, 0, 8);
         count(CACHE_SCAN_LIMIT, "Cache scan limit",
