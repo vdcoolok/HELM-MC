@@ -204,6 +204,8 @@ If another mod already switches tools for you, turning
 | `mining.digThroughAir` | `true` | Count air beside a target as part of the vein |
 | `mining.breakOverhead` | `true` | Break a block directly above without moving |
 | `mining.pillarToReach` | `true` | Place a block under yourself and step up when a block straight above is too high to break |
+| `mining.waitForDrops` | `true` | Collect what was dropped before starting on the next vein |
+| `mining.waitForDrops` | `true` | Collect what was dropped before starting on the next vein |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 | `mining.repackRadius` | `40` | Chunks remembered before mining starts |
 | `mining.scanRadius` | `32` | Chunks around you read when looking |

@@ -1182,6 +1182,7 @@ takes a tree down.
 | --- | --- | --- |
 | `mining.breakOverhead` | `true` | Break a block directly above without moving |
 | `mining.pillarToReach` | `true` | Step up on a placed block when a block straight above is too high to break |
+| `mining.waitForDrops` | `true` | Collect what was dropped before starting on the next vein |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 
 Overhead breaking needs a block that can actually be broken from where you stand, so
@@ -1208,6 +1209,17 @@ pillar and simply leaves the rest of the vein alone.
 
 Blocks placed this way are not given back. The job mines the vein out and then moves
 on with the pillar block still spent.
+
+### Waiting for drops
+
+`mining.waitForDrops` decides what happens in the gap between breaking something and
+walking away. With it on, whatever was dropped is collected before the job starts on
+the next vein, and any item still in the air is waited on until it lands, rather than
+being left on the ground or picked up much later.
+
+Items falling from a block broken above you take a moment to come down. Rather than
+walking off the moment the break finishes, the job stands still while a drop of the
+right type is still moving downwards, then goes and collects everything that landed.
 
 `mining.stopRouteWhenMined` stops a walk the moment the block it was heading for is
 gone, rather than finishing a route that no longer leads anywhere. It makes mining
@@ -1293,6 +1305,7 @@ blocks the route itself will break. Both are off independently, and
 | `mining.digThroughAir` | `true` | Count air beside a block as part of the vein |
 | `mining.breakOverhead` | `true` | Break a block directly above without moving |
 | `mining.pillarToReach` | `true` | Step up on a placed block when a block straight above is too high to break |
+| `mining.waitForDrops` | `true` | Collect what was dropped before starting on the next vein |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 | `mining.repackRadius` | `40` | Chunks remembered before mining starts |
 | `mining.scanRadius` | `32` | Chunks around you read when looking |

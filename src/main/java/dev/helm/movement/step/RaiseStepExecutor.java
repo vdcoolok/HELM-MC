@@ -16,7 +16,6 @@ public final class RaiseStepExecutor implements StepExecutor {
 
     private static final double CENTRE_TOLERANCE = 0.2D;
     private static final double ALIGN_TOLERANCE = 0.17D;
-    private static final double FLAT_MOTION = 0.05D;
     private static final double ABOVE_DEST = 0.1D;
 
     @Override
@@ -68,15 +67,12 @@ public final class RaiseStepExecutor implements StepExecutor {
         double offsetX = context.player().getX() - (step.toX() + 0.5D);
         double offsetZ = context.player().getZ() - (step.toZ() + 0.5D);
         double distance = Math.sqrt(offsetX * offsetX + offsetZ * offsetZ);
-        double flatMotion = Math.sqrt(
-                context.player().getDeltaMovement().x * context.player().getDeltaMovement().x
-                        + context.player().getDeltaMovement().z
-                        * context.player().getDeltaMovement().z);
         if (distance > ALIGN_TOLERANCE) {
             tick.press(Control.MOVE_FORWARD);
             tick.intent().aimedAt(aim, true);
-        } else if (flatMotion < FLAT_MOTION) {
-            tick.set(Control.JUMP, context.player().getY() < step.toY());
+        }
+        if (context.player().getY() < step.toY()) {
+            tick.set(Control.JUMP, true);
         }
         if (!groundThere) {
             clearColumn(context, tick, step, toPlace);

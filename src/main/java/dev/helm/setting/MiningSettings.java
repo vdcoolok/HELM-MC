@@ -32,6 +32,7 @@ public final class MiningSettings extends SettingSection {
     public static final String DIG_THROUGH_AIR = "mining.digThroughAir";
     public static final String BREAK_OVERHEAD = "mining.breakOverhead";
     public static final String PILLAR_TO_REACH = "mining.pillarToReach";
+    public static final String WAIT_FOR_DROPS = "mining.waitForDrops";
     public static final String STOP_ROUTE_WHEN_MINED = "mining.stopRouteWhenMined";
     public static final String REPACK_RADIUS = "mining.repackRadius";
     public static final String SCAN_RADIUS = "mining.scanRadius";
@@ -112,6 +113,9 @@ public final class MiningSettings extends SettingSection {
                         + "yourself and step up, then try again, until the rest of the vein is "
                         + "out of reach no more. Costs one block for every level, and needs "
                         + "movement allowing placing and breaking.", true);
+        flag(WAIT_FOR_DROPS, "Wait for drops",
+                "After breaking something, go and pick up what it dropped before starting on "
+                        + "the next vein. Waits for items still falling to land first.", true);
         flag(STOP_ROUTE_WHEN_MINED, "Stop the route when mined",
                 "Stop walking as soon as the block a route was heading for is gone, rather "
                         + "than finishing a route that no longer leads anywhere.", true);
@@ -239,6 +243,10 @@ public final class MiningSettings extends SettingSection {
 
     public boolean pillarToReach() {
         return on(PILLAR_TO_REACH);
+    }
+
+    public boolean waitForDrops() {
+        return on(WAIT_FOR_DROPS);
     }
 
     public boolean stopRouteWhenMined() {

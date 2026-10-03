@@ -179,8 +179,12 @@ public final class MineJob {
     }
 
     public Goal goal(BlockView world, WorkCosts work, MiningSettings settings, BlockPos feet,
-                     LocalPlayer player) {
+                     LocalPlayer player, List<BlockPos> drops) {
         routeFor = null;
+        Goal waiting = collectGoal(world, work, settings, feet, drops);
+        if (waiting != null) {
+            return waiting;
+        }
         ColumnRise rise = rising(world, settings, feet, player);
         if (rise != null) {
             routeFor = rise.target();
@@ -194,6 +198,21 @@ public final class MineJob {
             goals.add(SpotGoals.forPosition(pos, known, filter, world, work, settings));
         }
         routeFor = known.get(0);
+        return AnyGoal.of(goals);
+    }
+
+    private Goal collectGoal(BlockView world, WorkCosts work, MiningSettings settings,
+                             BlockPos feet, List<BlockPos> drops) {
+        if (!settings.waitForDrops() || drops.isEmpty()) {
+            return null;
+        }
+        List<Goal> goals = new ArrayList<>(drops.size());
+        List<BlockPos> wanted = new ArrayList<>(drops.size());
+        for (BlockPos pos : drops) {
+            goals.add(SpotGoals.forPosition(pos, drops, filter, world, work, settings));
+            wanted.add(pos);
+        }
+        routeFor = wanted.get(0);
         return AnyGoal.of(goals);
     }
 

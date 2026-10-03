@@ -20,13 +20,8 @@ public final class DroppedTargets {
 
     public static List<BlockPos> gather(ClientLevel level, TargetFilter filter) {
         List<BlockPos> found = new ArrayList<>();
-        for (Entity entity : level.entitiesForRendering()) {
-            if (!(entity instanceof ItemEntity dropped)) {
-                continue;
-            }
-            if (wanted(dropped.getItem(), filter)) {
-                found.add(dropped.blockPosition());
-            }
+        for (Entity dropped : DropWatch.matching(level, filter)) {
+            found.add(dropped.blockPosition());
         }
         return found;
     }

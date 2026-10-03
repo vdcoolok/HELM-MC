@@ -18,6 +18,7 @@ import dev.helm.aim.AimTrace;
 import dev.helm.aim.LookController;
 import dev.helm.diag.Trace;
 import dev.helm.farm.FarmTask;
+import dev.helm.mine.drops.DropWatch;
 import dev.helm.mine.shaft.OverheadFinder;
 import dev.helm.mine.shaft.OverheadMiner;
 import dev.helm.mine.shaft.OverheadSpot;
@@ -149,15 +150,34 @@ public final class MineTask {
             return;
         }
         awaiting = 0;
+        if (dropsLanding(current, level, settings)) {
+            pilot().holdStill();
+            return;
+        }
         if (pilot.unreachable() && !unreachable(current, feet, settings)) {
             return;
         }
-        headForNext(current, world, work, settings, feet, player);
+        headForNext(current, world, work, settings, feet, player, drops);
+    }
+
+    private boolean dropsLanding(MineJob current, ClientLevel level, MiningSettings settings) {
+        if (!settings.waitForDrops()) {
+            return false;
+        }
+        for (var entity : DropWatch.matching(level, current.filter())) {
+            if (DropWatch.stillFalling(entity)) {
+                Trace.instance().pulse("mine-landing", "mine",
+                        "waiting for a drop to finish falling");
+                return true;
+            }
+        }
+        return false;
     }
 
     private void headForNext(MineJob current, BlockView world, WorkCosts work,
-                             MiningSettings settings, BlockPos feet, LocalPlayer player) {
-        Goal goal = current.goal(world, work, settings, feet, player);
+                             MiningSettings settings, BlockPos feet, LocalPlayer player,
+                             List<BlockPos> drops) {
+        Goal goal = current.goal(world, work, settings, feet, player, drops);
         if (goal == null) {
             if (!current.sweeping()) {
                 outOfWork(current);
