@@ -16,6 +16,11 @@ public final class RaiseStepExecutor implements StepExecutor {
 
     private static final double CENTRE_TOLERANCE = 0.2D;
     private static final double ALIGN_TOLERANCE = 0.17D;
+
+    @Override
+    public boolean safeToCancel(StepContext context, PlanStep step, MoveTick tick) {
+        return tick.state() != MoveState.RUNNING;
+    }
     private static final double ABOVE_DEST = 0.1D;
 
     @Override
