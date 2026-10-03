@@ -110,8 +110,8 @@ public final class MineJob {
         if (sweep != null) {
             return;
         }
-        sweep = Sweep.around(level, feet, new ChunkScanRequest(filter.blocks(),
-                settings.maxTargets(), settings.scanRadius(), settings.scanLevelWindow()));
+        sweep = Sweep.around(level, feet,
+                new ChunkScanRequest(filter.blocks(), settings.scanRadius()));
         swept = List.of();
         sweepBegan = System.nanoTime();
         sweepTicks = 0;

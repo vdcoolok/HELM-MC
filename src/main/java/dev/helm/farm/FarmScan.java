@@ -15,14 +15,13 @@ import dev.helm.world.read.Sweep;
 public final class FarmScan {
 
     private static final int CHUNKS_OUT = 10;
-    private static final int LEVELS_AROUND = 10;
 
     private FarmScan() {
     }
 
     public static Sweep begin(ClientLevel level, BlockPos from, FarmSettings settings) {
-        return Sweep.around(level, from, new ChunkScanRequest(watchedFor(settings),
-                settings.maxTargets(), CHUNKS_OUT, LEVELS_AROUND));
+        return Sweep.around(level, from,
+                new ChunkScanRequest(watchedFor(settings), CHUNKS_OUT));
     }
 
     public static Set<Block> watchedFor(FarmSettings settings) {

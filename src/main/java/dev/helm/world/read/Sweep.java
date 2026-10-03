@@ -52,8 +52,7 @@ public final class Sweep {
                 return false;
             }
         }
-        if (encompassed() || (found.size() >= want.maxResults()
-                && (ring > furthest || (ring > 1 && withinLevel)))) {
+        if (encompassed()) {
             finished = true;
             return true;
         }
@@ -87,7 +86,6 @@ public final class Sweep {
         }
         allUnloaded = false;
         withinLevel |= ChunkScan.into(chunkX << 4, chunkZ << 4, lowest, chunk,
-                sectionOrder, want.wanted(), found, want.maxResults(),
-                want.levelWindow(), standingLevel);
+                sectionOrder, want.wanted(), found);
     }
 }

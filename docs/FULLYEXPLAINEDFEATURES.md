@@ -1067,7 +1067,6 @@ read first.
 | --- | --- | --- |
 | `mining.rescanEveryTicks` | `5` | Ticks between looks, `0` looks once |
 | `mining.scanRadius` | `32` | Chunks around you read when looking |
-| `mining.scanLevelWindow` | `10` | How far from your level the scan keeps looking |
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
 | `mining.scanWhenCacheThin` | `false` | Also read loaded chunks when the cache is thin |
@@ -1325,7 +1324,6 @@ blocks the route itself will break. Both are off independently, and
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 | `mining.repackRadius` | `40` | Chunks remembered before mining starts |
 | `mining.scanRadius` | `32` | Chunks around you read when looking |
-| `mining.scanLevelWindow` | `10` | How far from your level the scan keeps looking |
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found before the cache search stops widening |
 | `mining.renderTargets` | `true` | Outline every block the job has found |

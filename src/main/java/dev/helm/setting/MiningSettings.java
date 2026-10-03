@@ -35,7 +35,6 @@ public final class MiningSettings extends SettingSection {
     public static final String STOP_ROUTE_WHEN_MINED = "mining.stopRouteWhenMined";
     public static final String REPACK_RADIUS = "mining.repackRadius";
     public static final String SCAN_RADIUS = "mining.scanRadius";
-    public static final String SCAN_LEVEL_WINDOW = "mining.scanLevelWindow";
     public static final String CACHE_SCAN_RADIUS = "mining.cacheScanRadius";
     public static final String CACHE_SCAN_LIMIT = "mining.cacheScanLimit";
     public static final String RENDER_TARGETS = "mining.renderTargets";
@@ -122,9 +121,6 @@ public final class MiningSettings extends SettingSection {
         count(SCAN_RADIUS, "Scan radius",
                 "Chunks around you read when looking for targets that the remembered chunks "
                         + "do not hold.", 32, 1, 64);
-        count(SCAN_LEVEL_WINDOW, "Scan level window",
-                "How far from your own level the scan keeps looking before it decides a chunk "
-                        + "has nothing for you.", 10, 0, 512);
         count(CACHE_SCAN_RADIUS, "Cache scan radius",
                 "How far around you the remembered chunks are searched for targets.", 2, 0, 8);
         count(CACHE_SCAN_LIMIT, "Cache scan limit",
@@ -252,10 +248,6 @@ public final class MiningSettings extends SettingSection {
 
     public int scanRadius() {
         return level(SCAN_RADIUS);
-    }
-
-    public int scanLevelWindow() {
-        return level(SCAN_LEVEL_WINDOW);
     }
 
     public int cacheScanRadius() {

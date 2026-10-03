@@ -15,10 +15,8 @@ public final class ChunkScan {
     }
 
     public static boolean into(int chunkX, int chunkZ, int lowest, ChunkAccess chunk,
-                               int[] sectionOrder, Set<Block> wanted, List<BlockPos> found,
-                               int maxResults, int levelWindow, int standingLevel) {
+                               int[] sectionOrder, Set<Block> wanted, List<BlockPos> found) {
         LevelChunkSection[] sections = chunk.getSections();
-        boolean withinLevel = false;
         for (int section : sectionOrder) {
             LevelChunkSection layer = sections[section];
             if (layer == null || layer.hasOnlyAir()) {
@@ -32,19 +30,12 @@ public final class ChunkScan {
                         if (!wanted.contains(state.getBlock())) {
                             continue;
                         }
-                        int level = sectionBase | offset;
-                        if (found.size() >= maxResults) {
-                            if (Math.abs(level - standingLevel) < levelWindow) {
-                                withinLevel = true;
-                            } else if (withinLevel) {
-                                return true;
-                            }
-                        }
-                        found.add(new BlockPos(chunkX | x, level + lowest, chunkZ | z));
+                        found.add(new BlockPos(chunkX | x, sectionBase + offset + lowest,
+                                chunkZ | z));
                     }
                 }
             }
         }
-        return withinLevel;
+        return false;
     }
 }

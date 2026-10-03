@@ -207,7 +207,6 @@ If another mod already switches tools for you, turning
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 | `mining.repackRadius` | `40` | Chunks remembered before mining starts |
 | `mining.scanRadius` | `32` | Chunks around you read when looking |
-| `mining.scanLevelWindow` | `10` | How far from your level the scan keeps looking |
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
 | `mining.renderTargets` | `true` | Outline every block the job has found |
