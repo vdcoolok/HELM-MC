@@ -38,7 +38,6 @@ public final class MiningSettings extends SettingSection {
     public static final String CACHE_SCAN_RADIUS = "mining.cacheScanRadius";
     public static final String CACHE_SCAN_LIMIT = "mining.cacheScanLimit";
     public static final String RENDER_TARGETS = "mining.renderTargets";
-    public static final String INCLUDE_DEEPSLATE = "mining.includeDeepslateVariants";
 
     public MiningSettings() {
         flag(AUTO_TOOL, "Auto tool",
@@ -129,10 +128,6 @@ public final class MiningSettings extends SettingSection {
                         + "widening and the loaded world is read instead.", 10, 1, 4096);
         flag(RENDER_TARGETS, "Render targets",
                 "Outline every block being mined, not just the route's own breaks.", true);
-        flag(INCLUDE_DEEPSLATE, "Include deepslate variants",
-                "Also mine the deepslate version of any ore you asked for, so "
-                        + "$mine diamond_ore finds the deepslate diamond ore below 0 as well. "
-                        + "Off by default, which means each block name matches only itself.", false);
     }
 
     public boolean autoTool() {
@@ -265,9 +260,5 @@ public final class MiningSettings extends SettingSection {
 
     public boolean renderTargets() {
         return on(RENDER_TARGETS);
-    }
-
-    public boolean includeDeepslateVariants() {
-        return on(INCLUDE_DEEPSLATE);
     }
 }

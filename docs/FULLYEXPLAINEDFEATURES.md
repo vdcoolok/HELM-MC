@@ -1072,27 +1072,24 @@ column. Everything either source turns up is then sorted by distance, and
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
 | `mining.scanWhenCacheThin` | `false` | Also read loaded chunks when the cache is thin |
-| `mining.includeDeepslateVariants` | `false` | Also mine the deepslate version of any ore asked for |
 
 ### Ores have two names
 
-Almost every ore exists as two different blocks. Diamond ore is
-`minecraft:diamond_ore` above level 0 and `minecraft:deepslate_diamond_ore` below it,
-and the same is true of coal, copper, gold, iron, lapis, redstone and emerald. They
-generate in the same band, roughly y = −64 to 16, and which one appears is decided by
-whether the stone or the deepslate is what gets replaced.
+Almost every ore exists as two different blocks. Diamond ore is `minecraft:diamond_ore`
+above level 0 and `minecraft:deepslate_diamond_ore` below it, and the same is true of
+coal, copper, gold, iron, lapis, redstone and emerald. They generate in the same band,
+roughly y = −64 to 16, and which one appears is decided by whether the stone or the
+deepslate is what gets replaced.
 
-A block name therefore matches exactly one block and nothing else. `$mine diamond_ore`
-mines `minecraft:diamond_ore`, which can only exist in y = 0 to 16, so it will not
-notice the deepslate diamond ore that makes up most of the band.
+A block name matches exactly one block and nothing else, so `$mine diamond_ore` mines
+`minecraft:diamond_ore`, which can only exist in y = 0 to 16. It will not notice the
+deepslate diamond ore that makes up most of the band. To mine both, name both:
 
-Turning on `mining.includeDeepslateVariants` fixes that. Each ore asked for then also
-brings in its other name, so `$mine diamond_ore` finds diamonds across the whole band,
-and asking for `deepslate_diamond_ore` brings in `diamond_ore` as well. The rule only
-ever pairs a block whose name ends in `_ore` with a `deepslate_` block of that name, and
-only when both actually exist, so nothing else is ever added and no table has to be
-kept up to date. Blocks with no twin, such as `stone` or `nether_gold_ore`, are left
-alone either way.
+```
+$mine diamond_ore deepslate_diamond_ore
+```
+
+Any number of block names can be given, and each is matched exactly.
 
 The walk ends once it has reached `mining.scanRadius`, or sooner once it has found
 `mining.maxTargets` places, whichever comes first. Chunks that are not loaded are
@@ -1362,7 +1359,6 @@ blocks the route itself will break. Both are off independently, and
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found before the cache search stops widening |
 | `mining.renderTargets` | `true` | Outline every block the job has found |
-| `mining.includeDeepslateVariants` | `false` | Also mine the deepslate version of any ore asked for |
 
 See [SETTINGS.md](SETTINGS.md) for what each one changes.
 

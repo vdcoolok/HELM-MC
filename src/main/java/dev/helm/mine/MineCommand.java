@@ -6,7 +6,6 @@ import java.util.List;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.world.level.block.Block;
 
 import dev.helm.command.ArgumentDefinition;
 import dev.helm.command.ArgumentType;
@@ -16,7 +15,6 @@ import dev.helm.command.CommandException;
 import dev.helm.command.CommandFeedback;
 import dev.helm.command.CommandResult;
 import dev.helm.diag.Trace;
-import dev.helm.mine.target.DeepslateVariants;
 import dev.helm.mine.target.TargetCompletions;
 import dev.helm.mine.target.TargetFilter;
 import dev.helm.mine.target.TargetSelector;
@@ -72,19 +70,10 @@ public final class MineCommand {
     private static Requested request(String written) {
         List<String> tokens = dev.helm.command.chat.LineTokenizer.tokenize(written);
         int wanted = trailingCount(tokens);
-        boolean expand = Settings.holder().mining().includeDeepslateVariants();
         List<TargetSelector> selectors = new ArrayList<>();
         for (String token : tokens) {
-            if (count(token) != NOT_A_COUNT) {
-                continue;
-            }
-            TargetSelector chosen = select(token);
-            selectors.add(chosen);
-            if (expand) {
-                Block twin = DeepslateVariants.twinOf(chosen.block());
-                if (twin != null && !selectors.contains(TargetSelector.whole(twin))) {
-                    selectors.add(TargetSelector.whole(twin));
-                }
+            if (count(token) == NOT_A_COUNT) {
+                selectors.add(select(token));
             }
         }
         if (selectors.isEmpty()) {

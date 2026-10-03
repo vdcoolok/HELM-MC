@@ -210,7 +210,6 @@ If another mod already switches tools for you, turning
 | `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
 | `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
 | `mining.renderTargets` | `true` | Outline every block the job has found |
-| `mining.includeDeepslateVariants` | `false` | Also mine the deepslate version of any ore asked for |
 
 `mining.breakAllowedAnyway` takes block names the same way `mining.avoidBreaking`
 does. While `movement.allowBreak` is off, `$mine` will only mine blocks on this
