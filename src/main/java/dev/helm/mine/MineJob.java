@@ -181,14 +181,14 @@ public final class MineJob {
     public Goal goal(BlockView world, WorkCosts work, MiningSettings settings, BlockPos feet,
                      LocalPlayer player, List<BlockPos> drops) {
         routeFor = null;
-        Goal waiting = collectGoal(world, work, settings, feet, drops);
-        if (waiting != null) {
-            return waiting;
-        }
         ColumnRise rise = rising(world, settings, feet, player);
         if (rise != null) {
             routeFor = rise.target();
             return rise.stand();
+        }
+        Goal waiting = collectGoal(world, work, settings, feet, drops);
+        if (waiting != null) {
+            return waiting;
         }
         if (known.isEmpty()) {
             return wander(settings, feet);
