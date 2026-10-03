@@ -108,9 +108,13 @@ $stop
 a time. It keeps going until `$stop`, or until nothing it wants can be reached.
 
 Every ripe crop `$farm` finds is outlined, and so is every dropped item it broke
-its crops into and still wants to collect. Turn those off with
-`$set farm.renderCropsESP false` and `$set farm.renderItemsESP false`, or turn
-every glowing outline off at once with `$set outline.enabled false`.
+its crops into and still wants. Turn those off with:
+
+```
+$set farm.renderCropsESP false
+$set farm.renderItemsESP false
+$set outline.enabled false
+```
 
 When it has harvested everything that is ripe, it does not stop. It says so once,
 stands where it is, and keeps checking the field as the rest grows. Anything that
@@ -137,21 +141,10 @@ What it does, in the order it prefers:
 | 4 | Use bone meal on anything that would grow from it |
 | 5 | Walk over and pick up the drops it broke its own crops into |
 
-Step 5 works off the dropped item cache rather than a fixed list. Whenever HELM
-breaks a block it notes where, and for the next few seconds it watches that spot
-for items. Whatever turns up there it treats as something worth collecting, for
-five minutes afterwards, so it will walk over and pick up wheat it just harvested
-without needing a table of what wheat drops. The cache is emptied when you leave
-a world.
-
 Ripe means fully grown wheat, carrots, potatoes and beetroot, any pumpkin or
 melon, nether wart at full age, and cocoa at full age. Sugar cane, bamboo and
 cactus are only harvested from the top of a stalk while
 `farm.replantAfterHarvest` is on, so the rest is left to grow.
-
-When planting, HELM aims at the top of the soil rather than at the middle of the
-block, and where a block is reachable only near its edge it aims there, so farmland
-just inside reach is still planted.
 
 Seeds, nether wart, cocoa beans and bone meal are taken from the hotbar, or from
 the off hand. Seeds are only planted while one is actually held, so HELM does

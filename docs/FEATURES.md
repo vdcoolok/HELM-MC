@@ -10,8 +10,8 @@
 - `autogoto` and `autogotohere` commands anchoring a position and walking back if moved off it
 - `autolookat` and `autolookathere` commands locking the camera to an angle until stopped
 - `farm` command harvesting ripe crops, replanting the empty ground and picking up the drops
-- Farm planting aimed at the nearest reachable spot on the soil's top face, so farmland just inside reach is still planted
 - Farm waiting on a field instead of giving up when the last ripe crop is taken
+- Farm planting aiming at the nearest reachable spot on the soil's top face
 
 - `allowInventory` setting fetching tools, placement blocks and farm supplies from the whole inventory, with slots 0 and 8 kept stocked
 - `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle and a farm at once
@@ -28,10 +28,9 @@
 - Direction control driving forward, back, strafe, jump, sneak and sprint
 - Continuous movement between steps, with no gap at a step boundary
 - Path line drawn on the world, plus outlines of blocks to break and place
-- Glowing silhouette outlines around blocks to mine, ripe crops and the dropped items worth collecting
-- Silhouettes drawn through the game's own outline pass, so they match how glowing entities look
-- `outline.enabled`, `outline.blocksToBreak`, `farm.renderCropsESP` and `farm.renderItemsESP` toggles, with a colour per outline kind
-- Dropped item cache that learns which items came out of the blocks HELM broke, and collects them
+- Glowing silhouette outlines around blocks to mine, ripe crops and the drops worth collecting
+- `outline` and `farm` render settings controlling those outlines and their colours
+- Dropped item cache learning which items came out of the blocks HELM broke, and collecting them
 - Walking follows the route's direction, with the body turning and the camera left alone
 - Settings stored as text in `.minecraft/HELM/settings.conf`
 - Session log at `.minecraft/HELM/debuglogs.log` recording what HELM did and why
