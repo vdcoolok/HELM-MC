@@ -186,19 +186,30 @@ public final class MineJob {
             routeFor = rise.target();
             return rise.stand();
         }
+        List<BlockPos> solid = solid(world);
+        if (!solid.isEmpty()) {
+            List<Goal> goals = new ArrayList<>(solid.size());
+            for (BlockPos pos : solid) {
+                goals.add(SpotGoals.forPosition(pos, solid, filter, world, work, settings));
+            }
+            routeFor = solid.get(0);
+            return AnyGoal.of(goals);
+        }
         Goal waiting = collectGoal(world, work, settings, feet, drops);
         if (waiting != null) {
             return waiting;
         }
-        if (known.isEmpty()) {
-            return wander(settings, feet);
-        }
-        List<Goal> goals = new ArrayList<>(known.size());
+        return wander(settings, feet);
+    }
+
+    public List<BlockPos> solid(BlockView world) {
+        List<BlockPos> found = new ArrayList<>();
         for (BlockPos pos : known) {
-            goals.add(SpotGoals.forPosition(pos, known, filter, world, work, settings));
+            if (filter.wants(world.stateAt(pos.getX(), pos.getY(), pos.getZ()))) {
+                found.add(pos);
+            }
         }
-        routeFor = known.get(0);
-        return AnyGoal.of(goals);
+        return found;
     }
 
     private Goal collectGoal(BlockView world, WorkCosts work, MiningSettings settings,

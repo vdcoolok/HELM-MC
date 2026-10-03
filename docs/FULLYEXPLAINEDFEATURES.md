@@ -1182,7 +1182,7 @@ takes a tree down.
 | --- | --- | --- |
 | `mining.breakOverhead` | `true` | Break a block directly above without moving |
 | `mining.pillarToReach` | `true` | Step up on a placed block when a block straight above is too high to break |
-| `mining.waitForDrops` | `true` | Collect what was dropped before starting on the next vein |
+| `mining.waitForDrops` | `true` | Finish the vein first, then collect what it dropped |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 
 Overhead breaking needs a block that can actually be broken from where you stand, so
@@ -1212,14 +1212,15 @@ on with the pillar block still spent.
 
 ### Waiting for drops
 
-`mining.waitForDrops` decides what happens in the gap between breaking something and
-walking away. With it on, whatever was dropped is collected before the job starts on
-the next vein, and any item still in the air is waited on until it lands, rather than
-being left on the ground or picked up much later.
+A vein is finished before anything is picked up. Having broken a block, HELM carries
+on through the rest of the vein rather than turning back for each block or two, so
+underground mining works its way through a seam in one pass instead of stopping to
+collect after every block. Only once there is nothing left standing does it go back
+over what dropped, and then it waits for anything still in the air to land before
+walking onto it.
 
-Items falling from a block broken above you take a moment to come down. Rather than
-walking off the moment the break finishes, the job stands still while a drop of the
-right type is still moving downwards, then goes and collects everything that landed.
+Positions where something dropped are kept out of the vein itself, so a drop lying on
+the ground is never mistaken for part of the seam and never chosen over it.
 
 `mining.stopRouteWhenMined` stops a walk the moment the block it was heading for is
 gone, rather than finishing a route that no longer leads anywhere. It makes mining
@@ -1309,7 +1310,7 @@ blocks the route itself will break. Both are off independently, and
 | `mining.digThroughAir` | `true` | Count air beside a block as part of the vein |
 | `mining.breakOverhead` | `true` | Break a block directly above without moving |
 | `mining.pillarToReach` | `true` | Step up on a placed block when a block straight above is too high to break |
-| `mining.waitForDrops` | `true` | Collect what was dropped before starting on the next vein |
+| `mining.waitForDrops` | `true` | Finish the vein first, then collect what it dropped |
 | `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
 | `mining.repackRadius` | `40` | Chunks remembered before mining starts |
 | `mining.scanRadius` | `32` | Chunks around you read when looking |
