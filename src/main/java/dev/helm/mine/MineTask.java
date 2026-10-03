@@ -9,6 +9,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.AirBlock;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 
@@ -35,11 +36,14 @@ import dev.helm.setting.Settings;
 public final class MineTask {
 
     private static final long SWEEP_BUDGET_NANOS = 4_000_000L;
+    private static final int BLIND_GRACE = 10;
 
     private static final MineTask INSTANCE = new MineTask();
 
     private boolean installed;
     private MineJob job;
+    private BlockPos overhead;
+    private int blind;
 
     private MineTask() {
     }
@@ -80,6 +84,8 @@ public final class MineTask {
 
     public void stop() {
         job = null;
+        overhead = null;
+        blind = 0;
         release();
     }
 
@@ -156,20 +162,53 @@ public final class MineTask {
     private boolean breakOverhead(MineJob current, BlockView world, WorkCosts work,
                                  MiningSettings settings, LocalPlayer player) {
         if (!settings.breakOverhead()) {
+            overhead = null;
             return false;
         }
-        OverheadSpot spot = OverheadFinder.find(current.known(), world, work, player);
-        if (spot == null) {
+        BlockPos held = overhead;
+        if (held == null || !stillAbove(held, world, work, player)) {
+            held = null;
+            OverheadSpot spot = OverheadFinder.find(current.known(), world, work, player);
+            held = spot == null ? null : spot.block();
+        }
+        if (held == null) {
+            overhead = null;
+            blind = 0;
             return false;
         }
-        if (!OverheadMiner.work(pilot(), spot, player, Settings.holder().look())) {
+        overhead = held;
+        BlockPos feet = player.blockPosition();
+        boolean aimed = OverheadMiner.work(pilot(),
+                new OverheadSpot(held, feet.getX(), feet.getY(), feet.getZ()), player,
+                Settings.holder().look());
+        if (aimed) {
+            blind = 0;
+        } else if (++blind > BLIND_GRACE) {
+            overhead = null;
+            blind = 0;
             return false;
         }
+        pilot().stopWalking();
         pilot().holdStill();
         Trace.instance().repeat("mine-overhead", "mine", "breaking the block above at "
-                + spot.block().getX() + " " + spot.block().getY() + " "
-                + spot.block().getZ() + " without moving");
+                + held.getX() + " " + held.getY() + " " + held.getZ() + " without moving");
         return true;
+    }
+
+    private boolean stillAbove(BlockPos pos, BlockView world, WorkCosts work,
+                               LocalPlayer player) {
+        BlockPos feet = player.blockPosition();
+        if (!player.onGround() || pos.getX() != feet.getX() || pos.getZ() != feet.getZ()) {
+            return false;
+        }
+        if (pos.getY() < feet.getY()) {
+            return false;
+        }
+        if (world.stateAt(pos.getX(), pos.getY(), pos.getZ()).getBlock() instanceof AirBlock) {
+            return false;
+        }
+        return !work.avoidBreaking(pos.getX(), pos.getY(), pos.getZ(),
+                world.stateAt(pos.getX(), pos.getY(), pos.getZ()));
     }
 
     private void sweep(MineJob current, ClientLevel level, BlockPos feet, BlockView world,
@@ -268,6 +307,8 @@ public final class MineTask {
 
     private void giveUp(MineJob current) {
         release();
+        overhead = null;
+        blind = 0;
         Trace.instance().event("mine", "stopped mining " + current.filter().describe());
         job = null;
     }

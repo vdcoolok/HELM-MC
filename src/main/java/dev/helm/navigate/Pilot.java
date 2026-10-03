@@ -110,6 +110,13 @@ public final class Pilot {
         look.clear();
     }
 
+    public void stopWalking() {
+        active = false;
+        pending = null;
+        route = Route.empty();
+        controls.clear();
+    }
+
     public void holdStill() {
         this.held = true;
     }
