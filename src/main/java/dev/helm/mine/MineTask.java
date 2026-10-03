@@ -237,11 +237,9 @@ public final class MineTask {
         current.expireDrops();
         Set<BlockPos> held = new LinkedHashSet<>(current.ledger().positions());
         BlockPos looked = lookedAt(player);
-        if (looked != null && current.known().contains(looked)) {
+        if (looked != null && current.known().contains(looked) && standing(world, looked)) {
             current.hold(looked, settings);
-            if (standing(world, looked)) {
-                held.add(looked);
-            }
+            held.add(looked);
         }
         held.addAll(current.dropsIn(level));
         return List.copyOf(held);
