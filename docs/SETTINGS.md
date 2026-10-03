@@ -312,8 +312,7 @@ it if the server enforces a shorter reach than the client thinks it has.
 | `path.renderPath` | `true` | Draw the route |
 | `path.renderPathAsLine` | `false` | Draw a plain line instead of a ribbon |
 | `path.renderGoal` | `true` | Draw the goal |
-| `path.renderBlocksToBreak` | `true` | Outline blocks to mine |
-| `path.renderBlocksToPlace` | `true` | Outline blocks to place |
+| `path.blocksToPlace` | `true` | Outline blocks the path will place |
 | `path.fadePath` | `false` | Fade the route out with distance |
 | `path.lineWidth` | `5.0` | Thickness of the route line, in pixels |
 | `path.goalLineWidth` | `3.0` | Thickness of the goal line, in pixels |
@@ -432,9 +431,8 @@ harvests and in what order.
 toggles, and leaves the route drawing untouched.
 
 `outline.blocksToBreak` draws the outline for the path the navigator is walking.
-It is separate from `path.renderBlocksToBreak`, which draws a line box around the
-same blocks and can be seen through walls, so both can be on at once or either
-can be turned off.
+Blocks the path will break are drawn with this glow, so it is the only marking those
+blocks get.
 
 The three colours are ordinary `#RRGGBB` values, and only the silhouette changes.
 Silhouettes are drawn through the same outline pass the game uses for glowing

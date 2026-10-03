@@ -16,7 +16,6 @@ public record LineColour(float red, float green, float blue, float alpha) {
     }
 
     public static final LineColour PATH = of(0xFF4CE0A0);
-    public static final LineColour BREAK = of(0xFFE04C4C);
     public static final LineColour PLACE = of(0xFF4C6CE0);
     public static final LineColour WALK_INTO = of(0xFFE0C24C);
 }

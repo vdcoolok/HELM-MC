@@ -805,7 +805,7 @@ The route is drawn in the world as it is walked.
 - Blocks to place are outlined in blue
 - `path.fadePath` fades the route out with distance
 - `path.lineWidth` sets the thickness
-- `path.renderPath`, `path.renderBlocksToBreak` and `path.renderBlocksToPlace`
+- `path.renderPath` and `path.blocksToPlace`
   turn each part off
 
 The route is drawn with the same line pipeline the game itself uses, so it is
@@ -1952,9 +1952,9 @@ or a glowing mob keeps its own colour rather than being repainted.
 ### Interaction
 
 Turning `outline.enabled` off turns all of it off and leaves route drawing
-alone. Turning `outline.blocksToBreak` off stops the block silhouettes while
-`path.renderBlocksToBreak` keeps drawing line boxes, so the two can be used
-independently.
+alone. Turning `outline.blocksToBreak` off stops marking the blocks a route will
+break, while `path.blocksToPlace` keeps drawing line boxes around the blocks it
+will place, so the two can be used independently.
 
 ### Cancellation and failure
 

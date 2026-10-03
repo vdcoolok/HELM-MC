@@ -25,10 +25,7 @@ public final class RouteOverlay {
         var settings = Settings.holder().path();
         ViewOffset view = ViewOffset.of(camera);
         RoutePainter painter = new RoutePainter(BUFFER, settings);
-        if (settings.renderBlocksToBreak()) {
-            painter.paintBlocks(pose, route.blocksToBreak(), LineColour.BREAK, view);
-        }
-        if (settings.renderBlocksToPlace()) {
+        if (settings.blocksToPlace()) {
             painter.paintBlocks(pose, route.blocksToPlace(), LineColour.PLACE, view);
         }
         painter.paint(pose, route, agent.pilot().stepIndex(), LineColour.PATH, view);
