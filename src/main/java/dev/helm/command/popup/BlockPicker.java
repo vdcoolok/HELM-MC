@@ -25,7 +25,10 @@ public final class BlockPicker {
     }
 
     public static List<PopupRow> rows(SettingCatalogue.Entry entry, String partial) {
-        List<String> chosen = chosen(entry);
+        return rows(partial, chosen(entry));
+    }
+
+    public static List<PopupRow> rows(String partial, List<String> alreadyPicked) {
         List<PopupRow> built = new ArrayList<>();
         for (Choice choice : all()) {
             if (!matches(choice, partial)) {
@@ -33,7 +36,7 @@ public final class BlockPicker {
             }
             built.add(new PopupRow(choice.path(), "", SEARCH_COLUMN, choice.path()));
         }
-        for (String name : chosen) {
+        for (String name : alreadyPicked) {
             built.add(new PopupRow(name, "", CHOSEN_COLUMN, name));
         }
         return built;

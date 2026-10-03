@@ -60,7 +60,10 @@ public final class PopupGate {
         if (!hasWhitespace(before)) {
             return Mode.NAMES;
         }
-        return dev.helm.command.ArgumentHints.wantsInput(before) ? Mode.INPUTS : Mode.NONE;
+        if (dev.helm.command.ArgumentHints.wantsInput(before)) {
+            return Mode.INPUTS;
+        }
+        return namesBlocks(chatValue, cursor) ? Mode.BLOCKS : Mode.NONE;
     }
 
     public static boolean mentionsSetting(String chatValue) {
@@ -85,14 +88,38 @@ public final class PopupGate {
             return SettingPicker.rows(partial(chatValue, cursor));
         }
         if (mode == Mode.BLOCKS) {
-            SettingCatalogue.Entry entry = namedSetting(chatValue, cursor);
-            return BlockPicker.rows(entry, blockFilter(chatValue, cursor, entry));
+            if (mentionsSetting(chatValue)) {
+                return BlockPicker.rows(namedSetting(chatValue, cursor),
+                        blockFilter(chatValue, cursor, namedSetting(chatValue, cursor)));
+            }
+            return BlockPicker.rows(partial(chatValue, cursor), blockNames(chatValue, cursor));
         }
         if (mode == Mode.VALUES) {
             return SettingPicker.values(namedSetting(chatValue, cursor),
                     partial(chatValue, cursor));
         }
         return List.of();
+    }
+
+    private static boolean namesBlocks(String chatValue, int cursor) {
+        return BlockArguments.atBlockName(typedArguments(chatValue, cursor));
+    }
+
+    private static List<String> blockNames(String chatValue, int cursor) {
+        return BlockArguments.alreadyNamed(typedArguments(chatValue, cursor));
+    }
+
+    private static List<String> typedArguments(String chatValue, int cursor) {
+        List<String> words = tokens(typedSoFar(chatValue, cursor));
+        if (words.size() < 2 || !wantsBlocks(words.get(0))) {
+            return List.of();
+        }
+        return List.copyOf(words.subList(1, words.size()));
+    }
+
+    private static boolean wantsBlocks(String head) {
+        var found = dev.helm.command.CommandTree.instance().root(head);
+        return found.isPresent() && found.get().picksBlocks();
     }
 
     private static String blockFilter(String chatValue, int cursor,

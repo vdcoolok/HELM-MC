@@ -58,6 +58,7 @@ public final class NavigatorAgent {
     }
 
     public void onDisconnect() {
+        dev.helm.mine.MineTask.instance().stop();
         pilot.halt();
         pilot.forgetObjective();
         LookController.instance().release();

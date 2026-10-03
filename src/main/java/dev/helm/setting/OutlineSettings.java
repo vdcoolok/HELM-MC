@@ -7,6 +7,7 @@ public final class OutlineSettings extends SettingSection {
     public static final String BREAK_COLOUR = "outline.breakColour";
     public static final String CROP_COLOUR = "outline.cropColour";
     public static final String DROP_COLOUR = "outline.dropColour";
+    public static final String TARGET_COLOUR = "outline.targetColour";
 
     public OutlineSettings() {
         flag(ENABLED, "Silhouette outlines",
@@ -19,6 +20,9 @@ public final class OutlineSettings extends SettingSection {
                 "Colour of the outline around ripe crops.", 0xB4E04C);
         colour(DROP_COLOUR, "Drop outline colour",
                 "Colour of the outline around dropped items worth collecting.", 0x4CE0E0);
+        colour(TARGET_COLOUR, "Target outline colour",
+                "Colour of the outline around the blocks a mining job is working through.",
+                0xE0C24C);
     }
 
     public boolean enabled() {
@@ -39,5 +43,9 @@ public final class OutlineSettings extends SettingSection {
 
     public int dropColour() {
         return tint(DROP_COLOUR);
+    }
+
+    public int targetColour() {
+        return tint(TARGET_COLOUR);
     }
 }

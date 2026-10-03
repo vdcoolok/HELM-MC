@@ -33,12 +33,16 @@ public final class BlockReach {
         if (held != null) {
             return held;
         }
-        Aim atCentre = towardsPoint(viewer, pos, shapeCentre(viewer, pos), settings, sneaking);
+        return reachableFrom(viewer, pos, settings.blockReachDistance(), sneaking);
+    }
+
+    public static Aim reachableFrom(Entity viewer, BlockPos pos, double reach, boolean sneaking) {
+        Aim atCentre = towardsPoint(viewer, pos, shapeCentre(viewer, pos), reach, sneaking);
         if (atCentre != null) {
             return atCentre;
         }
         for (double[] corner : FACE_CORNERS) {
-            Aim atCorner = towardsPoint(viewer, pos, cornerOf(pos, corner), settings, sneaking);
+            Aim atCorner = towardsPoint(viewer, pos, cornerOf(pos, corner), reach, sneaking);
             if (atCorner != null) {
                 return atCorner;
             }
@@ -48,9 +52,14 @@ public final class BlockReach {
 
     public static Aim towardsPoint(Entity viewer, BlockPos pos, Vec3 point,
                                     LookSettings settings, boolean sneaking) {
+        return towardsPoint(viewer, pos, point, settings.blockReachDistance(), sneaking);
+    }
+
+    public static Aim towardsPoint(Entity viewer, BlockPos pos, Vec3 point, double reach,
+                                   boolean sneaking) {
         Vec3 eyes = eyePosition(viewer, sneaking);
         Aim wanted = Aiming.lookFrom(eyes.x, eyes.y, eyes.z, point.x, point.y, point.z);
-        HitResult trace = trace(viewer, wanted, settings, sneaking);
+        HitResult trace = trace(viewer, wanted, reach, sneaking);
         return lands(trace, pos, viewer) ? wanted : null;
     }
 
@@ -137,7 +146,11 @@ public final class BlockReach {
     }
 
     public static HitResult trace(Entity viewer, Aim aim, LookSettings settings, boolean sneaking) {
-        return AimTrace.towards(viewer, aim, settings.blockReachDistance(), sneaking);
+        return trace(viewer, aim, settings.blockReachDistance(), sneaking);
+    }
+
+    public static HitResult trace(Entity viewer, Aim aim, double reach, boolean sneaking) {
+        return AimTrace.towards(viewer, aim, reach, sneaking);
     }
 
     public static Vec3 directionOf(Aim aim) {

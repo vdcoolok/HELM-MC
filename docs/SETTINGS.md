@@ -185,6 +185,63 @@ If another mod already switches tools for you, turning
 | `mining.itemSaverThreshold` | `10` | Durability left on a tool when the item saver stops using it |
 | `mining.avoidBreaking` | *(empty)* | Comma separated block names the search routes around |
 | `mining.considerPotionEffects` | `true` | Account for haste and mining fatigue |
+| `mining.breakAllowedAnyway` | *(empty)* | Blocks `$mine` will still mine while breaking is off |
+| `mining.maxTargets` | `64` | Most places remembered at once |
+| `mining.lowestLevel` | `0` | Lowest level a target may be on |
+| `mining.highestLevel` | `2031` | Highest level a target may be on |
+| `mining.onlyExposed` | `false` | Require air or liquid touching the block |
+| `mining.exposedRadius` | `1` | How far around a target to look for that air |
+| `mining.sightOnly` | `false` | Never act on a block you cannot see |
+| `mining.sightDiagonals` | `false` | With sight only, accept a block touching a visible one |
+| `mining.stripLevel` | `-59` | Level held while exploring for unknown blocks |
+| `mining.exploreWhenUnknown` | `true` | Walk away when no target is known |
+| `mining.skipUnreachable` | `true` | Mark an unreachable target and try the next |
+| `mining.rescanEveryTicks` | `5` | Ticks between looks, `0` looks once |
+| `mining.scanWhenCacheThin` | `false` | Also read loaded chunks when the cache is thin |
+| `mining.followDroppedItems` | `true` | Walk over drops of the right type |
+| `mining.dropWaitMillis` | `250` | Milliseconds to wait after a break for a drop |
+| `mining.digIntoVein` | `true` | Path into the block behind a target in the same vein |
+| `mining.digThroughAir` | `true` | Count air beside a target as part of the vein |
+| `mining.breakOverhead` | `true` | Break a block directly above without moving |
+| `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
+| `mining.repackRadius` | `40` | Chunks remembered before mining starts |
+| `mining.scanRadius` | `32` | Chunks around you read when looking |
+| `mining.scanLevelWindow` | `10` | How far from your level the scan keeps looking |
+| `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
+| `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
+| `mining.renderTargets` | `true` | Outline every block the job has found |
+
+`mining.breakAllowedAnyway` takes block names the same way `mining.avoidBreaking`
+does. While `movement.allowBreak` is off, `$mine` will only mine blocks on this
+list, and refuses to start when none of the blocks it was given is on it:
+
+```
+$set mining.breakAllowedAnyway "chest,dirt,minecraft:oak_log"
+```
+
+The level settings are absolute, and `mining.lowestLevel 0` means the bottom of
+whichever dimension you are in, so the same value works everywhere.
+
+`mining.lowestLevel` and `mining.highestLevel` bound where a target may be at all,
+so `$mine diamond_ore` will not chase one down below bedrock or up in the sky.
+
+`mining.breakOverhead` is what takes a tree down without walking anywhere. With it
+off, `$mine oak_log` approaches each log from the side and mines it the same way as
+anything else.
+
+`mining.sightOnly` forces mining to behave as a player would: only blocks that can
+actually be seen from where you are standing become targets. It always keeps
+looking, even when `mining.exploreWhenUnknown` is off, and it is much slower than
+the usual search because the world has to be read directly rather than through
+remembered chunks.
+
+`mining.scanWhenCacheThin` additionally reads the chunks around you whenever the
+remembered ones hold fewer than `mining.maxTargets`. It is off by default because it
+costs a great deal more time for most worlds.
+
+`mining.digThroughAir` only matters while `mining.digIntoVein` is on. With it off, a
+single loose block stops the dig immediately because the air beside it is not part
+of the vein.
 
 `mining.avoidBreaking` takes block names, with or without the `minecraft:`
 prefix, comma separated. Unknown names are ignored rather than causing an error,
@@ -362,6 +419,7 @@ harvests and in what order.
 | `outline.breakColour` | `#E04C4C` | Colour around blocks that will be mined |
 | `outline.cropColour` | `#B4E04C` | Colour around ripe crops |
 | `outline.dropColour` | `#4CE0E0` | Colour around dropped items worth collecting |
+| `outline.targetColour` | `#E0C24C` | Colour around the blocks a mining job is working through |
 
 `outline.enabled` off turns off every silhouette at once, including the two farm
 toggles, and leaves the route drawing untouched.

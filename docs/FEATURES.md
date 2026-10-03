@@ -9,13 +9,25 @@
 - `goto` command walking to a block position
 - `autogoto` and `autogotohere` commands anchoring a position and walking back if moved off it
 - `autolookat` and `autolookathere` commands locking the camera to an angle until stopped
+- `mine` command searching for blocks and mining them until they run out or a count is reached
+- Mine block picker offering every block in the game, and tab completion for block names
+- Mine picking one block state, such as a single log axis
+- Mine breaking a block that is directly overhead without moving, which takes a tree down
+- Mine searching remembered chunks before reading the ones around you
+- Mine walking away from where it started when nothing is known yet
+- Mine marking a block unreachable and trying the next when no route can be found
+- Mine sight only mode that never acts on a block you cannot see
+- Mine exposed only mode that requires air or liquid touching the block
+- Mine level limits so it stays in the band you want
+- Mine following dropped items of the right type to pick them up
+- Mine outlining every block it has found, not just the ones on the current route
 - `farm` command harvesting ripe crops, replanting the empty ground and picking up the drops
 - Farm waiting on a field instead of giving up when the last ripe crop is taken
 - Farm planting aiming at the nearest reachable spot on the soil's top face
 - Farm swimming across water to collect a crop drop that landed in it
 
 - `allowInventory` setting fetching tools, placement blocks and farm supplies from the whole inventory, with slots 0 and 8 kept stocked
-- `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle and a farm at once
+- `stop` command cancelling a walk, a search, a macro, an anchor, a locked angle, a farm and a mine at once
 - Walking to a goal as a journey, searching again from wherever a route ran out
 - Steady walking over farmland and other short blocks, without jumping at every crop
 - Swimming up through water to reach something, instead of building towards it

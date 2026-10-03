@@ -15,6 +15,7 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `$autolookat <pitch>/<yaw>` | `alookat` | one angle |
 | `$autolookathere` | `alookathere` | none |
 | `$farm [<range>]` | `farming`, `harvest` | optional whole number of blocks |
+| `$mine [<count>] <blocks>...` | `dig`, `excavate` | optional whole number, then one or more block names |
 | `$stop` | `cancel`, `abort`, `halt` | none |
 | `$set` | `setting` | none, opens the picker |
 | `$set <name>` | `setting` | one setting name |
@@ -56,6 +57,11 @@ by HELM and never sent to the server. Anything else is normal chat.
 | `Look released.` | `$stop` caught a held facing |
 | `Macro stopped.` | `$stop` caught a running macro |
 | `Farming stopped.` | `$stop` caught a running farm |
+| `Mining stopped.` | `$stop` caught a running mine |
+| `Mining <blocks>.` | `$mine` started |
+| `Have N of <blocks>.` | The count was reached, so mining stopped |
+| `No <blocks> left to mine.` | Nothing left that was worth mining, so mining stopped |
+| `No way to reach any of <blocks>.` | Every known place was unreachable and skipping is off |
 | `Stopped.` | `$stop` caught a walk |
 | `Stopped searching.` | `$stop` caught an unfinished search |
 | `Nothing to stop.` | Nothing was walking, held or running |
@@ -101,6 +107,115 @@ $farm
 $farm 32
 $stop
 ```
+
+## Mining
+
+`$mine` looks for blocks of a given type and mines them until they run out, until
+a count is reached, or until `$stop`.
+
+```
+$mine oak_log
+$mine 64 diamond_ore
+$mine oak_log birch_log
+$mine 128 iron_ore gold_ore
+```
+
+With no count it mines every one it can find. With a count it stops once that many
+of the matching items are carried. More than one block name mines all of them,
+nearest first.
+
+Block names are the game's own, with or without the `minecraft:` prefix. A single
+state can be picked out with square brackets, and more than one at a time separated
+by commas:
+
+```
+$mine oak_log[axis=x]
+$mine oak_log[axis=x,waterlogged=false]
+```
+
+Those work the same way as they do in vanilla commands. Typing the name after
+`$mine` opens a picker of every block in the game, narrowed as you type, and `Tab`
+completes the highlighted block. An unreadable name is reported and nothing changes.
+
+```
+$mine oak_[Tab] [Space] oak_[Tab]
+```
+
+Every block it has found is outlined while it works, and so is the block it is
+breaking. Turn those off with:
+
+```
+$set mining.renderTargets false
+$set outline.blocksToBreak false
+$set outline.enabled false
+```
+
+There are three ways it mines, and it uses whichever reaches the block first:
+
+| Way | What it does |
+| --- | --- |
+| Break what is overhead | When the block is straight above you, stand still and break it |
+| Walk to it | Search for a route, breaking and placing as needed, then mine on the way |
+| Follow a drop | Walk over a dropped item of the right type and pick it up |
+
+Overhead breaking is what takes a tree down. Turn it off with:
+
+```
+$set mining.breakOverhead false
+```
+
+`$mine` drives HELM for as long as it lasts. `$goto`, `$autogoto`, `$autolookat`,
+`$farm` and starting a macro each end the mine first, because they need control of
+where you walk and which way you face.
+
+```
+$set mining.maxTargets 32
+$set mining.onlyExposed true
+$set mining.sightOnly true
+$set mining.exploreWhenUnknown false
+```
+
+### Where it looks
+
+Remembered chunks are searched first, since they cover ground you have already
+been to. Anything they do not hold is looked for in the chunks around you.
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `mining.maxTargets` | `64` | Most places remembered at once |
+| `mining.rescanEveryTicks` | `5` | Ticks between looking again, `0` looks once |
+| `mining.scanRadius` | `32` | Chunks around you that are read |
+| `mining.scanLevelWindow` | `10` | How far from your level the scan keeps looking |
+| `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
+| `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
+| `mining.repackRadius` | `40` | Chunks remembered before mining starts |
+
+When nothing is found anywhere it looks, and `mining.exploreWhenUnknown` is on, it
+walks away from where you started and keeps its distance while it does, so new
+chunks load and something turns up. `mining.stripLevel` is the level it holds while
+doing that, and `mining.exploreWhenUnknown false` stops it entirely.
+
+Turning it off does not mean giving up at once. `mining.skipUnreachable` is on by
+default, so when no route can be found the closest block is marked unreachable and
+the next one is tried. Turn that off and the first failure ends the job.
+
+```
+$set mining.lowestLevel -59
+$set mining.highestLevel 64
+```
+
+Levels are absolute, not relative to the bottom of the world, and
+`mining.lowestLevel 0` means the bottom of whatever dimension you are in.
+
+`mining.sightOnly` never acts on a block you cannot actually see, which reads much
+less like seeing through stone. It keeps looking rather than giving up when nothing
+turns up, and `mining.sightDiagonals` lets it also accept a block that only touches
+one it can already see.
+
+`mining.onlyExposed` requires air or liquid touching the block, within
+`mining.exposedRadius`. Higher radii are much slower to check.
+
+See [SETTINGS.md](SETTINGS.md) for the rest.
 
 ## Farming
 

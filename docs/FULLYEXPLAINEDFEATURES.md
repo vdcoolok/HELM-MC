@@ -943,6 +943,351 @@ walk at the same time fight each other. `$stop` resolves it.
 
 Both are released by `$stop` and by leaving the world.
 
+## mine
+
+Searches for blocks of a given type and mines them until they run out. Available as
+`$mine`, with the aliases `dig` and `excavate`.
+
+```
+$mine oak_log
+$mine 64 diamond_ore
+$mine oak_log birch_log
+$mine oak_log[axis=x]
+```
+
+Mining is not a route with an end point. It keeps finding blocks and mining them,
+and it stops when there is nothing left worth mining, when a count is reached,
+when `$stop` is typed, or when nothing it wants can be reached.
+
+### Naming blocks
+
+A block name is the game's own identifier, written with or without the
+`minecraft:` prefix. More than one name mines all of them, nearest first.
+
+A single block state is picked out with square brackets, and several at once
+separated by commas:
+
+```
+$mine oak_log[axis=x]
+$mine oak_log[axis=x,waterlogged=false]
+```
+
+The property name and its value must both be real for that block, or the command
+reports which part was wrong and nothing changes. A name that is not a block at
+all is reported the same way.
+
+### The block picker
+
+Typing anything after `$mine` opens a picker of every block in the game, in two
+columns. The left is every block, narrowed live as the last word is typed, and
+shown by its full name so there is no guessing about whether a space belongs in
+it. The right is the blocks already named on the line, in order, and it does not
+change as you type.
+
+`Tab` completes the highlighted block into the command and `Space` types a space,
+so a list can be built without spelling anything out in full:
+
+```
+$mine oak_[Tab] [Space] oak_[Tab]
+```
+
+Inside the square brackets the picker completes property names, then their values,
+instead of block names. Once the closing bracket is typed the picker stops, because
+there is nothing left to complete.
+
+Clicking a row in the picker does nothing to the command, so the cursor can still
+be put where it is wanted. Nothing is chosen until the command is sent.
+
+### Choosing what it mines
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `mining.maxTargets` | `64` | Most places remembered at once |
+| `mining.lowestLevel` | `0` | Lowest level a target may be on |
+| `mining.highestLevel` | `2031` | Highest level a target may be on |
+| `mining.onlyExposed` | `false` | Require air or liquid touching the block |
+| `mining.exposedRadius` | `1` | How far around a target to look for that air |
+
+Level settings are absolute, and `mining.lowestLevel 0` means the bottom of
+whichever dimension you are in, so the same value works everywhere. A block outside
+the band is never even remembered, not merely passed over later.
+
+`mining.onlyExposed` requires air, water or lava touching the block within
+`mining.exposedRadius` blocks. It is much slower to check, because every candidate
+has its surroundings read, and it exists for servers that shuffle ores around: a
+block that genuinely touches open space cannot have been placed by anything but the
+world generator.
+
+### Places it will not mine
+
+A remembered position is dropped when any of these hold:
+
+| Why | What it means |
+| --- | --- |
+| The chunk is loaded and the block is not wanted there | It was mined, or it was never what it looked like |
+| It cannot be broken | No tool reaches it, or the tool cannot mine it at all |
+| Breaking it would let something out | Bedrock above and below, or something that would flow in |
+| It is outside the level band | See above |
+| It was marked unreachable | A route to it could not be found, and it was skipped |
+
+Breaking it "would let something out" is the same rule pathing already uses to
+decide what may be broken at all, so mining never digs into something that a walk
+would refuse to dig into either.
+
+### Where it looks
+
+Remembered chunks are searched first. Those cover ground you have already been
+to, including chunks that are no longer loaded, which is why they are worth reading
+before anything else. Whatever they do not hold is looked for in the chunks around
+you, widening outwards, and inside each chunk the layers nearest your own level are
+read first.
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `mining.rescanEveryTicks` | `5` | Ticks between looks, `0` looks once |
+| `mining.scanRadius` | `32` | Chunks around you read when looking |
+| `mining.scanLevelWindow` | `10` | How far from your level the scan keeps looking |
+| `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
+| `mining.cacheScanLimit` | `10` | How many are found there before it stops widening |
+| `mining.scanWhenCacheThin` | `false` | Also read loaded chunks when the cache is thin |
+
+The scan stops when a whole ring of chunks around you is unloaded, when the target
+limit is reached and it has left your level band, or when it is still turning up
+targets at your own level. That last rule is what lets a player standing in a tall
+column of ore sweep all of it, while a huge flat field stops at the limit.
+
+A scan does not finish in one tick. Reading every block in that many chunks is slow
+enough to be felt as a hitch, so it spends a small slice of each tick and carries on
+from where it left off, starting with the chunk you are standing in and widening
+from there. Positions found so far are used as soon as they exist, so mining starts
+almost immediately and keeps discovering more as the scan widens.
+
+With `mining.rescanEveryTicks 0` the world is looked at once when mining starts and
+never again. Anything that turns up later is not noticed.
+
+`mining.scanWhenCacheThin` additionally reads the loaded world whenever the
+remembered chunks hold fewer than `mining.maxTargets`. It is off by default because
+it costs a great deal more time, and on most worlds the remembered chunks already
+hold enough.
+
+### Remembering chunks before it starts
+
+Before mining begins, every chunk within `mining.repackRadius` of you is queued to
+be remembered. Routes can then cross ground that has since been unloaded, which
+matters underground where you move away from ground quickly.
+
+### When nothing is known
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `mining.exploreWhenUnknown` | `true` | Walk away when no target is known |
+| `mining.stripLevel` | `-59` | Level held while doing so |
+| `mining.skipUnreachable` | `true` | Mark an unreachable target and try the next |
+
+When nothing is found anywhere it looks, and `mining.exploreWhenUnknown` is on, it
+walks away from where the job started and keeps its distance while it does, so new
+chunks load and something turns up. The route it takes is not aimed at a block at
+all: it is aimed away from the start and at `mining.stripLevel`, so it neither
+climbs nor digs while it wanders.
+
+Turning exploration off does not necessarily mean giving up at once. When no route
+can be found to any known block, `mining.skipUnreachable` marks the closest one
+unreachable and tries the next. Only when the last one is gone does it stop.
+
+```
+$set mining.exploreWhenUnknown false
+$set mining.skipUnreachable false
+```
+
+### Sight only
+
+`mining.sightOnly` never acts on a block you cannot actually see. It is off by
+default, and turning it on is the difference between mining where the blocks are
+and mining where they are not.
+
+With it on:
+
+| Behaviour | Detail |
+| --- | --- |
+| Only visible blocks become targets | Read from the world directly, within 10 blocks of you |
+| Only blocks you can reach become targets | Checked with a reach of 20 blocks, not your real reach |
+| It always keeps looking | Even with `mining.exploreWhenUnknown` off |
+| It stops re-reading remembered chunks | The whole world has to be read, since memory would be seeing |
+| `mining.sightDiagonals` widens it | Also accepts a block only touching one already visible |
+
+The reach of 20 is deliberate. A block you can see but not yet reach should still
+become a target, otherwise HELM would walk to it and then find there was nothing to
+mine. It does not grant the ability to mine at that distance.
+
+Sight only is much slower, because every visible block has to be read directly
+rather than looked up in remembered chunks, and every candidate has a reach check
+against it.
+
+### Getting to a block
+
+The route to a block is a normal HELM route, with the same breaking and placing
+rules as walking anywhere else. What differs is where the route is aimed.
+
+| Case | Aimed at |
+| --- | --- |
+| Nothing above or below worth mining | The block itself |
+| A block of the same vein below | Directly under it, two below, or the block below that |
+| The block above is a falling block | The block itself or the one under it |
+| Digging into the vein is off | The block itself, or the one under it |
+
+Two settings control this:
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `mining.digIntoVein` | `true` | Aim into the vein rather than at the block's edge |
+| `mining.digThroughAir` | `true` | Count air beside a block as part of the vein |
+
+`mining.digIntoVein` is what lets one break take two or three, when a vein runs
+through the block behind the one that was found. Turning it off means every block is
+approached from outside the vein, which is slower but breaks fewer blocks.
+
+`mining.digThroughAir` only matters while digging into the vein is on. With it off,
+a single loose block stops the dig immediately, because the air beside it is not
+part of the vein. With it on, a vein of one block surrounded by air is treated as a
+vein of three, which is what a real vein of that shape looks like underground.
+
+### Breaking what is overhead
+
+When a block that is still wanted sits directly above you, and you are on the
+ground, HELM stops and breaks it instead of walking somewhere first. This is what
+takes a tree down.
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `mining.breakOverhead` | `true` | Break a block directly above without moving |
+| `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
+
+Overhead breaking needs a block that can actually be broken from where you stand, so
+it falls back to walking when the block is out of reach or would release something.
+Turning it off makes `$mine oak_log` approach each log from the side, the same way
+as anything else.
+
+`mining.stopRouteWhenMined` stops a walk the moment the block it was heading for is
+gone, rather than finishing a route that no longer leads anywhere. It makes mining
+faster, since no time is spent walking into locations that no longer hold anything,
+at the cost of occasionally leaving a drop behind.
+
+### Waiting for drops
+
+| Setting | Default | What it does |
+| --- | --- | --- |
+| `mining.followDroppedItems` | `true` | Walk over drops of the right type |
+| `mining.dropWaitMillis` | `250` | Milliseconds to wait after a break for a drop |
+
+When a drop of the right type is lying on the ground, its position becomes a target
+in its own right, so HELM walks over and picks it up rather than leaving it.
+
+Breaking a block and immediately moving on is a race the drop often loses, because
+it takes a moment to appear. So the position of a block that has just been broken is
+held as a target for `mining.dropWaitMillis` afterwards, giving the drop time to
+appear and be collected. It is refreshed while it is still being looked at, so
+looking at it extends the wait rather than cutting it short.
+
+Which items count as belonging to a block is worked out rather than listed. The
+dropped item cache learns what actually came out of the blocks HELM broke, so
+anything a server, mod or config changes about what a block drops is still collected
+correctly. See [dropped item cache](#dropped-item-cache).
+
+### Stopping on a count
+
+```
+$mine 64 diamond_ore
+```
+
+With a count, mining stops once that many matching items are carried. The count is
+taken across the whole inventory rather than the hotbar, and it counts anything the
+block drops, not the block itself.
+
+The count is checked before anything else each tick, so it stops immediately when
+the count is already reached, without walking anywhere first.
+
+### Interaction with other features
+
+Mining is the only thing driving HELM while it runs. `$goto`, `$autogoto`,
+`$autolookat`, `$farm` and starting a macro each end the mine first, because they
+need control of where you walk and which way you face, and mining has both for as
+long as it lasts. `$farm` and `$mine` cannot run at once in either order.
+
+`$stop` stops mining along with everything else.
+
+`mining.renderTargets` outlines every block the job still knows about, not just the
+ones on the current route, and `outline.blocksToBreak` continues to outline the
+blocks the route itself will break. Both are off independently, and
+`outline.enabled` turns off every outline.
+
+### Settings
+
+| Name | Default | What it does |
+| --- | --- | --- |
+| `mining.breakAllowedAnyway` | *(empty)* | Blocks mined even while breaking is off |
+| `mining.maxTargets` | `64` | Most places remembered at once |
+| `mining.lowestLevel` | `0` | Lowest level a target may be on |
+| `mining.highestLevel` | `2031` | Highest level a target may be on |
+| `mining.onlyExposed` | `false` | Require air or liquid touching the block |
+| `mining.exposedRadius` | `1` | How far around a target to look for that air |
+| `mining.sightOnly` | `false` | Never act on a block you cannot see |
+| `mining.sightDiagonals` | `false` | With sight only, accept a block touching a visible one |
+| `mining.stripLevel` | `-59` | Level held while exploring |
+| `mining.exploreWhenUnknown` | `true` | Walk away when no target is known |
+| `mining.skipUnreachable` | `true` | Mark an unreachable target and try the next |
+| `mining.rescanEveryTicks` | `5` | Ticks between looks |
+| `mining.scanWhenCacheThin` | `false` | Also read loaded chunks when the cache is thin |
+| `mining.followDroppedItems` | `true` | Walk over drops of the right type |
+| `mining.dropWaitMillis` | `250` | Milliseconds to wait after a break for a drop |
+| `mining.digIntoVein` | `true` | Aim into the vein rather than at its edge |
+| `mining.digThroughAir` | `true` | Count air beside a block as part of the vein |
+| `mining.breakOverhead` | `true` | Break a block directly above without moving |
+| `mining.stopRouteWhenMined` | `true` | Stop a route whose destination has gone |
+| `mining.repackRadius` | `40` | Chunks remembered before mining starts |
+| `mining.scanRadius` | `32` | Chunks around you read when looking |
+| `mining.scanLevelWindow` | `10` | How far from your level the scan keeps looking |
+| `mining.cacheScanRadius` | `2` | How far around you remembered chunks are searched |
+| `mining.cacheScanLimit` | `10` | How many are found before the cache search stops widening |
+| `mining.renderTargets` | `true` | Outline every block the job has found |
+
+See [SETTINGS.md](SETTINGS.md) for what each one changes.
+
+### Failure behaviour
+
+| Situation | What happens |
+| --- | --- |
+| No block name given | error naming the argument |
+| Name is not a block in the game | error naming it, nothing changes |
+| Property does not exist on that block | error naming the block and the property |
+| Value is not valid for that property | error naming the property and the value |
+| Nothing left worth mining | mining stops and says so |
+| No route to any known block, skipping on | the closest is marked unreachable and the next is tried |
+| No route to any known block, skipping off | mining stops and says so |
+| Count reached | mining stops and says so |
+| Breaking turned off and no block allowed | mining refuses to start and says why |
+| Leaving the world | mining stops |
+
+### Cancellation
+
+`$stop` stops mining, releases the walk, and releases any held position or facing.
+So does starting `$goto`, `$autogoto`, `$autolookat`, `$farm` or a macro, and so does
+leaving the world.
+
+Nothing is left running. The scan stops, the remembered blocks are dropped, and no
+controls stay held.
+
+### Known limitations
+
+- Only blocks are accepted. An item with no block form cannot be mined.
+- A drop is collected by walking over it. HELM does not path to a drop that is
+  somewhere awkward, such as floating in a cave it would have to climb into, unless
+  the route there happens to be walkable.
+- The count only sees items already carried, so it cannot stop before one break.
+- Sight only reads 21 blocks cubed around you every tick, which is the single
+  largest cost in the feature.
+- `mining.exposedRadius` above about 3 is very slow, because every candidate has
+  that many surrounding blocks read.
+
 ## farm
 
 Harvests nearby crops and puts them back in the ground. Available as `$farm`,

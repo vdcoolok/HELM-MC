@@ -34,6 +34,7 @@ public final class MacroController {
 
     public void start(MacroDocument document, CommandOutput output) {
         FarmTask.instance().stop();
+        dev.helm.mine.MineTask.instance().stop();
         runner = new MacroRunner(document);
         this.output = output;
         output.feedback(CommandFeedback.success("Started macro: " + document.name()));

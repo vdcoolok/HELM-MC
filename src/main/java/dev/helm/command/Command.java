@@ -15,6 +15,7 @@ public final class Command {
     private String description = "";
     private CommandExecutor executor;
     private Command parent;
+    private boolean takesBlocks;
     private java.util.function.BooleanSupplier visible = () -> true;
 
     private Command(String name) {
@@ -44,6 +45,15 @@ public final class Command {
     public Command taking(ArgumentDefinition... definitions) {
         arguments.addAll(List.of(definitions));
         return this;
+    }
+
+    public Command pickingBlocks() {
+        takesBlocks = true;
+        return this;
+    }
+
+    public boolean picksBlocks() {
+        return takesBlocks;
     }
 
     public Command shownWhen(java.util.function.BooleanSupplier condition) {

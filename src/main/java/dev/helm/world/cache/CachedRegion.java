@@ -1,5 +1,6 @@
 package dev.helm.world.cache;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -77,6 +78,28 @@ public final class CachedRegion {
 
     public boolean holds(int x, int z) {
         return at(x >> 4, z >> 4) != null;
+    }
+
+    public List<int[]> trackedPositions(String name) {
+        List<int[]> found = new ArrayList<>();
+        for (int chunkX = 0; chunkX < GRID; chunkX++) {
+            for (int chunkZ = 0; chunkZ < GRID; chunkZ++) {
+                PackedChunk chunk = at(chunkX, chunkZ);
+                if (chunk == null) {
+                    continue;
+                }
+                List<int[]> positions = chunk.trackedByName().get(name);
+                if (positions == null) {
+                    continue;
+                }
+                int baseX = (regionX * GRID + chunkX) << 4;
+                int baseZ = (regionZ * GRID + chunkZ) << 4;
+                for (int[] position : positions) {
+                    found.add(new int[]{baseX | position[0], position[1], baseZ | position[2]});
+                }
+            }
+        }
+        return found;
     }
 
     public int packedChunks() {

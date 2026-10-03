@@ -94,6 +94,7 @@ public final class AutoCommands {
         Trace.instance().event("goto", "anchoring on " + x + " " + y + " " + z
                 + " from " + feet[0] + " " + feet[1] + " " + feet[2]);
         FarmTask.instance().stop();
+        dev.helm.mine.MineTask.instance().stop();
 
         Objective target = Objective.at(x, y, z);
         agent.pilot().anchorAt(target);
@@ -117,6 +118,7 @@ public final class AutoCommands {
 
     private static CommandResult hold(double pitch, double yaw, String shown) {
         FarmTask.instance().stop();
+        dev.helm.mine.MineTask.instance().stop();
         LookController.instance().hold(new Aim(yaw, pitch));
         Trace.instance().barrier("autolookat");
         Trace.instance().event("look", "holding " + shown
