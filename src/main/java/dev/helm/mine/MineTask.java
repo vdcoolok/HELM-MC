@@ -150,7 +150,7 @@ public final class MineTask {
             return;
         }
         awaiting = 0;
-        if (current.vein(world).isEmpty() && dropsLanding(current, level, settings)) {
+        if (current.committed(world).isEmpty() && dropsLanding(current, level, settings)) {
             pilot().holdStill();
             return;
         }

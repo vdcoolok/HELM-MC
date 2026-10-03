@@ -198,7 +198,6 @@ public final class MineJob {
             return AnyGoal.of(goals);
         }
         if (settings.waitForDrops() && !drops.isEmpty()) {
-            working = null;
             return hold(world, work, settings, drops);
         }
         working = null;
@@ -215,13 +214,13 @@ public final class MineJob {
         return AnyGoal.of(goals);
     }
 
-    private List<BlockPos> committed(BlockView world) {
+    public List<BlockPos> committed(BlockView world) {
         List<BlockPos> standing = vein(world);
         if (standing.isEmpty()) {
             return standing;
         }
         BlockPos seed = standing.get(0);
-        if (working == null || !working.contains(seed)) {
+        if (working == null) {
             working = Vein.around(standing, world, filter, seed);
         }
         List<BlockPos> left = new ArrayList<>();
